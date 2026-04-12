@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Libraire {
+  id               String     @id @default(cuid())
+  codeClient       String     @unique
+  email            String     @unique
+  nomLibrairie     String
+  adresseLivraison String
+  motDePasse       String
+  remises          Remise[]
+  commandes        Commande[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model Remise {
+  id          String   @id @default(cuid())
+  libraire    Libraire @relation(fields: [libraireId], references: [id])
+  libraireId  String
+  thematique  String
+  pourcentage Float
+}
+
+model Commande {
+  id            String          @id @default(cuid())
+  libraire      Libraire        @relation(fields: [libraireId], references: [id])
+  libraireId    String
+  statut        StatutCommande  @default(EN_ATTENTE)
+  montantHT     Float
+  remise        Float
+  netHT         Float
+  tva           Float
+  totalTTC      Float
+  dateLivraison DateTime?
+  lignes        LigneCommande[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model LigneCommande {
+  id         String   @id @default(cuid())
+  commande   Commande @relation(fields: [commandeId], references: [id])
+  commandeId String
+  ean        String
+  titre      String
+  quantite   Int
+  prixHT     Float
+  thematique String
+}
+
+enum StatutCommande {
+  EN_ATTENTE
+  CONFIRMEE
+  ANNULEE
+}

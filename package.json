@@ -1,5 +1,5 @@
 {
-  "name": "media-diffusion",
+  "name": "bookflow",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,16 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "^7.7.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/styled-components": "^5.1.36",
+    "babel-plugin-styled-components": "^2.1.4",
+    "bcryptjs": "^3.0.3",
+    "next": "14.2.35",
+    "next-auth": "^5.0.0-beta.30",
+    "prisma": "^7.7.0",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.35"
+    "styled-components": "^6.4.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
-    "eslint-config-next": "14.2.35"
+    "eslint-config-next": "14.2.35",
+    "typescript": "^5"
   }
 }
