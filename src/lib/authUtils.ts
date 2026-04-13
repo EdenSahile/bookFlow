@@ -1,0 +1,99 @@
+import { z } from 'zod'
+
+/* ── Schémas Zod ── */
+
+export const loginSchema = z.object({
+  identifier: z
+    .string()
+    .min(1, 'Identifiant requis')
+    .trim(),
+  password: z
+    .string()
+    .min(1, 'Mot de passe requis'),
+})
+
+export const registerSchema = z
+  .object({
+    codeClient: z
+      .string()
+      .min(3, 'Code client invalide')
+      .max(20, 'Code client invalide')
+      .trim()
+      .toUpperCase(),
+    email: z
+      .string()
+      .email('Adresse email invalide')
+      .trim()
+      .toLowerCase(),
+    password: z
+      .string()
+      .min(8, 'Minimum 8 caractères')
+      .regex(/[A-Z]/, 'Une majuscule requise')
+      .regex(/[0-9]/, 'Un chiffre requis')
+      .regex(/[^A-Za-z0-9]/, 'Un caractère spécial requis (!@#$…)'),
+    confirmPassword: z
+      .string()
+      .min(1, 'Confirmation requise'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  })
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .email('Adresse email invalide')
+    .trim()
+    .toLowerCase(),
+})
+
+/* ── Types inférés ── */
+
+export type LoginInput = z.infer<typeof loginSchema>
+export type RegisterInput = z.infer<typeof registerSchema>
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+
+/* ── Token mock ── */
+
+export interface MockTokenPayload {
+  sub: string       // user id
+  codeClient: string
+  iat: number
+  exp: number
+}
+
+export function createMockToken(userId: string, codeClient: string): string {
+  const header = btoa(JSON.stringify({ alg: 'mock', typ: 'JWT' }))
+  const payload = btoa(
+    JSON.stringify({
+      sub: userId,
+      codeClient,
+      iat: Date.now(),
+      exp: Date.now() + 8 * 60 * 60 * 1000, // 8h
+    } satisfies MockTokenPayload)
+  )
+  return `${header}.${payload}.mock`
+}
+
+export function parseMockToken(token: string): MockTokenPayload | null {
+  try {
+    const [, payloadB64] = token.split('.')
+    const payload = JSON.parse(atob(payloadB64)) as MockTokenPayload
+    if (payload.exp < Date.now()) return null // expiré
+    return payload
+  } catch {
+    return null
+  }
+}
+
+/* ── Helpers validation ── */
+
+export function getZodErrors(
+  result: { success: false; error: z.ZodError } | { success: true }
+): Record<string, string> {
+  if (result.success) return {}
+  return Object.fromEntries(
+    result.error.issues.map((issue: z.ZodIssue) => [issue.path[0], issue.message])
+  )
+}

@@ -121,29 +121,31 @@ En permanence : **Menu Burger** (gauche) + **Panier** (droite, avec badge quanti
 
 ## Stack technique
 
-| Couche | Technologie |
-|--------|-------------|
-| Framework | **Next.js 14** (App Router) |
-| Langage | **TypeScript** (strict) |
-| Style | **Styled-components** |
-| Auth | **NextAuth.js v5** (JWT) |
-| BDD | **PostgreSQL** via **Prisma ORM** (hébergé sur **Supabase**) |
-| Validation | **Zod** (tous les inputs) |
-| PWA | **next-pwa** |
-| Déploiement | **Vercel** |
+> **Stratégie** : développement initial en **React + Vite** (itération rapide, pas de SSR), migration vers **Next.js 14** en Phase 12 (SSR, API routes, NextAuth, next-pwa).
 
+| Couche | Phase 1–11 (transitoire) | Phase 12+ (production) |
+|--------|--------------------------|------------------------|
+| Framework | **Vite 5 + React 18** | **Next.js 14** (App Router) |
+| Routing | **React Router v6** | Next.js App Router |
+| Langage | **TypeScript** (strict) | TypeScript (strict) |
+| Style | **Styled-components v6** | Styled-components v6 |
+| Auth | **Mock JWT** (localStorage) | **NextAuth.js v5** (httpOnly cookie) |
+| BDD | **Prisma ORM** installé — branché à la migration | **PostgreSQL** via Prisma (Supabase) |
+| Validation | **Zod** (tous les inputs) | Zod |
+| PWA | **vite-plugin-pwa** | **next-pwa** |
+| Déploiement | Local / Vercel (build Vite) | **Vercel** (Next.js) |
 ---
 
 ## Sécurité — règles non négociables
 
-- Mots de passe hashés avec **bcrypt** (cost factor ≥ 12)
-- JWT avec expiration courte — refresh token en **httpOnly cookie** uniquement
-- Rate limiting sur `/api/auth/*` : max 5 tentatives/minute par IP
+- Mots de passe hashés avec **bcrypt** (cost factor ≥ 12) — actif dès Phase 3
+- JWT avec expiration courte — refresh token en **httpOnly cookie** uniquement (Phase 12, migration Next.js)
+- Rate limiting sur `/api/auth/*` : max 5 tentatives/minute par IP (Phase 12)
 - Toute donnée entrante validée avec **Zod** avant traitement
-- Prix et remises toujours recalculés **côté serveur**
-- Toutes les routes `/api/*` vérifient le token JWT
+- Prix et remises toujours recalculés **côté serveur** (Phase 12)
+- Toutes les routes `/api/*` vérifient le token JWT (Phase 12)
 - Un libraire ne peut accéder qu'à ses propres données (vérification `codeClient`)
-- Headers HTTP sécurisés dans `next.config.mjs` (CSP, X-Frame-Options, HSTS…)
+- Headers HTTP sécurisés (CSP, X-Frame-Options, HSTS…) — `next.config.mjs` en Phase 12, `vite.config.ts` en dev
 - **Prisma** exclusivement — jamais de SQL brut avec interpolations
 - Variables d'environnement dans `.env` — jamais dans le code, `.env` dans `.gitignore`
 
@@ -154,13 +156,16 @@ En permanence : **Menu Burger** (gauche) + **Panier** (droite, avec badge quanti
 | Phase | Contenu | Statut |
 |-------|---------|--------|
 | 1 | Setup projet + structure + `.env` + Prisma schema | ✅ Fait |
+| 1bis | **Migration React/Vite** — remplacement Next.js par Vite + React Router | ✅ Fait |
 | 2 | Layout global (nav bottom mobile / sidebar desktop) + design system | ⬜ À faire |
-| 3 | Authentification (inscription + connexion + mot de passe oublié) | ⬜ À faire |
+| 3 | Authentification mock (inscription + connexion + mot de passe oublié) | ⬜ À faire |
 | 4 | Accueil (recherche + scanner UI) | ⬜ À faire |
 | 5 | Catalogue Fonds + Nouveautés (liste, filtres, fiche produit) | ⬜ À faire |
 | 6 | Panier + commande | ⬜ À faire |
 | 7 | Flash Infos | ⬜ À faire |
 | 8 | Menu Burger + Mon compte + Historique | ⬜ À faire |
 | 9 | Scanner caméra (lecture code-barres réelle) | ⬜ À faire |
-| 10 | PWA (manifest + service worker + icônes) | ⬜ À faire |
-| 11 | Tests + audit sécurité + déploiement Vercel | ⬜ À faire |
+| 10 | PWA — vite-plugin-pwa (manifest + service worker + icônes) | ⬜ À faire |
+| 11 | Tests + recette fonctionnelle | ⬜ À faire |
+| 12 | **Migration Next.js 14** — SSR, App Router, NextAuth.js v5, next-pwa, API routes, Supabase live | ⬜ À faire |
+| 13 | Audit sécurité + déploiement Vercel production | ⬜ À faire |

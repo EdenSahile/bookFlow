@@ -1,0 +1,147 @@
+import styled from 'styled-components'
+import { NavLink } from 'react-router-dom'
+
+/* ── Icons SVG inline ── */
+function HomeIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path
+        d="M3 9.5L11 3l8 6.5V19a1 1 0 0 1-1 1H14v-5h-4v5H4a1 1 0 0 1-1-1V9.5z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function StarIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path
+        d="M11 2l2.39 4.84 5.35.78-3.87 3.77.91 5.33L11 14.27l-4.78 2.51.91-5.33L3.26 7.62l5.35-.78L11 2z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function BookIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path
+        d="M4 19V5a2 2 0 0 1 2-2h12v14H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h12"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M9 7h6M9 11h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function TrendingIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <polyline
+        points="3,17 8,12 12,15 18,6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <polyline
+        points="14,6 18,6 18,10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function GridIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+      <rect x="12" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+      <rect x="3" y="12" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+      <rect x="12" y="12" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  )
+}
+
+/* ── Styled ── */
+const Nav = styled.nav`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: ${({ theme }) => theme.layout.bottomNavHeight};
+  background-color: ${({ theme }) => theme.colors.navy};
+  display: flex;
+  align-items: stretch;
+  box-shadow: ${({ theme }) => theme.shadows.nav};
+  z-index: 100;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    display: none;
+  }
+`
+
+const StyledNavLink = styled(NavLink)`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.white};
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  &.active {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+const TabLabel = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 10px;
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  letter-spacing: 0.02em;
+`
+
+/* ── Component ── */
+const tabs = [
+  { to: '/', label: 'Accueil', icon: <HomeIcon />, end: true },
+  { to: '/nouveautes', label: 'Nouveautés', icon: <StarIcon /> },
+  { to: '/fonds', label: 'Fonds', icon: <BookIcon /> },
+  { to: '/top-ventes', label: 'Top Ventes', icon: <TrendingIcon /> },
+  { to: '/selections', label: 'Sélections', icon: <GridIcon /> },
+]
+
+export function BottomNav() {
+  return (
+    <Nav aria-label="Navigation principale">
+      {tabs.map(({ to, label, icon, end }) => (
+        <StyledNavLink key={to} to={to} end={end}>
+          {icon}
+          <TabLabel>{label}</TabLabel>
+        </StyledNavLink>
+      ))}
+    </Nav>
+  )
+}

@@ -1,0 +1,176 @@
+import { createContext, useContext, useEffect, useState } from 'react'
+import bcrypt from 'bcryptjs'
+import { MOCK_USERS, VALID_CLIENT_CODES, type MockUser } from '@/lib/mockUsers'
+import {
+  loginSchema,
+  registerSchema,
+  createMockToken,
+  parseMockToken,
+  getZodErrors,
+  type LoginInput,
+  type RegisterInput,
+} from '@/lib/authUtils'
+
+const TOKEN_KEY = 'bookflow_token'
+const BCRYPT_COST = 12
+
+/* ── Types ── */
+
+export interface AuthUser {
+  id: string
+  codeClient: string
+  nomLibrairie: string
+  email: string
+  adresseLivraison: string
+  remise: number
+  telephone: string
+}
+
+interface AuthResult {
+  success: boolean
+  error?: string
+  fieldErrors?: Partial<Record<string, string>>
+}
+
+interface AuthContextValue {
+  user: AuthUser | null
+  isLoading: boolean
+  login: (data: LoginInput) => Promise<AuthResult>
+  register: (data: RegisterInput) => Promise<AuthResult>
+  logout: () => void
+}
+
+/* ── Context ── */
+
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+/* ── Provider ── */
+
+// Stockage en mémoire pour les comptes créés durant la session (mock)
+let sessionUsers: MockUser[] = []
+
+function toAuthUser(u: MockUser): AuthUser {
+  return {
+    id: u.id,
+    codeClient: u.codeClient,
+    nomLibrairie: u.nomLibrairie,
+    email: u.email,
+    adresseLivraison: u.adresseLivraison,
+    remise: u.remise,
+    telephone: u.telephone,
+  }
+}
+
+function findUser(identifier: string): MockUser | undefined {
+  const id = identifier.trim().toLowerCase()
+  const match = (u: MockUser) =>
+    u.email.toLowerCase() === id || u.codeClient.toLowerCase() === id
+  // Les comptes enregistrés en session ont priorité sur les mocks
+  return sessionUsers.find(match) ?? MOCK_USERS.find(match)
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Restaurer la session au montage
+  useEffect(() => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (token) {
+      const payload = parseMockToken(token)
+      if (payload) {
+        const found = findUser(payload.codeClient)
+        if (found) {
+          setUser(toAuthUser(found))
+        } else {
+          localStorage.removeItem(TOKEN_KEY)
+        }
+      } else {
+        localStorage.removeItem(TOKEN_KEY)
+      }
+    }
+    setIsLoading(false)
+  }, [])
+
+  const login = async (data: LoginInput): Promise<AuthResult> => {
+    const result = loginSchema.safeParse(data)
+    if (!result.success) {
+      return { success: false, fieldErrors: getZodErrors(result) }
+    }
+
+    const found = findUser(result.data.identifier)
+    if (!found) {
+      return { success: false, error: 'Code client ou email introuvable.' }
+    }
+
+    const passwordMatch = await bcrypt.compare(result.data.password, found.passwordHash)
+    if (!passwordMatch) {
+      return { success: false, error: 'Mot de passe incorrect.' }
+    }
+
+    const token = createMockToken(found.id, found.codeClient)
+    localStorage.setItem(TOKEN_KEY, token)
+    setUser(toAuthUser(found))
+    return { success: true }
+  }
+
+  const register = async (data: RegisterInput): Promise<AuthResult> => {
+    const result = registerSchema.safeParse(data)
+    if (!result.success) {
+      return { success: false, fieldErrors: getZodErrors(result) }
+    }
+
+    const { codeClient, email, password } = result.data
+
+    // Vérification double : le code client doit exister ET l'email doit correspondre
+    const validEntry = VALID_CLIENT_CODES.find(
+      (v) => v.codeClient === codeClient
+    )
+    if (!validEntry) {
+      return { success: false, fieldErrors: { codeClient: 'Code client non reconnu.' } }
+    }
+    if (validEntry.email.toLowerCase() !== email.toLowerCase()) {
+      return {
+        success: false,
+        fieldErrors: { email: "Cet email ne correspond pas à ce code client." },
+      }
+    }
+
+    // Vérifier que le compte n'a pas déjà été créé en session
+    const existing = sessionUsers.find((u) => u.codeClient === codeClient)
+    if (existing) {
+      return { success: false, error: 'Un compte existe déjà pour ce code client.' }
+    }
+
+    // Créer le compte (session uniquement — remplacé par Prisma en Phase 12)
+    const base = MOCK_USERS.find((u) => u.codeClient === codeClient)!
+    const newUser: MockUser = {
+      ...base,
+      passwordHash: await bcrypt.hash(password, BCRYPT_COST),
+    }
+    sessionUsers.push(newUser)
+
+    const token = createMockToken(newUser.id, newUser.codeClient)
+    localStorage.setItem(TOKEN_KEY, token)
+    setUser(toAuthUser(newUser))
+    return { success: true }
+  }
+
+  const logout = () => {
+    localStorage.removeItem(TOKEN_KEY)
+    setUser(null)
+    sessionUsers = []
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuthContext(): AuthContextValue {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuthContext doit être utilisé dans <AuthProvider>')
+  return ctx
+}

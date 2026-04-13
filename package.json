@@ -2,32 +2,38 @@
   "name": "bookflow",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext ts,tsx",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^7.7.0",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/styled-components": "^5.1.36",
-    "babel-plugin-styled-components": "^2.1.4",
+    "@zxing/browser": "^0.1.5",
+    "@zxing/library": "^0.21.3",
     "bcryptjs": "^3.0.3",
-    "next": "14.2.35",
-    "next-auth": "^5.0.0-beta.30",
-    "prisma": "^7.7.0",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
     "styled-components": "^6.4.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^4.3.4",
+    "babel-plugin-styled-components": "^2.1.4",
+    "dotenv": "^16.4.5",
     "eslint": "^8",
-    "eslint-config-next": "14.2.35",
-    "typescript": "^5"
+    "prisma": "^7.7.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.11"
   }
 }
