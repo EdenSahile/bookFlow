@@ -8,6 +8,9 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { HomePage } from '@/pages/home/HomePage'
 import { RecherchePage } from '@/pages/search/RecherchePage'
+import { NouveautesPage } from '@/pages/nouveautes/NouveautesPage'
+import { FondsPage } from '@/pages/fonds/FondsPage'
+import { FicheProduitPage } from '@/pages/catalogue/FicheProduitPage'
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -42,8 +45,9 @@ export default function App() {
               <Route element={<ProtectedLayout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/recherche" element={<RecherchePage />} />
-                <Route path="/nouveautes" element={<Placeholder title="Nouveautés" />} />
-                <Route path="/fonds" element={<Placeholder title="Fonds" />} />
+                <Route path="/nouveautes" element={<NouveautesPage />} />
+                <Route path="/fonds" element={<FondsPage />} />
+                <Route path="/livre/:id" element={<FicheProduitPage />} />
                 <Route path="/top-ventes" element={<Placeholder title="Top Ventes" />} />
                 <Route path="/selections" element={<Placeholder title="Sélections" />} />
                 <Route path="/flash-infos" element={<Placeholder title="Flash Infos" />} />
