@@ -111,6 +111,7 @@ export function ScannerModal({ onClose }: Props) {
   const videoRef    = useRef<HTMLVideoElement>(null)
   const streamRef   = useRef<MediaStream | null>(null)
   const controlsRef = useRef<{ stop: () => void } | null>(null)
+  const rafRef      = useRef<number | null>(null)
   const doneRef     = useRef(false)
 
   const [state,     setState]     = useState<ScannerState>('requesting')
@@ -123,6 +124,7 @@ export function ScannerModal({ onClose }: Props) {
   const handleDetected = (ean: string) => {
     if (doneRef.current) return
     doneRef.current = true
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
     controlsRef.current?.stop()
     streamRef.current?.getTracks().forEach(t => t.stop())
     onClose()
@@ -135,6 +137,7 @@ export function ScannerModal({ onClose }: Props) {
     // Sans ce reset, le scan s'arrête immédiatement au remount.
     doneRef.current = false
     controlsRef.current = null
+    rafRef.current = null
 
     const start = async () => {
       try {
@@ -165,36 +168,52 @@ export function ScannerModal({ onClose }: Props) {
 
         setState('scanning')
 
-        /* 3 — Charger ZXing et démarrer le scan via l'API officielle */
-        const { BrowserMultiFormatReader } = await import('@zxing/browser')
-        const { DecodeHintType, BarcodeFormat } = await import('@zxing/library')
-        if (cancelled) return
-
+        /* 3 — Détection : BarcodeDetector natif (Chrome/Edge) ou ZXing (Firefox/Safari) */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const hints = new Map<any, any>([
-          [DecodeHintType.POSSIBLE_FORMATS, [
-            BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
-            BarcodeFormat.CODE_128, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
-          ]],
-          [DecodeHintType.TRY_HARDER, true],
-        ])
+        if ('BarcodeDetector' in window) {
+          /* ── Stratégie A : API native Chrome/Edge — fiable, matérielle, aucune lib JS ── */
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const BD = (window as any).BarcodeDetector
+          const detector = new BD({ formats: ['ean_13', 'ean_8', 'code_128', 'upc_a', 'upc_e'] })
 
-        const reader = new BrowserMultiFormatReader(hints)
-
-        /* 4 — decodeFromStream : ZXing gère le timing vidéo en interne (plus fiable que canvas manuel) */
-        const controls = await reader.decodeFromStream(stream, video, (result, err) => {
-          if (cancelled || doneRef.current) return
-          if (result) {
-            console.log('[ZXing] HIT:', result.getText())
-            handleDetected(result.getText())
-          } else if (err && !/NotFoundException/i.test(err.name)) {
-            console.warn('[ZXing] err:', err.message)
+          const detect = async () => {
+            if (cancelled || doneRef.current) return
+            try {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const codes: any[] = await detector.detect(video)
+              if (codes.length > 0) { handleDetected(codes[0].rawValue); return }
+            } catch { /* rien trouvé */ }
+            rafRef.current = requestAnimationFrame(detect)
           }
-        })
+          rafRef.current = requestAnimationFrame(detect)
+          setScanning(true)
 
-        if (cancelled) { controls.stop(); return }
-        controlsRef.current = controls
-        setScanning(true)
+        } else {
+          /* ── Stratégie B : ZXing (Firefox, Safari) ── */
+          const { BrowserMultiFormatReader } = await import('@zxing/browser')
+          const { DecodeHintType, BarcodeFormat } = await import('@zxing/library')
+          if (cancelled) return
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const hints = new Map<any, any>([
+            [DecodeHintType.POSSIBLE_FORMATS, [
+              BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+              BarcodeFormat.CODE_128, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+            ]],
+            [DecodeHintType.TRY_HARDER, true],
+          ])
+
+          const reader = new BrowserMultiFormatReader(hints)
+          const controls = await reader.decodeFromStream(stream, video, (result, err) => {
+            if (cancelled || doneRef.current) return
+            if (result) handleDetected(result.getText())
+            else if (err && !/NotFoundException/i.test(err.name)) console.warn('[ZXing]', err.message)
+          })
+
+          if (cancelled) { controls.stop(); return }
+          controlsRef.current = controls
+          setScanning(true)
+        }
 
       } catch (err) {
         if (cancelled) return
@@ -215,6 +234,7 @@ export function ScannerModal({ onClose }: Props) {
     return () => {
       cancelled = true
       doneRef.current = true
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
       controlsRef.current?.stop()
       streamRef.current?.getTracks().forEach(t => t.stop())
     }
