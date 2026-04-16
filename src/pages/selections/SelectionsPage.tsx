@@ -1067,7 +1067,7 @@ function HeroTile({ serie, onClick }: { serie: Serie; onClick: () => void }) {
 ══════════════════════════════════════════════ */
 export function SelectionsPage() {
   const navigate = useNavigate()
-  const { addToCart } = useCart()
+  const { addToCart, addOPToCart } = useCart()
   const searchRef = useRef<HTMLInputElement>(null)
 
   /* État grille */
@@ -1160,8 +1160,30 @@ export function SelectionsPage() {
   // Ajouter une OP complète (lot × nbPLV)
   function handleAddOP() {
     if (!selectedSerie?.offreCommerciale) return
-    const qtyParTitre = selectedSerie.offreCommerciale.qtyParTitreParPLV * nbPLV
-    serieBooks.forEach(book => addToCart(book, qtyParTitre))
+    const offre = selectedSerie.offreCommerciale
+    const qtyParTitre = offre.qtyParTitreParPLV * nbPLV
+    const totalTitres = serieBooks.length * qtyParTitre
+    const nbCadeaux   = Math.floor(totalTitres / offre.ratioAchat)
+    addOPToCart({
+      serieId:       selectedSerie.id,
+      serieName:     selectedSerie.nom,
+      opTitle:       offre.titre,
+      opDescription: offre.description,
+      validUntil:    offre.validUntil,
+      books: serieBooks.map(book => ({ book, quantity: qtyParTitre })),
+      cadeau: {
+        label:    offre.cadeauLabel,
+        emoji:    offre.cadeauEmoji,
+        isbn:     offre.isbnCadeau,
+        quantity: nbCadeaux,
+      },
+      plv: {
+        isbn:         offre.isbnPLV,
+        description:  offre.descPLV,
+        quantity:     nbPLV,
+        pricePerUnit: offre.prixPLV,
+      },
+    })
     setOpAdded(true)
     setTimeout(() => setOpAdded(false), 3000)
   }

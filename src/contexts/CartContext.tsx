@@ -15,12 +15,37 @@ export interface CartItem {
   quantity: number
 }
 
+export interface OPCartGroup {
+  id: string
+  serieId: string
+  serieName: string
+  opTitle: string
+  opDescription: string
+  validUntil?: string
+  books: Array<{ book: Book; quantity: number }>
+  cadeau: {
+    label: string
+    emoji: string
+    isbn: string
+    quantity: number
+  }
+  plv: {
+    isbn: string
+    description: string
+    quantity: number
+    pricePerUnit: number
+  }
+}
+
 interface CartContextValue {
   items: CartItem[]
+  opGroups: OPCartGroup[]
   totalItems: number
   addToCart: (book: Book, qty?: number) => void
   updateQty: (bookId: string, qty: number) => void
   removeFromCart: (bookId: string) => void
+  addOPToCart: (group: Omit<OPCartGroup, 'id'>) => void
+  removeOP: (opId: string) => void
   clearCart: () => void
   /* Totaux calculés */
   subtotalHT: number
@@ -34,72 +59,106 @@ const CartContext = createContext<CartContextValue | null>(null)
 
 const STORAGE_KEY = 'bookflow_cart'
 
-function computeTotals(items: CartItem[]) {
-  const subtotalHT = items.reduce(
-    (sum, { book, quantity }) => sum + book.price * quantity,
-    0
-  )
-  const remiseAmount = items.reduce(
-    (sum, { book, quantity }) =>
-      sum + book.price * quantity * REMISE_RATES[book.universe],
-    0
-  )
-  const netHT    = subtotalHT - remiseAmount
-  const tva      = netHT * 0.055
-  const totalTTC = netHT + tva
+function computeTotals(items: CartItem[], opGroups: OPCartGroup[]) {
+  /* Titres individuels */
+  const booksHT = items.reduce(
+    (sum, { book, quantity }) => sum + book.price * quantity, 0)
+  const booksRemise = items.reduce(
+    (sum, { book, quantity }) => sum + book.price * quantity * REMISE_RATES[book.universe], 0)
+
+  /* OPs : ouvrages + PLV (remise sur ouvrages, pas sur PLV) */
+  const opBooksHT = opGroups.reduce((sum, op) =>
+    sum + op.books.reduce((s, { book, quantity }) => s + book.price * quantity, 0), 0)
+  const opBooksRemise = opGroups.reduce((sum, op) =>
+    sum + op.books.reduce((s, { book, quantity }) =>
+      s + book.price * quantity * REMISE_RATES[book.universe], 0), 0)
+  const opPLVHT = opGroups.reduce((sum, op) =>
+    sum + op.plv.pricePerUnit * op.plv.quantity, 0)
+
+  const subtotalHT  = booksHT + opBooksHT + opPLVHT
+  const remiseAmount = booksRemise + opBooksRemise
+  const netHT       = subtotalHT - remiseAmount
+  const tva         = netHT * 0.055
+  const totalTTC    = netHT + tva
   return { subtotalHT, remiseAmount, netHT, tva, totalTTC }
+}
+
+interface StoredCart {
+  items: CartItem[]
+  opGroups: OPCartGroup[]
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
-      return stored ? (JSON.parse(stored) as CartItem[]) : []
-    } catch {
-      return []
-    }
+      if (!stored) return []
+      const parsed = JSON.parse(stored) as StoredCart | CartItem[]
+      // Retrocompat : ancien format était un tableau direct
+      return Array.isArray(parsed) ? parsed : (parsed.items ?? [])
+    } catch { return [] }
+  })
+
+  const [opGroups, setOpGroups] = useState<OPCartGroup[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (!stored) return []
+      const parsed = JSON.parse(stored) as StoredCart | CartItem[]
+      return Array.isArray(parsed) ? [] : (parsed.opGroups ?? [])
+    } catch { return [] }
   })
 
   /* Persistance localStorage */
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-  }, [items])
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, opGroups }))
+  }, [items, opGroups])
 
+  /* ── Titres individuels ── */
   const addToCart = (book: Book, qty = 1) => {
     setItems(prev => {
       const existing = prev.find(i => i.book.id === book.id)
-      if (existing) {
-        return prev.map(i =>
-          i.book.id === book.id ? { ...i, quantity: i.quantity + qty } : i
-        )
-      }
+      if (existing)
+        return prev.map(i => i.book.id === book.id ? { ...i, quantity: i.quantity + qty } : i)
       return [...prev, { book, quantity: qty }]
     })
   }
 
   const updateQty = (bookId: string, qty: number) => {
     if (qty < 1) { removeFromCart(bookId); return }
-    setItems(prev =>
-      prev.map(i => i.book.id === bookId ? { ...i, quantity: qty } : i)
-    )
+    setItems(prev => prev.map(i => i.book.id === bookId ? { ...i, quantity: qty } : i))
   }
 
   const removeFromCart = (bookId: string) =>
     setItems(prev => prev.filter(i => i.book.id !== bookId))
 
-  const clearCart = () => setItems([])
+  /* ── OPs ── */
+  const addOPToCart = (group: Omit<OPCartGroup, 'id'>) => {
+    const id = `op-${group.serieId}-${Date.now()}`
+    setOpGroups(prev => [...prev, { ...group, id }])
+  }
 
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
+  const removeOP = (opId: string) =>
+    setOpGroups(prev => prev.filter(op => op.id !== opId))
+
+  const clearCart = () => { setItems([]); setOpGroups([]) }
+
+  const itemsTotal    = items.reduce((sum, i) => sum + i.quantity, 0)
+  const opBooksTotal  = opGroups.reduce((sum, op) =>
+    sum + op.books.reduce((s, { quantity }) => s + quantity, 0), 0)
+  const totalItems    = itemsTotal + opBooksTotal
 
   return (
     <CartContext.Provider value={{
       items,
+      opGroups,
       totalItems,
       addToCart,
       updateQty,
       removeFromCart,
+      addOPToCart,
+      removeOP,
       clearCart,
-      ...computeTotals(items),
+      ...computeTotals(items, opGroups),
     }}>
       {children}
     </CartContext.Provider>
