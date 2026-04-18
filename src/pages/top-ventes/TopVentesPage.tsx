@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { MOCK_BOOKS, type Book, type Universe } from '@/data/mockBooks'
+import { BookCard } from '@/components/catalogue/BookCard'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/components/ui/Toast'
@@ -69,20 +70,6 @@ function getSection(type: 'nouveaute' | 'fonds', universe: TabView) {
 }
 
 /* ══════════════════════════════════════════════════════
-   ICÔNES
-══════════════════════════════════════════════════════ */
-
-function IconCart() {
-  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-}
-
-function TrendIcon({ trend }: { trend: SalesData['trend'] }) {
-  if (trend === 'up')     return <TrendUp>↑</TrendUp>
-  if (trend === 'down')   return <TrendDown>↓</TrendDown>
-  return <TrendStable>→</TrendStable>
-}
-
-/* ══════════════════════════════════════════════════════
    STYLED — PAGE
 ══════════════════════════════════════════════════════ */
 
@@ -111,10 +98,6 @@ const PageTitle = styled.h1`
   font-weight: 700;
   color: #fff;
   margin: 0;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: 18px;
-  }
 `
 
 const HeaderRight = styled.div`
@@ -140,7 +123,7 @@ const PeriodBtn = styled.button<{ $active: boolean }>`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  background: ${({ $active, theme }) => $active ? '#fff' : 'transparent'};
+  background: ${({ $active }) => $active ? '#fff' : 'transparent'};
   color: ${({ $active, theme }) => $active ? theme.colors.navy : 'rgba(255,255,255,0.75)'};
 `
 
@@ -172,8 +155,8 @@ const Tab = styled.button<{ $active: boolean }>`
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
-  background: ${({ $active, theme }) => $active ? theme.colors.navy : 'rgba(28,50,82,0.12)'};
-  color: ${({ $active, theme }) => $active ? '#fff' : theme.colors.navy};
+  background: ${({ $active }) => $active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'};
+  color: ${({ $active }) => $active ? '#fff' : 'rgba(232,242,238,0.7)'};
 `
 
 /* ══════════════════════════════════════════════════════
@@ -219,170 +202,67 @@ const SectionSub = styled.span`
   margin-left: 8px;
 `
 
-/* ── Podium ── */
-const PodiumRow = styled.div`
+const PodiumGrid = styled.div`
   display: flex;
-  align-items: flex-end;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: ${({ theme }) => theme.spacing.md};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    gap: 8px;
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
+  & > * {
+    width: 200px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 480px) {
+    & > * { width: calc(50% - 8px); }
   }
 `
 
-const PodiumCard = styled.article<{ $rank: number }>`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(28,50,82,0.10);
-  border: 1px solid rgba(28,50,82,0.07);
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
-  width: 185px;
-  flex-shrink: 0;
-  margin-bottom: ${({ $rank }) => $rank === 1 ? '28px' : '0'};
-
-  &:hover {
-    box-shadow: 0 8px 24px rgba(28,50,82,0.16);
-    transform: translateY(-3px);
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    width: 150px;
-    margin-bottom: ${({ $rank }) => $rank === 1 ? '20px' : '0'};
-  }
-`
-
-const PodiumCover = styled.div`
-  display: flex;
-  justify-content: center;
-  padding: 14px 14px 0;
-  background: linear-gradient(180deg, #F7F5F1 0%, transparent 100%);
-  border-radius: 14px 14px 0 0;
+const CardWrapper = styled.div<{ $ranked: boolean }>`
   position: relative;
+  padding-top: ${({ $ranked }) => $ranked ? '26px' : '0'};
 `
 
-const RankBadge = styled.div<{ $rank: number }>`
+const TopBadge = styled.div<{ $rank: number }>`
   position: absolute;
-  top: 8px;
-  left: 8px;
-  width: ${({ $rank }) => $rank === 1 ? '38px' : '32px'};
-  height: ${({ $rank }) => $rank === 1 ? '38px' : '32px'};
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ $rank }) => $rank === 1 ? '11px' : '10px'};
-  font-weight: 800;
-  letter-spacing: 0.03em;
+  z-index: 10;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
   background: ${({ $rank }) =>
     $rank === 1 ? 'linear-gradient(135deg, #FFD700, #FFA500)' :
-    $rank === 2 ? 'linear-gradient(135deg, #E0E0E0, #A8A8A8)' :
-    'linear-gradient(135deg, #CD9B6A, #A0652A)'};
-  color: ${({ $rank }) => $rank === 1 ? '#5A3A00' : $rank === 2 ? '#3A3A3A' : '#fff'};
-  box-shadow: 0 2px 8px rgba(0,0,0,0.20);
+    $rank === 2 ? 'linear-gradient(135deg, #E8E8E8, #A8A8A8)' :
+                  'linear-gradient(135deg, #CD9B6A, #A0652A)'};
+  color: ${({ $rank }) =>
+    $rank === 1 ? '#5A3A00' :
+    $rank === 2 ? '#3A3A3A' :
+                  '#fff'};
 `
 
-const PodiumBody = styled.div`
-  padding: 10px 12px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
-`
-
-const PodiumTitle = styled.h3`
+const BadgeTop = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.navy};
-  line-height: 1.25;
-  min-height: calc(2 * 13px * 1.25);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`
-
-const PodiumAuthor = styled.p`
-  font-size: 11px;
-  font-style: italic;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`
-
-const PodiumMeta = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 6px;
-  gap: 4px;
-`
-
-const PodiumPrice = styled.span`
-  font-size: 15px;
+  font-size: 7px;
   font-weight: 800;
-  color: ${({ theme }) => theme.colors.navy};
+  letter-spacing: 0.08em;
+  line-height: 1;
 `
 
-const PodiumSales = styled.span`
-  font-size: 10px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  white-space: nowrap;
-`
-
-const PodiumAddBtn = styled.button`
-  margin-top: 8px;
-  width: 100%;
-  padding: 8px;
-  border: none;
-  border-radius: 8px;
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.navy};
+const BadgeNum = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  transition: background 0.15s, transform 0.1s;
-  &:hover { background: #cb7d08; }
-  &:active { transform: scale(0.97); }
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
 `
 
-const UnivBadge = styled.span<{ $bg: string; $text: string }>`
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: ${({ $bg }) => $bg};
-  font-size: 10px;
-  font-weight: 700;
-  color: ${({ $text }) => $text};
-`
-
-const UnivDot = styled.span<{ $color: string }>`
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: ${({ $color }) => $color};
-  flex-shrink: 0;
-`
-
-/* ── Liste compacte ── */
+/* ── Liste compacte (rangs 4–10) ── */
 const ListRows = styled.div`
   display: flex;
   flex-direction: column;
@@ -390,6 +270,7 @@ const ListRows = styled.div`
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(28,50,82,0.07);
   overflow: hidden;
+  margin-top: ${({ theme }) => theme.spacing.md};
 `
 
 const ListRow = styled.div`
@@ -466,19 +347,48 @@ const RowAddBtn = styled.button`
   border: none;
   border-radius: 8px;
   background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.navy};
+  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s;
   flex-shrink: 0;
-  &:hover { background: #cb7d08; }
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
+`
+
+const UnivBadge = styled.span<{ $bg: string; $text: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: ${({ $bg }) => $bg};
+  font-size: 10px;
+  font-weight: 700;
+  color: ${({ $text }) => $text};
+`
+
+const UnivDot = styled.span<{ $color: string }>`
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+  flex-shrink: 0;
 `
 
 const TrendUp     = styled.span`color: #1E7045; font-size: 11px; font-weight: 700;`
 const TrendDown   = styled.span`color: #C0392B; font-size: 11px; font-weight: 700;`
 const TrendStable = styled.span`color: ${({ theme }) => theme.colors.gray[400]}; font-size: 11px; font-weight: 700;`
+
+function IconCart() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+}
+
+function TrendIcon({ trend }: { trend: SalesData['trend'] }) {
+  if (trend === 'up')   return <TrendUp>↑</TrendUp>
+  if (trend === 'down') return <TrendDown>↓</TrendDown>
+  return <TrendStable>→</TrendStable>
+}
 
 const EmptySection = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -491,56 +401,11 @@ const EmptySection = styled.p`
 `
 
 /* ══════════════════════════════════════════════════════
-   COMPOSANT PODIUM CARD
-══════════════════════════════════════════════════════ */
-
-function PodiumItem({
-  book, rank, showUniverse, onAdd
-}: { book: Book; rank: number; showUniverse: boolean; onAdd: (b: Book) => void }) {
-  const navigate = useNavigate()
-  const sales    = SALES[book.id]
-  const uc       = UNIVERSE_COLORS[book.universe]
-
-  return (
-    <PodiumCard $rank={rank} onClick={() => navigate(`/livre/${book.id}`)}>
-      <PodiumCover>
-        <BookCover isbn={book.isbn} alt={book.title} width={100} height={140} />
-        <RankBadge $rank={rank}>TOP{rank}</RankBadge>
-      </PodiumCover>
-      <PodiumBody>
-        <PodiumTitle>{book.title}</PodiumTitle>
-        <PodiumAuthor>{book.authors[0]}</PodiumAuthor>
-
-        <PodiumMeta>
-          <PodiumPrice>{book.priceTTC.toFixed(2)} €</PodiumPrice>
-          {sales && (
-            <PodiumSales>
-              <TrendIcon trend={sales.trend} /> {sales.units.toLocaleString('fr-FR')} ex.
-            </PodiumSales>
-          )}
-        </PodiumMeta>
-
-        {showUniverse && (
-          <UnivBadge $bg={uc.bg} $text={uc.text} style={{ marginTop: 4, alignSelf: 'flex-start' }}>
-            <UnivDot $color={uc.dot} />
-            {book.universe}
-          </UnivBadge>
-        )}
-
-        <PodiumAddBtn onClick={e => { e.stopPropagation(); onAdd(book) }}>
-          <IconCart /> Ajouter
-        </PodiumAddBtn>
-      </PodiumBody>
-    </PodiumCard>
-  )
-}
-
-/* ══════════════════════════════════════════════════════
-   COMPOSANT ROW LISTE
+   COMPOSANT ROW LISTE (rangs 4–10)
 ══════════════════════════════════════════════════════ */
 
 function ListItem({
-  book, rank, showUniverse, onAdd
+  book, rank, showUniverse, onAdd,
 }: { book: Book; rank: number; showUniverse: boolean; onAdd: (b: Book) => void }) {
   const navigate = useNavigate()
   const sales    = SALES[book.id]
@@ -550,7 +415,8 @@ function ListItem({
     <ListRow onClick={() => navigate(`/livre/${book.id}`)}>
       <RowRank>{rank}</RowRank>
       <div style={{ flexShrink: 0, borderRadius: 4, overflow: 'hidden' }}>
-        <BookCover isbn={book.isbn} alt={book.title} width={42} height={58} />
+        <BookCover isbn={book.isbn} alt={book.title} width={42} height={58}
+          universe={book.universe} authors={book.authors} publisher={book.publisher} />
       </div>
       <RowInfo>
         <RowTitle>{book.title}</RowTitle>
@@ -575,20 +441,20 @@ function ListItem({
 }
 
 /* ══════════════════════════════════════════════════════
-   COMPOSANT SECTION (nouveauté ou fonds)
+   COMPOSANT SECTION
 ══════════════════════════════════════════════════════ */
 
 function TopSection({
-  label, books, showUniverse, universe, onAdd
+  label, books, universe, showUniverse, onAdd,
 }: {
   label: string
   books: Book[]
-  showUniverse: boolean
   universe?: Universe
+  showUniverse: boolean
   onAdd: (b: Book) => void
 }) {
-  const podium = books.slice(0, 3)
-  const list   = books.slice(3, 10)
+  const podium     = books.slice(0, 3)
+  const listItems  = books.slice(3, 10)
   const totalUnits = books.reduce((s, b) => s + (SALES[b.id]?.units ?? 0), 0)
 
   if (books.length === 0) {
@@ -602,14 +468,6 @@ function TopSection({
     )
   }
 
-  /* Ordre podium : TOP2 | TOP1 | TOP3 */
-  const orderedPodium =
-    podium.length === 3 ? [podium[1], podium[0], podium[2]] :
-    podium.length === 2 ? [podium[1], podium[0]] :
-    podium
-
-  const rankOf = (b: Book) => podium.indexOf(b) + 1
-
   return (
     <Section>
       <SectionHeader $universe={universe}>
@@ -621,21 +479,26 @@ function TopSection({
         </div>
       </SectionHeader>
 
-      <PodiumRow>
-        {orderedPodium.map(book => (
-          <PodiumItem
-            key={book.id}
-            book={book}
-            rank={rankOf(book)}
-            showUniverse={showUniverse}
-            onAdd={onAdd}
-          />
-        ))}
-      </PodiumRow>
+      {/* TOP 1–3 : BookCards avec badge */}
+      <PodiumGrid>
+        {podium.map((book, i) => {
+          const rank = i + 1
+          return (
+            <CardWrapper key={book.id} $ranked>
+              <TopBadge $rank={rank}>
+                <BadgeTop>TOP</BadgeTop>
+                <BadgeNum>{rank}</BadgeNum>
+              </TopBadge>
+              <BookCard book={book} showType />
+            </CardWrapper>
+          )
+        })}
+      </PodiumGrid>
 
-      {list.length > 0 && (
+      {/* TOP 4–10 : liste compacte */}
+      {listItems.length > 0 && (
         <ListRows>
-          {list.map((book, i) => (
+          {listItems.map((book, i) => (
             <ListItem
               key={book.id}
               book={book}
@@ -655,17 +518,17 @@ function TopSection({
 ══════════════════════════════════════════════════════ */
 
 export function TopVentesPage() {
-  const [period,  setPeriod]  = useState<Period>('30j')
-  const [activeTab, setTab]   = useState<TabView>('tous')
-  const { addToCart }         = useCart()
-  const { showToast }         = useToast()
+  const [period,    setPeriod] = useState<Period>('30j')
+  const [activeTab, setTab]    = useState<TabView>('tous')
+  const { addToCart }          = useCart()
+  const { showToast }          = useToast()
 
   const handleAdd = (book: Book) => {
     addToCart(book, 1)
     showToast('Ouvrage ajouté au panier')
   }
 
-  const showUniverse = activeTab === 'tous'
+  const showUniverse    = activeTab === 'tous'
   const sectionUniverse = activeTab !== 'tous' ? activeTab : undefined
 
   const nouveautes = getSection('nouveaute', activeTab)
@@ -677,8 +540,8 @@ export function TopVentesPage() {
         <PageTitle>Top Ventes</PageTitle>
         <HeaderRight>
           <PeriodSelector>
-            <PeriodBtn $active={period === '30j'}    onClick={() => setPeriod('30j')}>30 jours</PeriodBtn>
-            <PeriodBtn $active={period === '3mois'}  onClick={() => setPeriod('3mois')}>3 mois</PeriodBtn>
+            <PeriodBtn $active={period === '30j'}   onClick={() => setPeriod('30j')}>30 jours</PeriodBtn>
+            <PeriodBtn $active={period === '3mois'} onClick={() => setPeriod('3mois')}>3 mois</PeriodBtn>
           </PeriodSelector>
         </HeaderRight>
       </PageHeader>
@@ -694,15 +557,15 @@ export function TopVentesPage() {
         <TopSection
           label="Top Nouveautés"
           books={nouveautes}
-          showUniverse={showUniverse}
           universe={sectionUniverse}
+          showUniverse={showUniverse}
           onAdd={handleAdd}
         />
         <TopSection
           label="Top Fonds"
           books={fonds}
-          showUniverse={showUniverse}
           universe={sectionUniverse}
+          showUniverse={showUniverse}
           onAdd={handleAdd}
         />
       </Content>

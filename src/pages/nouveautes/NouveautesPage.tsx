@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useDeferredValue } from 'react'
 import styled from 'styled-components'
 import { BookCard } from '@/components/catalogue/BookCard'
 import { UniverseFilter } from '@/components/catalogue/UniverseFilter'
-import { getBooksByType } from '@/data/mockBooks'
+import { getBooksByType, searchBooks } from '@/data/mockBooks'
 import type { Universe } from '@/data/mockBooks'
+import { Input } from '@/components/ui/Input'
 
 /* ── Tabs ── */
 type Tab = 'mois' | 'a-paraitre'
@@ -58,8 +59,29 @@ const Tab = styled.button<{ $active: boolean }>`
   letter-spacing: 0.01em;
 `
 
-const FilterRow = styled.div`
+const Controls = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
+`
+
+const SearchWrapper = styled.div`
+  position: relative;
+
+  input {
+    padding-left: 42px;
+  }
+`
+
+const SearchIcon = styled.span`
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${({ theme }) => theme.colors.gray[400]};
+  font-size: 1rem;
+  pointer-events: none;
 `
 
 const ResultCount = styled.p`
@@ -141,11 +163,23 @@ const ProgrammeTitle = styled.h2`
 `
 
 export function NouveautesPage() {
-  const [tab, setTab] = useState<Tab>('mois')
+  const [tab, setTab]           = useState<Tab>('mois')
   const [universe, setUniverse] = useState<Universe | null>(null)
+  const [query, setQuery]       = useState('')
+  const deferred = useDeferredValue(query)
 
-  const nouveautes = getBooksByType('nouveaute', universe ?? undefined)
-  const aParaitre = getBooksByType('a-paraitre', universe ?? undefined)
+  let nouveautes = deferred.trim()
+    ? searchBooks(deferred).filter(b => b.type === 'nouveaute')
+    : getBooksByType('nouveaute')
+
+  let aParaitre = deferred.trim()
+    ? searchBooks(deferred).filter(b => b.type === 'a-paraitre')
+    : getBooksByType('a-paraitre')
+
+  if (universe) {
+    nouveautes = nouveautes.filter(b => b.universe === universe)
+    aParaitre  = aParaitre.filter(b => b.universe === universe)
+  }
 
   /* Regrouper les "à paraître" par programme */
   const programmes = [...new Set(aParaitre.map(b => b.programme ?? 'Autres'))].sort()
@@ -170,9 +204,20 @@ export function NouveautesPage() {
         </Tab>
       </TabBar>
 
-      <FilterRow>
+      <Controls>
+        <SearchWrapper>
+          <SearchIcon>🔍</SearchIcon>
+          <Input
+            id="nouveautes-search"
+            type="search"
+            placeholder="Titre, auteur, ISBN, éditeur…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            aria-label="Rechercher dans les nouveautés"
+          />
+        </SearchWrapper>
         <UniverseFilter value={universe} onChange={setUniverse} />
-      </FilterRow>
+      </Controls>
 
       {tab === 'mois' && (
         <>
@@ -186,7 +231,11 @@ export function NouveautesPage() {
               {nouveautes.map(book => <BookCard key={book.id} book={book} showType />)}
             </Grid>
           ) : (
-            <EmptyState>Aucun titre pour cet univers ce mois-ci.</EmptyState>
+            <EmptyState>
+              {deferred.trim()
+                ? `Aucun résultat pour « ${deferred} »`
+                : 'Aucun titre pour cet univers ce mois-ci.'}
+            </EmptyState>
           )}
         </>
       )}

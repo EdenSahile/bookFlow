@@ -6,12 +6,13 @@ import { BookCover } from './BookCover'
 import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/components/ui/Toast'
 
-/* ── Couleurs univers ── */
-const universeColors: Record<string, { dot: string; bg: string; text: string }> = {
-  'Littérature':     { dot: '#1C3252', bg: '#EEF1F7', text: '#1C3252' },
-  'BD/Mangas':       { dot: '#C04A00', bg: '#FFF0E8', text: '#C04A00' },
-  'Jeunesse':        { dot: '#1565C0', bg: '#E8F0FC', text: '#1565C0' },
-  'Adulte-pratique': { dot: '#1E7045', bg: '#E8F5EE', text: '#1E7045' },
+/* ── Palette catégories — ajouter ici pour étendre ── */
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  'Littérature':     { bg: '#EAF0E6', text: '#2D5A27' },
+  'BD/Mangas':       { bg: '#EDE8F5', text: '#4A3280' },
+  'Jeunesse':        { bg: '#FEF3E2', text: '#92500A' },
+  'Adulte-pratique': { bg: '#E8F4F8', text: '#1A5F7A' },
+  'Autres':          { bg: '#F1EFE8', text: '#5F5E5A' },
 }
 
 /* ── Card ── */
@@ -59,75 +60,61 @@ const TopRow = styled.div`
   flex-wrap: wrap;
 `
 
-const UniverseBadge = styled.span<{ $bg: string; $text: string }>`
+const UniverseBadge = styled.span<{ $bg: string; $color: string }>`
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: ${({ theme }) => theme.radii.full};
+  padding: 3px 10px;
+  border-radius: 20px;
   background: ${({ $bg }) => $bg};
+  color: ${({ $color }) => $color};
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 10px;
-  font-weight: 700;
-  color: ${({ $text }) => $text};
-  letter-spacing: 0.01em;
-`
-
-const UniverseDot = styled.span<{ $color: string }>`
-  display: inline-block;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: ${({ $color }) => $color};
+  font-size: 11px;
+  font-weight: 400;
   flex-shrink: 0;
 `
 
 const NouveauteBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
-  border-radius: ${({ theme }) => theme.radii.full};
-  background: ${({ theme }) => theme.colors.primary};
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #C9A84C;
+  color: #3d2f00;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 10px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.navy};
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  flex-shrink: 0;
 `
 
 const AParaitreBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
-  border-radius: ${({ theme }) => theme.radii.full};
+  padding: 3px 10px;
+  border-radius: 20px;
   background: #E65100;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 10px;
-  font-weight: 800;
   color: #fff;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-left: auto;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  font-weight: 400;
+  flex-shrink: 0;
 `
 
 const Title = styled.h3`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 15px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.navy};
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[800]};
   line-height: 1.25;
-  min-height: calc(2 * 15px * 1.25);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  margin-bottom: 8px;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 const Authors = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.gray[800]};
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[600]};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -136,29 +123,38 @@ const Authors = styled.p`
 
 const Publisher = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
-  line-height: 1.4;
-  min-height: calc(2 * 12px * 1.4);
-  color: ${({ theme }) => theme.colors.gray[600]};
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 `
 
-const IsbnLine = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
+const PillRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+`
+
+const MetaPill = styled.span`
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px 2px 0;
+  border-radius: 20px;
+  background: #f0f0f0;
+  color: #555;
+  font-family: 'Roboto', sans-serif;
   font-size: 12px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.navy};
-  letter-spacing: 0.01em;
+  font-weight: 400;
 `
 
 /* ── Zone prix + quantité + bouton ── */
 const ActionZone = styled.div`
   margin-top: auto;
   padding-top: ${({ theme }) => theme.spacing.sm};
-  border-top: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-top: 0.5px solid ${({ theme }) => theme.colors.gray[200]};
   margin-top: ${({ theme }) => theme.spacing.sm};
   display: flex;
   flex-direction: column;
@@ -167,65 +163,79 @@ const ActionZone = styled.div`
 
 const PriceRow = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 8px;
+`
+
+const PriceInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 `
 
 const Price = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.navy};
   letter-spacing: -0.01em;
+  line-height: 1.1;
+`
+
+const PriceLabel = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.gray[400]};
 `
 
 const QtyControl = styled.div`
   display: flex;
   align-items: center;
-  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.md};
+  border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;
-  background: ${({ theme }) => theme.colors.gray[50]};
+  background: #f5f5f5;
+  padding: 3px 6px;
 `
 
 const QtyBtn = styled.button`
-  width: 30px; height: 30px;
+  width: 24px; height: 24px;
   background: none;
   border: none;
-  font-size: 1rem;
-  color: ${({ theme }) => theme.colors.navy};
+  font-size: 15px;
+  font-weight: 500;
+  color: #226241;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background .12s;
-  font-weight: 700;
+  transition: opacity .12s;
 
-  &:hover   { background: ${({ theme }) => theme.colors.gray[200]}; }
+  &:hover   { opacity: 0.7; }
   &:disabled{ opacity: .3; cursor: not-allowed; }
 `
 
 const QtyValue = styled.span`
-  min-width: 28px;
+  width: 20px;
   text-align: center;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  font-size: 13px;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.navy};
 `
 
 const AjouterBtn = styled.button`
   width: 100%;
-  padding: 10px 16px;
+  padding: 0.625rem;
   margin-top: 8px;
   border: none;
-  border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.navy};
+  border-radius: 7px;
+  background: #226241;
+  color: #d4ead9;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  font-size: 13px;
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
   cursor: pointer;
   transition: background .15s, transform .1s;
   white-space: nowrap;
@@ -235,12 +245,18 @@ const AjouterBtn = styled.button`
   justify-content: center;
   gap: 6px;
 
-  &:hover { background: #cb7d08; }
+  &:hover { background: #2D5C44; }
   &:active { transform: scale(0.97); }
 `
 
 function IconCart() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4ead9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="21" r="1"/>
+      <circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+  )
 }
 
 interface Props {
@@ -255,7 +271,8 @@ export function BookCard({ book, showType = false }: Props) {
   const [qty, setQty] = useState(1)
 
   const isOrderable = book.type !== 'a-paraitre'
-  const uColors = universeColors[book.universe] ?? { dot: '#999', bg: '#F0F0F0', text: '#555' }
+  const catColors = CATEGORY_COLORS[book.universe] ?? CATEGORY_COLORS['Autres']
+
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -277,13 +294,21 @@ export function BookCard({ book, showType = false }: Props) {
       onKeyDown={e => e.key === 'Enter' && navigate(`/livre/${book.id}`)}
     >
       <CoverArea>
-        <BookCover isbn={book.isbn} alt={`Couverture de ${book.title}`} width={96} height={138} />
+        <BookCover
+          isbn={book.isbn}
+          alt={book.title}
+          width={96}
+          height={138}
+          universe={book.universe}
+          authors={book.authors}
+          publisher={book.publisher}
+          collection={book.collection}
+        />
       </CoverArea>
 
       <Body>
         <TopRow>
-          <UniverseBadge $bg={uColors.bg} $text={uColors.text}>
-            <UniverseDot $color={uColors.dot} />
+          <UniverseBadge $bg={catColors.bg} $color={catColors.text}>
             {book.universe}
           </UniverseBadge>
           {showType && book.type === 'nouveaute' && (
@@ -296,14 +321,22 @@ export function BookCard({ book, showType = false }: Props) {
 
         <Title>{book.title}</Title>
         <Authors>{book.authors.join(', ')}</Authors>
-        <Publisher>{book.publisher}{book.collection ? ` · ${book.collection}` : ''}</Publisher>
-        <IsbnLine>ISBN {book.isbn}</IsbnLine>
+        {(book.publisher || book.collection) && (
+          <Publisher>{book.publisher}{book.collection ? ` · ${book.collection}` : ''}</Publisher>
+        )}
+
+        <PillRow>
+          <MetaPill>{book.isbn}</MetaPill>
+        </PillRow>
 
         <ActionZone>
           <PriceRow>
-            <Price>{book.priceTTC.toFixed(2)} €</Price>
+            <PriceInfo>
+              <Price>{book.priceTTC.toFixed(2)} €</Price>
+              <PriceLabel>Prix public TTC</PriceLabel>
+            </PriceInfo>
             {isOrderable && (
-              <QtyControl style={{ marginLeft: 'auto' }}>
+              <QtyControl>
                 <QtyBtn onClick={e => handleQty(e, -1)} disabled={qty <= 1} aria-label="Diminuer">−</QtyBtn>
                 <QtyValue>{qty}</QtyValue>
                 <QtyBtn onClick={e => handleQty(e, +1)} aria-label="Augmenter">+</QtyBtn>
