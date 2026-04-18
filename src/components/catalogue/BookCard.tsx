@@ -87,6 +87,13 @@ const Publisher = styled.p`
   font-style: italic;
 `
 
+const IsbnLine = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  letter-spacing: 0.01em;
+`
+
 /* ── Zone prix + quantité + bouton ── */
 const ActionZone = styled.div`
   margin-top: auto;
@@ -222,6 +229,7 @@ export function BookCard({ book, showType = false }: Props) {
         <Title>{book.title}</Title>
         <Authors>{book.authors.join(', ')}</Authors>
         <Publisher>{book.publisher}{book.collection ? ` — ${book.collection}` : ''}</Publisher>
+        <IsbnLine>ISBN {book.isbn}</IsbnLine>
 
         <ActionZone>
           <PriceRow>

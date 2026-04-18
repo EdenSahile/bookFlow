@@ -1,7 +1,6 @@
 import { useState, useDeferredValue } from 'react'
 import styled from 'styled-components'
-import { BookCardRow } from '@/components/catalogue/BookCardRow'
-import { SelectionBar } from '@/components/catalogue/SelectionBar'
+import { BookCard } from '@/components/catalogue/BookCard'
 import { UniverseFilter } from '@/components/catalogue/UniverseFilter'
 import { getBooksByType, searchBooks } from '@/data/mockBooks'
 import type { Universe } from '@/data/mockBooks'
@@ -35,10 +34,14 @@ const ResultCount = styled.p`
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `
 
-const List = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.sm};
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 `
 
 const EmptyState = styled.div`
@@ -69,18 +72,9 @@ const SearchIcon = styled.span`
 `
 
 export function FondsPage() {
-  const [query, setQuery]         = useState('')
-  const [universe, setUniverse]   = useState<Universe | null>(null)
-  const [selectedIds, setSelected] = useState<Set<string>>(new Set())
+  const [query, setQuery]       = useState('')
+  const [universe, setUniverse] = useState<Universe | null>(null)
   const deferred = useDeferredValue(query)
-
-  function toggleSelection(id: string) {
-    setSelected(prev => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
-  }
 
   const allFonds = getBooksByType('fonds')
 
@@ -117,29 +111,15 @@ export function FondsPage() {
       </ResultCount>
 
       {books.length > 0 ? (
-        <List style={{ paddingBottom: selectedIds.size > 0 ? 220 : 0 }}>
-          {books.map(book => (
-            <BookCardRow
-              key={book.id}
-              book={book}
-              selected={selectedIds.has(book.id)}
-              onToggle={() => toggleSelection(book.id)}
-            />
-          ))}
-        </List>
+        <Grid>
+          {books.map(book => <BookCard key={book.id} book={book} showType />)}
+        </Grid>
       ) : (
         <EmptyState>
           {deferred.trim()
             ? `Aucun résultat pour « ${deferred} »`
             : 'Aucun titre dans cet univers.'}
         </EmptyState>
-      )}
-
-      {selectedIds.size > 0 && (
-        <SelectionBar
-          books={books.filter(b => selectedIds.has(b.id))}
-          onClearAll={() => setSelected(new Set())}
-        />
       )}
     </Page>
   )
