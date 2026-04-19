@@ -49,7 +49,7 @@ const Tab = styled.button<{ $active: boolean }>`
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme, $active }) => $active ? theme.colors.navy : 'transparent'};
-  color: ${({ theme, $active }) => $active ? theme.colors.white : theme.colors.gray[600]};
+  color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.gray[600]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme, $active }) => $active ? theme.typography.weights.semibold : theme.typography.weights.normal};
@@ -80,9 +80,34 @@ const SearchIcon = styled.span`
   top: 50%;
   transform: translateY(-50%);
   color: ${({ theme }) => theme.colors.gray[400]};
-  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
   pointer-events: none;
 `
+
+function IconSearch() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+  )
+}
+
+function IconEmpty() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }}>
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.44 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.4a16 16 0 0 0 6.29 6.29l.77-.77a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </svg>
+  )
+}
+
+function IconInfo() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+      <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+    </svg>
+  )
+}
 
 const ResultCount = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -120,20 +145,12 @@ const EmptyState = styled.div`
   color: ${({ theme }) => theme.colors.gray[400]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
-
-  &::before {
-    content: '📭';
-    display: block;
-    font-size: 2.5rem;
-    margin-bottom: 12px;
-  }
 `
 
 const ParaitreInfo = styled.div`
-  background: #EEF2FA;
-  border: 1px solid #BFCCE8;
-  border-left: 4px solid ${({ theme }) => theme.colors.navy};
-  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.primaryLight};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-left: 4px solid ${({ theme }) => theme.colors.primary};
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -206,7 +223,7 @@ export function NouveautesPage() {
 
       <Controls>
         <SearchWrapper>
-          <SearchIcon>🔍</SearchIcon>
+          <SearchIcon><IconSearch /></SearchIcon>
           <Input
             id="nouveautes-search"
             type="search"
@@ -232,6 +249,7 @@ export function NouveautesPage() {
             </Grid>
           ) : (
             <EmptyState>
+              <IconEmpty />
               {deferred.trim()
                 ? `Aucun résultat pour « ${deferred} »`
                 : 'Aucun titre pour cet univers ce mois-ci.'}
@@ -243,7 +261,8 @@ export function NouveautesPage() {
       {tab === 'a-paraitre' && (
         <>
           <ParaitreInfo>
-            ℹ️ <span>Les titres à paraître sont consultables uniquement. La commande se fait via votre représentant commercial. Vous pouvez recevoir le catalogue par email.</span>
+            <IconInfo />
+            <span>Les titres à paraître sont consultables uniquement. La commande se fait via votre représentant commercial. Vous pouvez recevoir le catalogue par email.</span>
           </ParaitreInfo>
 
           {programmes.length === 0 && (

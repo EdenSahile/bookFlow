@@ -42,8 +42,7 @@ const Title = styled.h1`
 
 const Section = styled.div`
   background-color: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.radii.xl};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   overflow: hidden;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `
@@ -55,8 +54,8 @@ const SectionTitle = styled.div`
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
-  background-color: ${({ theme }) => theme.colors.gray[50]};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  background-color: ${({ theme }) => theme.colors.gray[100]};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
 `
 
 const Row = styled.label`
@@ -95,10 +94,10 @@ const ToggleThumb = styled.span<{ $on: boolean }>`
   left: ${({ $on }) => ($on ? '23px' : '3px')};
   width: 18px;
   height: 18px;
-  background-color: white;
+  background-color: #ffffff;
   border-radius: 50%;
   transition: left 0.2s ease;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  border: 1.5px solid rgba(0,0,0,0.12);
 `
 
 const HiddenCheckbox = styled.input`
@@ -112,7 +111,7 @@ const SaveButton = styled.button`
   width: 100%;
   padding: 14px;
   background-color: ${({ theme }) => theme.colors.navy};
-  color: ${({ theme }) => theme.colors.white};
+  color: #fdfdfd;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.typography.sizes.md};

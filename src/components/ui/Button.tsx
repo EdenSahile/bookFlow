@@ -27,7 +27,7 @@ const sizeStyles = {
 const variantStyles = {
   primary: css`
     background-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme }) => theme.colors.white};
+    color: #fdfdfd;
     border: 2px solid ${({ theme }) => theme.colors.primary};
 
     &:hover:not(:disabled) {
@@ -37,7 +37,7 @@ const variantStyles = {
   `,
   secondary: css`
     background-color: ${({ theme }) => theme.colors.navy};
-    color: ${({ theme }) => theme.colors.white};
+    color: #fdfdfd;
     border: 2px solid ${({ theme }) => theme.colors.navy};
 
     &:hover:not(:disabled) {

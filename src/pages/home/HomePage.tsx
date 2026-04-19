@@ -1,34 +1,23 @@
-import { useState, useEffect, useRef } from 'react'
-import styled, { keyframes } from 'styled-components'
+import { useEffect, useRef, useState } from 'react'
+import styled from 'styled-components'
 import { Link, useNavigate } from 'react-router-dom'
-import { BookCover } from '@/components/catalogue/BookCover'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/contexts/CartContext'
 import { MOCK_BOOKS } from '@/data/mockBooks'
 import { MOCK_FLASH_INFOS } from '@/data/mockFlashInfos'
+import { BookCard } from '@/components/catalogue/BookCard'
 
 const GREEN = '#226241'
-const TEXT_ON_GREEN = '#d4ead9'
 
 const nouveautes = MOCK_BOOKS
   .filter(b => b.type === 'nouveaute')
   .sort((a, b) => b.publicationDate.localeCompare(a.publicationDate))
-  .slice(0, 5)
+  .slice(0, 8)
 
 const nouveautesCount = MOCK_BOOKS.filter(b => b.type === 'nouveaute').length
 const flashInfosCount = MOCK_FLASH_INFOS.length
 
 /* ── SVG Icons ── */
-function IconSearch() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={GREEN}
-      strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  )
-}
-
 function IconPackage() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -71,6 +60,17 @@ function IconClipboard() {
   )
 }
 
+function IconChevron({ dir }: { dir: 'left' | 'right' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {dir === 'left'
+        ? <polyline points="15 18 9 12 15 6" />
+        : <polyline points="9 18 15 12 9 6" />}
+    </svg>
+  )
+}
+
 /* ── Page layout ── */
 const Page = styled.div`
   min-height: calc(100vh - ${({ theme }) => theme.layout.headerHeight});
@@ -90,7 +90,7 @@ const Content = styled.div`
   max-width: 720px;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 3.5rem;
 `
 
 /* ── Hero ── */
@@ -119,63 +119,6 @@ const GreetingSubtitle = styled.p`
   font-size: 14px;
   color: ${({ theme }) => theme.colors.gray[600]};
   margin-bottom: 1.5rem;
-`
-
-const SearchBox = styled.form`
-  max-width: 540px;
-  margin: 0 auto;
-  background: #fff;
-  border: 1.5px solid ${GREEN};
-  border-radius: 10px;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`
-
-const SearchIconWrap = styled.span`
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-`
-
-const HeroSearchInput = styled.input`
-  flex: 1;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 14px;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: ${({ theme }) => theme.colors.gray[800]};
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.gray[400]};
-  }
-`
-
-const SearchBtn = styled.button`
-  background: ${GREEN};
-  color: ${TEXT_ON_GREEN};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: opacity 0.15s;
-
-  &:hover { opacity: 0.88; }
-`
-
-const KeyHint = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamilyMono};
-  font-size: 11px;
-  letter-spacing: 0.03em;
-  color: ${({ theme }) => theme.colors.gray[400]};
-  text-align: center;
-  margin-top: 8px;
 `
 
 /* ── Stats ── */
@@ -255,7 +198,6 @@ const ShortcutLabel = styled.span`
 /* ── Nouveautés ── */
 const NouveautesSection = styled.section`
   width: 100%;
-  position: relative;
 `
 
 const SectionHeader = styled.div`
@@ -281,6 +223,10 @@ const SeeAllLink = styled(Link)`
   &:hover { text-decoration: underline; }
 `
 
+const CarouselWrapper = styled.div`
+  position: relative;
+`
+
 const CardScroll = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
@@ -290,148 +236,43 @@ const CardScroll = styled.div`
   &::-webkit-scrollbar { display: none; }
 `
 
-const BookCard = styled.div`
+const CardSlot = styled.div`
   flex-shrink: 0;
-  width: 130px;
-  display: flex;
-  flex-direction: column;
+  width: 200px;
 `
 
-const CoverWrapper = styled.div`
-  cursor: pointer;
-  transition: transform 0.15s ease;
-  &:hover { transform: translateY(-2px); }
-`
-
-const CardBody = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 6px 2px 4px;
-  flex: 1;
-`
-
-const BadgeRow = styled.div`
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-`
-
-const CategoryBadge = styled.span`
-  background: #F4F4F0;
-  color: #555;
-  border: 0.5px solid #ddd;
-  border-radius: 10px;
-  font-family: 'DM Mono', 'Courier New', monospace;
-  font-size: 9px;
-  padding: 2px 7px;
-`
-
-const NouveauteBadge = styled.span`
-  background: #C9A84C;
-  color: #3d2f00;
-  border-radius: 10px;
-  font-family: 'DM Mono', 'Courier New', monospace;
-  font-size: 9px;
-  padding: 2px 7px;
-`
-
-const BookTitle = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.gray[800]};
-  line-height: 1.3;
-  margin-bottom: 2px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`
-
-const BookAuthor = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`
-
-const Divider = styled.hr`
-  border: none;
-  border-top: 0.5px solid ${({ theme }) => theme.colors.gray[200]};
-  margin: 8px 0;
-`
-
-const PriceRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-`
-
-const Price = styled.span`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 14px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.gray[800]};
-`
-
-const AddToCartBtn = styled.button`
-  background: #226241;
-  color: #d4ead9;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
-  font-weight: 500;
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: opacity 0.15s;
-
-  &:hover { opacity: 0.90; }
-  &:active { opacity: 0.80; }
-`
-
-/* ── Toast ── */
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-`
-
-const Toast = styled.div`
+const ArrowBtn = styled.button<{ $side: 'left' | 'right'; $visible: boolean }>`
   position: absolute;
-  bottom: -44px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: ${({ theme }) => theme.colors.navy};
-  color: #fff;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-weight: ${({ theme }) => theme.typography.weights.medium};
-  padding: 10px 20px;
-  border-radius: 20px;
-  white-space: nowrap;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-  animation: ${fadeIn} 0.2s ease;
-  pointer-events: none;
-  z-index: 10;
+  top: 50%;
+  transform: translateY(-50%);
+  ${({ $side }) => $side === 'left' ? 'left: -18px;' : 'right: -18px;'}
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.navy};
+  transition: box-shadow 0.15s, opacity 0.15s;
+  opacity: ${({ $visible }) => $visible ? 1 : 0};
+  pointer-events: ${({ $visible }) => $visible ? 'auto' : 'none'};
 
-  span { color: ${({ theme }) => theme.colors.accent}; margin-right: 6px; }
+  &:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
 `
 
 /* ── Component ── */
 export function HomePage() {
   const { user } = useAuth()
-  const { addToCart, totalItems } = useCart()
+  const { totalItems } = useCart()
   const navigate = useNavigate()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [toast, setToast] = useState<string | null>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft,  setCanScrollLeft]  = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
@@ -450,19 +291,24 @@ export function HomePage() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    const q = searchQuery.trim()
-    if (!q) return
-    const found = MOCK_BOOKS.find(b => b.isbn === q.replace(/\s/g, ''))
-    navigate(found ? `/livre/${found.id}` : `/recherche?q=${encodeURIComponent(q)}`)
+  /* Mise à jour des flèches au scroll */
+  function updateArrows() {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 4)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
   }
 
-  function handleAdd(e: React.MouseEvent, book: typeof nouveautes[0]) {
-    e.stopPropagation()
-    addToCart(book, 1)
-    setToast(book.title)
-    setTimeout(() => setToast(null), 3000)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    updateArrows()
+    el.addEventListener('scroll', updateArrows)
+    return () => el.removeEventListener('scroll', updateArrows)
+  }, [])
+
+  function scrollBy(delta: number) {
+    scrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
   }
 
   return (
@@ -478,32 +324,19 @@ export function HomePage() {
           </GreetingTitle>
           <GreetingSubtitle>Que souhaitez-vous commander aujourd'hui ?</GreetingSubtitle>
 
-          <SearchBox onSubmit={handleSearch} role="search" aria-label="Recherche rapide">
-            <SearchIconWrap><IconSearch /></SearchIconWrap>
-            <HeroSearchInput
-              ref={searchInputRef}
-              type="search"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="EAN, titre, auteur, éditeur, collection…"
-              aria-label="Rechercher un livre"
-            />
-            <SearchBtn type="submit">Rechercher</SearchBtn>
-          </SearchBox>
-          <KeyHint>Appuyez sur / pour rechercher depuis n'importe où</KeyHint>
         </HeroSection>
 
         {/* 2 — Stats */}
         <StatsGrid aria-label="Résumé du compte">
-          <StatCard>
+          <StatCard onClick={() => navigate('/panier')} style={{ cursor: 'pointer' }}>
             <StatValue>{totalItems}</StatValue>
             <StatLabel>Articles au panier</StatLabel>
           </StatCard>
-          <StatCard>
+          <StatCard onClick={() => navigate('/nouveautes')} style={{ cursor: 'pointer' }}>
             <StatValue>{nouveautesCount}</StatValue>
             <StatLabel>Nouveautés ce mois</StatLabel>
           </StatCard>
-          <StatCard>
+          <StatCard onClick={() => navigate('/flash-infos')} style={{ cursor: 'pointer' }}>
             <StatValue>
               {flashInfosCount}
               {flashInfosCount > 0 && <RedDot aria-hidden="true" />}
@@ -538,51 +371,34 @@ export function HomePage() {
             <SectionTitle>Nouveautés du mois</SectionTitle>
             <SeeAllLink to="/nouveautes">Voir tout →</SeeAllLink>
           </SectionHeader>
-          <CardScroll>
-            {nouveautes.map(book => (
-              <BookCard key={book.id}>
-                <CoverWrapper
-                  onClick={() => navigate(`/livre/${book.id}`)}
-                  role="link"
-                  aria-label={`Voir la fiche de ${book.title}`}
-                >
-                  <BookCover
-                    isbn={book.isbn}
-                    alt={book.title}
-                    width={130}
-                    height={178}
-                    universe={book.universe}
-                    authors={book.authors}
-                    publisher={book.publisher}
-                  />
-                </CoverWrapper>
-                <CardBody>
-                  <BadgeRow>
-                    <CategoryBadge>{book.universe}</CategoryBadge>
-                    <NouveauteBadge>Nouveauté</NouveauteBadge>
-                  </BadgeRow>
-                  <BookTitle>{book.title}</BookTitle>
-                  <BookAuthor>{book.authors[0]}</BookAuthor>
-                  <Divider />
-                  <PriceRow>
-                    <Price>{book.priceTTC.toFixed(2).replace('.', ',')} €</Price>
-                    <AddToCartBtn
-                      onClick={e => handleAdd(e, book)}
-                      aria-label={`Ajouter ${book.title} au panier`}
-                    >
-                      + Panier
-                    </AddToCartBtn>
-                  </PriceRow>
-                </CardBody>
-              </BookCard>
-            ))}
-          </CardScroll>
 
-          {toast && (
-            <Toast>
-              <span>✓</span>« {toast.length > 30 ? toast.slice(0, 30) + '…' : toast} » ajouté au panier
-            </Toast>
-          )}
+          <CarouselWrapper>
+            <ArrowBtn
+              $side="left"
+              $visible={canScrollLeft}
+              onClick={() => scrollBy(-220)}
+              aria-label="Défiler vers la gauche"
+            >
+              <IconChevron dir="left" />
+            </ArrowBtn>
+
+            <CardScroll ref={scrollRef}>
+              {nouveautes.map(book => (
+                <CardSlot key={book.id}>
+                  <BookCard book={book} />
+                </CardSlot>
+              ))}
+            </CardScroll>
+
+            <ArrowBtn
+              $side="right"
+              $visible={canScrollRight}
+              onClick={() => scrollBy(220)}
+              aria-label="Défiler vers la droite"
+            >
+              <IconChevron dir="right" />
+            </ArrowBtn>
+          </CarouselWrapper>
         </NouveautesSection>
 
       </Content>

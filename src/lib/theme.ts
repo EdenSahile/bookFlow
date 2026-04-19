@@ -13,7 +13,7 @@ export const theme = {
     navyLight:    '#E6EFE9',   // Vert pâle pour surfaces alternées
 
     /* Surfaces & texte */
-    white:        '#F4F4F0',   // Lin — fond de page
+    white:        '#FFFFFF',    // Blanc pur — surfaces cards
     error:        '#C0392B',
     success:      '#226241',
 

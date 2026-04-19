@@ -12,12 +12,12 @@ const fadeSlideIn = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `
 
-/* ── Couleurs par statut ── */
+/* ── Couleurs par statut — palette Forêt & Lin ── */
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; dot: string }> = {
-  'en cours': { bg: '#FEF0D0', text: '#B8740A', dot: '#D4880A' },
-  'reçu':     { bg: '#E3F2FD', text: '#1565C0', dot: '#1976D2' },
-  'facturé':  { bg: '#EDE7F6', text: '#4527A0', dot: '#7B1FA2' },
-  'expédié':  { bg: '#E8F5E9', text: '#1B5E20', dot: '#2E7D32' },
+  'en cours': { bg: '#F7F0DC', text: '#8B6914', dot: '#8B6914' },   // or — en attente
+  'reçu':     { bg: '#EFF4F1', text: '#2D6A52', dot: '#2D6A52' },   // vert doux — reçu
+  'facturé':  { bg: '#EAEAE6', text: '#555550', dot: '#555550' },   // gris neutre — admin
+  'expédié':  { bg: '#E6EFE9', text: '#226241', dot: '#226241' },   // vert forêt — terminé
 }
 
 /* ── Styled ── */
@@ -105,7 +105,7 @@ const Select = styled.select`
   color: ${({ theme }) => theme.colors.navy};
   background-color: ${({ theme }) => theme.colors.white};
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%231E3A5F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23226241' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   cursor: pointer;
@@ -189,7 +189,8 @@ const StepDot = styled.div<{ $done: boolean; $active: boolean; $color: string }>
     $active ? $color : $done ? $color : theme.colors.gray[200]};
   color: ${({ $done, $active, theme }) =>
     $done || $active ? theme.colors.white : theme.colors.gray[400]};
-  box-shadow: ${({ $active }) => $active ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'};
+  outline: ${({ $active }) => $active ? '3px solid rgba(34,98,65,0.25)' : 'none'};
+  outline-offset: 2px;
   transform: ${({ $active }) => $active ? 'scale(1.15)' : 'scale(1)'};
   z-index: 1;
 `
@@ -315,7 +316,7 @@ const DupliquerButton = styled.button<{ $done?: boolean }>`
   gap: 6px;
   padding: 8px 16px;
   background-color: ${({ $done, theme }) => $done ? '#2E7D32' : theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
+  color: #fdfdfd;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
@@ -439,7 +440,7 @@ const CopyButton = styled.button<{ $copied?: boolean }>`
   gap: 7px;
   padding: 10px 20px;
   background-color: ${({ $copied, theme }) => $copied ? '#2E7D32' : theme.colors.navy};
-  color: ${({ theme }) => theme.colors.white};
+  color: #fdfdfd;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.typography.sizes.sm};

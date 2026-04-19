@@ -36,7 +36,7 @@ const Tab = styled.button<{ $active: boolean }>`
   border-radius: ${({ theme }) => theme.radii.md};
   border: 2px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
   background-color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.white};
-  color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.navy};
+  color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.navy};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
   cursor: pointer;
@@ -49,8 +49,7 @@ const Tab = styled.button<{ $active: boolean }>`
 
 const Card = styled.div`
   background-color: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.radii.xl};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   padding: ${({ theme }) => theme.spacing.xl};
 `
 
@@ -108,7 +107,7 @@ const SendButton = styled.button`
   width: 100%;
   padding: 14px;
   background-color: ${({ theme }) => theme.colors.navy};
-  color: ${({ theme }) => theme.colors.white};
+  color: #fdfdfd;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.typography.sizes.md};
@@ -128,8 +127,9 @@ const SendButton = styled.button`
 `
 
 const InfoCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.navyLight};
-  border-radius: ${({ theme }) => theme.radii.lg};
+  background-color: ${({ theme }) => theme.colors.primaryLight};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-left: 3px solid ${({ theme }) => theme.colors.primary};
   padding: ${({ theme }) => theme.spacing.lg};
   margin-top: ${({ theme }) => theme.spacing.lg};
 `

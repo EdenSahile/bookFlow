@@ -26,8 +26,7 @@ const Subtitle = styled.p`
 
 const Card = styled.div`
   background-color: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.radii.xl};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   padding: ${({ theme }) => theme.spacing.xl};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `
@@ -113,7 +112,7 @@ const SubmitButton = styled.button`
   margin-top: ${({ theme }) => theme.spacing.lg};
   padding: 14px;
   background-color: ${({ theme }) => theme.colors.navy};
-  color: ${({ theme }) => theme.colors.white};
+  color: #fdfdfd;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.typography.sizes.md};

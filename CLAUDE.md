@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+
+## Résumé
+À chaque fin de session ou sur demande, ajoute un bloc daté en haut du fichier résumant : ce qui a été fait, l’état actuel du code, et les prochaines étapes.
+
 ## Contexte du projet
 
 Application B2B **BookFlow** à destination exclusive des **libraires**, permettant de passer des commandes de livres (notamment les titres de fonds déjà parus) et de consulter les actualités éditoriales.

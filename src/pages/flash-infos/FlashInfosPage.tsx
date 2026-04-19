@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type JSX } from 'react'
 import styled from 'styled-components'
 import { MOCK_FLASH_INFOS, FLASH_CATEGORIES } from '@/data/mockFlashInfos'
 import type { FlashCategory } from '@/data/mockFlashInfos'
@@ -37,7 +37,7 @@ const CategoryChip = styled.button<{ $active: boolean }>`
   border-radius: ${({ theme }) => theme.radii.full};
   border: 1.5px solid ${({ theme, $active }) => $active ? theme.colors.navy : theme.colors.gray[200]};
   background: ${({ theme, $active }) => $active ? theme.colors.navy : theme.colors.white};
-  color: ${({ theme, $active }) => $active ? theme.colors.white : theme.colors.gray[600]};
+  color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.gray[600]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme, $active }) => $active ? theme.typography.weights.semibold : theme.typography.weights.normal};
@@ -47,7 +47,7 @@ const CategoryChip = styled.button<{ $active: boolean }>`
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.navy};
-    color: ${({ theme, $active }) => $active ? theme.colors.white : theme.colors.navy};
+    color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.navy};
   }
 `
 
@@ -64,6 +64,13 @@ const List = styled.div`
   gap: ${({ theme }) => theme.spacing.lg};
 `
 
+const ResultCount = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`
+
 const EmptyState = styled.div`
   text-align: center;
   padding: ${({ theme }) => theme.spacing['3xl']};
@@ -78,16 +85,22 @@ const Card = styled.article`
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
   overflow: hidden;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: ${({ theme }) => theme.shadows.md};
+    transform: translateY(-2px);
+  }
 `
 
 const CardInner = styled.div`
   display: flex;
-  gap: 0;
+  flex-direction: column;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
     flex-direction: row;
   }
-  flex-direction: column;
 `
 
 const MediaArea = styled.div`
@@ -107,34 +120,29 @@ const CardImage = styled.img`
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
     height: 100%;
-    min-height: 180px;
+    min-height: 200px;
   }
 `
 
 const VideoWrapper = styled.div`
   position: relative;
-  padding-bottom: 56.25%; /* 16:9 */
-  height: 0;
+  width: 100%;
+  height: 200px;
   overflow: hidden;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    padding-bottom: 0;
-    height: 180px;
+    height: 100%;
+    min-height: 200px;
   }
 `
 
 const VideoIframe = styled.iframe`
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border: 0;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    position: static;
-    width: 280px;
-    height: 180px;
-  }
 `
 
 const CardBody = styled.div`
@@ -148,34 +156,46 @@ const CardBody = styled.div`
 const CardMeta = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.sm};
+`
+
+const CardMetaBadges = styled.div`
+  display: flex;
+  align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   flex-wrap: wrap;
 `
 
-const UniverseBadge = styled.span<{ $color: string }>`
+const UniverseBadge = styled.span<{ $color: string; $bg: string }>`
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  padding: 2px 8px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background: ${({ $bg }) => $bg};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.xs};
-  color: ${({ theme }) => theme.colors.gray[600]};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  color: ${({ $color }) => $color};
 
   &::before {
     content: '';
     display: inline-block;
-    width: 7px; height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: ${({ $color }) => $color};
     flex-shrink: 0;
   }
 `
 
-const CategoryBadge = styled.span`
+const CategoryBadge = styled.span<{ $bg: string; $color: string }>`
   display: inline-block;
   padding: 2px 8px;
-  border-radius: ${({ theme }) => theme.radii.sm};
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.navy};
+  border-radius: ${({ theme }) => theme.radii.full};
+  background: ${({ $bg }) => $bg};
+  color: ${({ $color }) => $color};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.xs};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
@@ -187,7 +207,8 @@ const CardDate = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.xs};
   color: ${({ theme }) => theme.colors.gray[400]};
-  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
 `
 
 const CardTitle = styled.h2`
@@ -238,7 +259,7 @@ const AddBtn = styled.button`
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.colors.primary};
-  color: #fff;
+  color: #ffffff;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
@@ -249,16 +270,102 @@ const AddBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
+/* ── Placeholder média ── */
+const MediaPlaceholder = styled.div<{ $bg: string }>`
+  flex-shrink: 0;
+  width: 100%;
+  height: 120px;
+  background: ${({ $bg }) => $bg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    width: 280px;
+    height: 100%;
+    min-height: 200px;
+  }
+`
+
+const PlaceholderIcon = styled.div<{ $color: string }>`
+  color: ${({ $color }) => $color};
+  opacity: 0.6;
+`
+
+function IconAuteurs() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  )
+}
+
+function IconFonds() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+  )
+}
+
+function IconNouveautes() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  )
+}
+
+function IconFlowDiff() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+    </svg>
+  )
+}
+
+function IconArrow() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  )
+}
+
 function IconCartFI() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
 }
 
-/* ── Couleurs univers ── */
+/* ── Couleurs univers — palette Forêt & Lin ── */
 const UNIVERSE_COLORS: Record<Universe, string> = {
-  'Littérature':     '#1E3A5F',
-  'BD/Mangas':       '#E65100',
-  'Jeunesse':        '#1565C0',
-  'Adulte-pratique': '#2E7D32',
+  'Littérature':     '#226241',   // vert forêt
+  'BD/Mangas':       '#C9A84C',   // or
+  'Jeunesse':        '#4A8C6F',   // vert clair
+  'Adulte-pratique': '#8B7355',   // brun lin
+}
+
+const UNIVERSE_BG: Record<Universe, string> = {
+  'Littérature':     '#E6EFE9',   // primaryLight
+  'BD/Mangas':       '#F7F0DC',   // accentLight
+  'Jeunesse':        '#EFF4F1',   // vert très pâle
+  'Adulte-pratique': '#F0EDE8',   // lin chaud
+}
+
+const CATEGORY_COLORS: Record<FlashCategory, { bg: string; text: string }> = {
+  'Auteurs':    { bg: '#F7F0DC', text: '#8B6914' },   // or pâle / or foncé
+  'Fonds':      { bg: '#E6EFE9', text: '#226241' },   // vert pâle / vert forêt
+  'Nouveautés': { bg: '#E6EFE9', text: '#1A4D32' },   // vert pâle / vert profond
+  'FlowDiff':   { bg: '#EAEAE6', text: '#555550' },   // gris neutre
+}
+
+const CATEGORY_ICON: Record<string, JSX.Element> = {
+  'Auteurs':    <IconAuteurs />,
+  'Fonds':      <IconFonds />,
+  'Nouveautés': <IconNouveautes />,
+  'FlowDiff':   <IconFlowDiff />,
 }
 
 /* ── Format date ── */
@@ -306,6 +413,10 @@ export function FlashInfosPage() {
         ))}
       </FiltersRow>
 
+      <ResultCount>
+        {filtered.length} flash info{filtered.length !== 1 ? 's' : ''}
+      </ResultCount>
+
       {filtered.length === 0 ? (
         <EmptyState>Aucune info flash pour cette sélection.</EmptyState>
       ) : (
@@ -313,7 +424,7 @@ export function FlashInfosPage() {
           {filtered.map(fi => (
             <Card key={fi.id}>
               <CardInner>
-                {/* Média : image ou vidéo */}
+                {/* Média : vidéo, image, ou placeholder */}
                 {fi.videoUrl ? (
                   <MediaArea>
                     <VideoWrapper>
@@ -329,14 +440,30 @@ export function FlashInfosPage() {
                   <MediaArea>
                     <CardImage src={fi.imageUrl} alt={fi.title} loading="lazy" />
                   </MediaArea>
-                ) : null}
+                ) : (
+                  <MediaPlaceholder $bg={UNIVERSE_BG[fi.universe]}>
+                    <PlaceholderIcon $color={UNIVERSE_COLORS[fi.universe]}>
+                      {CATEGORY_ICON[fi.category]}
+                    </PlaceholderIcon>
+                  </MediaPlaceholder>
+                )}
 
                 <CardBody>
                   <CardMeta>
-                    <UniverseBadge $color={UNIVERSE_COLORS[fi.universe]}>
-                      {fi.universe}
-                    </UniverseBadge>
-                    <CategoryBadge>{fi.category}</CategoryBadge>
+                    <CardMetaBadges>
+                      <UniverseBadge
+                        $color={UNIVERSE_COLORS[fi.universe]}
+                        $bg={UNIVERSE_BG[fi.universe]}
+                      >
+                        {fi.universe}
+                      </UniverseBadge>
+                      <CategoryBadge
+                        $bg={CATEGORY_COLORS[fi.category].bg}
+                        $color={CATEGORY_COLORS[fi.category].text}
+                      >
+                        {fi.category}
+                      </CategoryBadge>
+                    </CardMetaBadges>
                     <CardDate>{formatDate(fi.date)}</CardDate>
                   </CardMeta>
 
@@ -346,7 +473,7 @@ export function FlashInfosPage() {
                   <CardActions>
                     {fi.link && (
                       <LinkBtn href={fi.link} target="_blank" rel="noopener noreferrer">
-                        {fi.linkLabel ?? 'En savoir plus'} →
+                        {fi.linkLabel ?? 'En savoir plus'} <IconArrow />
                       </LinkBtn>
                     )}
                     {fi.bookId && (

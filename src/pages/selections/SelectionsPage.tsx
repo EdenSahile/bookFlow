@@ -65,14 +65,14 @@ const CoverWrapper = styled.div`
 const CoverSkeleton = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d5188 100%);
+  background: linear-gradient(135deg, #226241 0%, #2D6A52 100%);
   animation: ${pulse} 1.6s ease-in-out infinite;
 `
 
 const CoverFallback = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, #1e3a5f 0%, #2d5a9e 50%, #1a3050 100%);
+  background: linear-gradient(160deg, #226241 0%, #2D6A52 50%, #1A4D32 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -87,7 +87,7 @@ const CoverFallbackSpine = styled.div`
   top: 0;
   bottom: 0;
   width: 5px;
-  background: rgba(255, 192, 0, 0.55);
+  background: rgba(201, 168, 76, 0.6);
 `
 
 const CoverFallbackText = styled.div`
@@ -235,7 +235,7 @@ const FilterPill = styled.button<{ $active: boolean; $variant?: 'prix' | 'offre'
     if ($active) return theme.colors.navy
     return theme.colors.white
   }};
-  color: ${({ $active, theme }) => $active ? '#fff' : theme.colors.navy};
+  color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.navy};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -617,7 +617,7 @@ const AddToCartBtn = styled.button<{ $added?: boolean }>`
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ $added, theme }) => $added ? theme.colors.success : theme.colors.primary};
-  color: ${({ $added, theme }) => $added ? '#fff' : theme.colors.navy};
+  color: #fdfdfd;
   font-size: ${({ theme }) => theme.typography.sizes.xs};
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -777,7 +777,7 @@ const OPAddBtn = styled.button<{ $added?: boolean }>`
   margin-top: ${({ theme }) => theme.spacing.md};
   padding: 14px 20px;
   background: ${({ $added, theme }) => $added ? theme.colors.success : theme.colors.primary};
-  color: ${({ $added, theme }) => $added ? '#fff' : theme.colors.navy};
+  color: #fdfdfd;
   border: none;
   border-radius: ${({ theme }) => theme.radii.lg};
   font-size: ${({ theme }) => theme.typography.sizes.md};
@@ -907,7 +907,7 @@ const AddAllButton = styled.button`
   gap: 6px;
   padding: 10px 18px;
   background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.navy};
+  color: #fdfdfd;
   border: none;
   border-radius: ${({ theme }) => theme.radii.lg};
   font-size: ${({ theme }) => theme.typography.sizes.sm};

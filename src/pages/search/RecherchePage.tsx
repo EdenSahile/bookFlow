@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
-import { MOCK_BOOKS, type Book, type Universe } from '@/data/mockBooks'
+import { MOCK_BOOKS, PRICE_RANGES, type Book, type Universe } from '@/data/mockBooks'
 import { BookCard } from '@/components/catalogue/BookCard'
 import { useCart } from '@/contexts/CartContext'
 
@@ -132,8 +132,8 @@ const FilterChip = styled.button<{ $active: boolean }>`
   padding: 5px 14px;
   border-radius: 20px;
   border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
-  background: ${({ $active, theme }) => $active ? theme.colors.navy : '#fff'};
-  color: ${({ $active, theme }) => $active ? '#fff' : theme.colors.navy};
+  background: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.white};
+  color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.navy};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
   font-weight: 600;
@@ -177,10 +177,8 @@ const EmptyText = styled.p`font-size: 13px; line-height: 1.6;`
 
 /* ── Hors catalogue ── */
 const HorsCard = styled.div`
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(28,58,95,0.10);
-  border: 1px solid rgba(28,58,95,0.07);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   overflow: hidden;
   max-width: 480px;
   margin: 0 auto;
@@ -188,27 +186,32 @@ const HorsCard = styled.div`
 `
 
 const HorsHeader = styled.div`
-  background: #FFF3E0;
-  border-bottom: 1px solid #FFD599;
+  background: ${({ theme }) => theme.colors.accentLight};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-left: 3px solid ${({ theme }) => theme.colors.accent};
   padding: 14px 20px;
   display: flex;
   align-items: center;
   gap: 10px;
 `
 
-const HorsHeaderIcon = styled.span`font-size: 18px;`
+const HorsHeaderIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  color: ${({ theme }) => theme.colors.accent};
+`
 
 const HorsHeaderText = styled.div`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: 700;
-  color: #8B4500;
+  color: ${({ theme }) => theme.colors.navy};
 `
 
 const HorsHeaderSub = styled.div`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 11px;
-  color: #B86400;
+  color: ${({ theme }) => theme.colors.gray[600]};
   margin-top: 1px;
 `
 
@@ -222,14 +225,13 @@ const HorsBody = styled.div`
 const HorsCover = styled.div`
   width: 80px;
   height: 114px;
-  border-radius: 6px;
   overflow: hidden;
   background: ${({ theme }) => theme.colors.gray[100]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 3px 6px 16px rgba(28,58,95,0.18);
 `
 
 const HorsCoverImg = styled.img`
@@ -302,7 +304,7 @@ const ContactRepBtn = styled.button`
   border: none;
   border-radius: 10px;
   background: ${({ theme }) => theme.colors.navy};
-  color: #fff;
+  color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 14px;
   font-weight: 700;
@@ -416,7 +418,13 @@ export function RecherchePage() {
   const navigate  = useNavigate()
   const { addToCart } = useCart()
 
-  const q = (params.get('q') ?? '').trim()
+  const q        = (params.get('q') ?? '').trim()
+  const pUniverse = (params.get('universe') ?? '') as Universe | ''
+  const pGenres   = params.get('genres')?.split(',').filter(Boolean) ?? []
+  const pLangues  = params.get('langues')?.split(',').filter(Boolean) ?? []
+  const pPrix     = params.get('prix')?.split('|').filter(Boolean) ?? []
+  const pFormats  = params.get('formats')?.split(',').filter(Boolean) ?? []
+
   const [universeFilter, setUniverseFilter] = useState<Universe | null>(null)
 
   /* Si l'ISBN est dans le catalogue, rediriger direct vers la fiche */
@@ -429,20 +437,37 @@ export function RecherchePage() {
     }
   }, [q, navigate])
 
-  /* Résultats catalogue */
-  const allResults = useMemo(() => searchCatalog(q), [q])
+  /* Résultats catalogue — texte puis filtres avancés */
+  const allResults = useMemo(() => {
+    let books = q ? searchCatalog(q) : [...MOCK_BOOKS]
+
+    if (pUniverse) books = books.filter(b => b.universe === pUniverse)
+    if (pGenres.length)  books = books.filter(b => b.genre && pGenres.includes(b.genre))
+    if (pLangues.length) books = books.filter(b => b.language && pLangues.includes(b.language))
+    if (pPrix.length) {
+      const ranges = PRICE_RANGES.filter(r => pPrix.includes(r.label))
+      if (ranges.length) books = books.filter(b => ranges.some(r => b.priceTTC >= r.min && b.priceTTC < r.max))
+    }
+    if (pFormats.length) books = books.filter(b => b.format && pFormats.includes(b.format))
+
+    return books
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, params.toString()])
 
   const results = useMemo(() =>
     universeFilter ? allResults.filter(b => b.universe === universeFilter) : allResults,
     [allResults, universeFilter]
   )
 
+  /* Filters applied via URL params */
+  const hasAdvancedFilters = !!(pUniverse || pGenres.length || pLangues.length || pPrix.length || pFormats.length)
+
   /* Cas ISBN hors catalogue */
-  const isbnNotFound = isIsbn(q.replace(/[\s-]/g, '')) &&
+  const isbnNotFound = q && isIsbn(q.replace(/[\s-]/g, '')) &&
     !MOCK_BOOKS.find(b => b.isbn === q.replace(/[\s-]/g, ''))
 
   /* ── Rendu ── */
-  if (!q) {
+  if (!q && !hasAdvancedFilters) {
     return (
       <Page>
         <BackBtn onClick={() => navigate(-1)}>← Retour</BackBtn>
@@ -475,11 +500,23 @@ export function RecherchePage() {
       <PageHeader>
         <ResultTitle>
           {allResults.length > 0
-            ? `${allResults.length} résultat${allResults.length > 1 ? 's' : ''} pour « ${q} »`
-            : `Aucun résultat pour « ${q} »`}
+            ? `${allResults.length} résultat${allResults.length > 1 ? 's' : ''}${q ? ` pour « ${q} »` : ''}`
+            : q ? `Aucun résultat pour « ${q} »` : 'Aucun résultat'}
         </ResultTitle>
         {results.length !== allResults.length && (
           <ResultSub>{results.length} titre{results.length > 1 ? 's' : ''} dans cette thématique</ResultSub>
+        )}
+        {hasAdvancedFilters && (
+          <ResultSub>
+            Filtres actifs :{' '}
+            {[
+              pUniverse,
+              ...pGenres,
+              ...pLangues,
+              ...pPrix,
+              ...pFormats,
+            ].join(', ')}
+          </ResultSub>
         )}
       </PageHeader>
 

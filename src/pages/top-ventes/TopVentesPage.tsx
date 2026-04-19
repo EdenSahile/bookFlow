@@ -41,18 +41,19 @@ type TabView = 'tous' | Universe
 
 const UNIVERSES: Universe[] = ['BD/Mangas', 'Jeunesse', 'Littérature', 'Adulte-pratique']
 
+/* Palette Forêt & Lin — cohérente avec UniverseFilter et FlashInfosPage */
 const UNIVERSE_COLORS: Record<Universe, { bg: string; text: string; dot: string }> = {
-  'BD/Mangas':       { bg: '#FFF0E8', text: '#C04A00', dot: '#C04A00' },
-  'Jeunesse':        { bg: '#E8F0FC', text: '#1565C0', dot: '#1565C0' },
-  'Littérature':     { bg: '#EEF1F7', text: '#1C3252', dot: '#1C3252' },
-  'Adulte-pratique': { bg: '#E8F5EE', text: '#1E7045', dot: '#1E7045' },
+  'BD/Mangas':       { bg: '#F7F0DC', text: '#8B6914', dot: '#8B6914' },
+  'Jeunesse':        { bg: '#EFF4F1', text: '#2D6A52', dot: '#2D6A52' },
+  'Littérature':     { bg: '#E6EFE9', text: '#226241', dot: '#226241' },
+  'Adulte-pratique': { bg: '#F0EDE8', text: '#6B5440', dot: '#6B5440' },
 }
 
 const SECTION_BORDER: Record<Universe, string> = {
-  'BD/Mangas':       '#C04A00',
-  'Jeunesse':        '#1565C0',
-  'Littérature':     '#1C3252',
-  'Adulte-pratique': '#1E7045',
+  'BD/Mangas':       '#8B6914',
+  'Jeunesse':        '#2D6A52',
+  'Littérature':     '#226241',
+  'Adulte-pratique': '#6B5440',
 }
 
 function getRankedBooks(books: Book[]) {
@@ -183,8 +184,8 @@ const SectionHeader = styled.div<{ $universe?: Universe }>`
   justify-content: space-between;
   margin-bottom: 20px;
   padding-left: 14px;
-  border-left: 4px solid ${({ $universe }) =>
-    $universe ? SECTION_BORDER[$universe] : '#1E3A5F'};
+  border-left: 4px solid ${({ $universe, theme }) =>
+    $universe ? SECTION_BORDER[$universe] : theme.colors.primary};
 `
 
 const SectionTitle = styled.h2`
@@ -207,6 +208,9 @@ const PodiumGrid = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   gap: ${({ theme }) => theme.spacing.md};
+  background: ${({ theme }) => theme.colors.primaryLight};
+  border-top: 3px solid ${({ theme }) => theme.colors.primary};
+  padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.md};
 
   & > * {
     width: 200px;
@@ -267,8 +271,7 @@ const ListRows = styled.div`
   display: flex;
   flex-direction: column;
   background: ${({ theme }) => theme.colors.white};
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(28,50,82,0.07);
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   overflow: hidden;
   margin-top: ${({ theme }) => theme.spacing.md};
 `
@@ -290,7 +293,7 @@ const RowRank = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 22px;
   font-weight: 800;
-  color: rgba(28,50,82,0.18);
+  color: rgba(34,98,65,0.2);
   width: 32px;
   text-align: center;
   flex-shrink: 0;
@@ -347,7 +350,7 @@ const RowAddBtn = styled.button`
   border: none;
   border-radius: 8px;
   background: ${({ theme }) => theme.colors.primary};
-  color: #fff;
+  color: #fdfdfd;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -376,18 +379,28 @@ const UnivDot = styled.span<{ $color: string }>`
   flex-shrink: 0;
 `
 
-const TrendUp     = styled.span`color: #1E7045; font-size: 11px; font-weight: 700;`
-const TrendDown   = styled.span`color: #C0392B; font-size: 11px; font-weight: 700;`
-const TrendStable = styled.span`color: ${({ theme }) => theme.colors.gray[400]}; font-size: 11px; font-weight: 700;`
+const TrendUp     = styled.span`color: #226241; display: inline-flex; align-items: center;`
+const TrendDown   = styled.span`color: #C0392B; display: inline-flex; align-items: center;`
+const TrendStable = styled.span`color: ${({ theme }) => theme.colors.gray[400]}; display: inline-flex; align-items: center;`
 
 function IconCart() {
   return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
 }
 
+function IconUp() {
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+}
+function IconDown() {
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+}
+function IconStable() {
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+}
+
 function TrendIcon({ trend }: { trend: SalesData['trend'] }) {
-  if (trend === 'up')   return <TrendUp>↑</TrendUp>
-  if (trend === 'down') return <TrendDown>↓</TrendDown>
-  return <TrendStable>→</TrendStable>
+  if (trend === 'up')   return <TrendUp><IconUp /></TrendUp>
+  if (trend === 'down') return <TrendDown><IconDown /></TrendDown>
+  return <TrendStable><IconStable /></TrendStable>
 }
 
 const EmptySection = styled.p`
@@ -397,7 +410,7 @@ const EmptySection = styled.p`
   text-align: center;
   padding: 24px;
   background: ${({ theme }) => theme.colors.white};
-  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
 `
 
 /* ══════════════════════════════════════════════════════

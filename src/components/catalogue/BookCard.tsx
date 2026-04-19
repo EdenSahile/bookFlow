@@ -8,10 +8,10 @@ import { useToast } from '@/components/ui/Toast'
 
 /* ── Palette catégories — ajouter ici pour étendre ── */
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  'Littérature':     { bg: '#EAF0E6', text: '#2D5A27' },
-  'BD/Mangas':       { bg: '#EDE8F5', text: '#4A3280' },
-  'Jeunesse':        { bg: '#FEF3E2', text: '#92500A' },
-  'Adulte-pratique': { bg: '#E8F4F8', text: '#1A5F7A' },
+  'Littérature':     { bg: '#E8EDF3', text: '#1C3252' },
+  'BD/Mangas':       { bg: '#FDEBD0', text: '#C04A00' },
+  'Jeunesse':        { bg: '#F5E8F8', text: '#7B2D8B' },
+  'Adulte-pratique': { bg: '#E6F4EC', text: '#1E7045' },
   'Autres':          { bg: '#F1EFE8', text: '#5F5E5A' },
 }
 
@@ -232,7 +232,7 @@ const AjouterBtn = styled.button`
   border: none;
   border-radius: 7px;
   background: #226241;
-  color: #d4ead9;
+  color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
@@ -251,7 +251,7 @@ const AjouterBtn = styled.button`
 
 function IconCart() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4ead9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="9" cy="21" r="1"/>
       <circle cx="20" cy="21" r="1"/>
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>

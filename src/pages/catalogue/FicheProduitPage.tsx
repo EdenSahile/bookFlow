@@ -457,8 +457,8 @@ const AddBtn = styled.button<{ $added: boolean }>`
   height: 48px;
   border: none;
   border-radius: 12px;
-  background: ${({ $added }) => $added ? '#162D20' : '#0E2117'};
-  color: #fff;
+  background: ${({ $added, theme }) => $added ? theme.colors.primaryHover : theme.colors.primary};
+  color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 15px;
   font-weight: 800;
@@ -470,7 +470,7 @@ const AddBtn = styled.button<{ $added: boolean }>`
   gap: 8px;
   letter-spacing: 0.01em;
   &:hover:not(:disabled) {
-    background: ${({ $added }) => $added ? '#0a1a11' : '#162D20'};
+    background: ${({ theme }) => theme.colors.primaryHover};
     transform: translateY(-1px);
   }
   &:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
@@ -509,7 +509,7 @@ const ContactRepBtn = styled.button`
   border: none;
   border-radius: 12px;
   background: ${({ theme }) => theme.colors.navy};
-  color: #fff;
+  color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 14px;
   font-weight: 700;
@@ -941,6 +941,16 @@ const YtOpenBtn = styled.a`
   &:hover { background: #CC0000; }
 `
 
+function IconCart() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+  )
+}
+
 /* ══ Composant ══ */
 
 export function FicheProduitPage() {
@@ -1216,7 +1226,7 @@ export function FicheProduitPage() {
                 <QtyBtn onClick={() => setQty(q => q + 1)} aria-label="Augmenter">+</QtyBtn>
               </QtyControl>
               <AddBtn $added={added} onClick={handleAdd} aria-label="Ajouter au panier">
-                {added ? '✓ Ajouté au panier !' : `🛒 Ajouter ${qty > 1 ? `${qty} ex. ` : ''}au panier`}
+                {added ? '✓ Ajouté au panier !' : <><IconCart /> Ajouter {qty > 1 ? `${qty} ex. ` : ''}au panier</>}
               </AddBtn>
             </OrderRow>
           )}

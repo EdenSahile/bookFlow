@@ -271,7 +271,7 @@ const AddBtn = styled.button`
   border: none;
   border-radius: 6px;
   background: ${({ theme }) => theme.colors.navy};
-  color: #fff;
+  color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
   font-weight: 700;

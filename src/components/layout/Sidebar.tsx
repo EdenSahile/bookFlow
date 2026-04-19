@@ -90,7 +90,7 @@ const StyledNavLink = styled(NavLink)`
   display: flex;
   align-items: center;
   padding: 7px 10px;
-  color: rgba(255,255,255,0.65);
+  color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: ${({ theme }) => theme.typography.weights.normal};
@@ -111,7 +111,7 @@ const StyledNavLink = styled(NavLink)`
   }
 
   &:hover {
-    color: #fff;
+    color: #fdfdfd;
     background-color: rgba(255,255,255,0.07);
   }
 

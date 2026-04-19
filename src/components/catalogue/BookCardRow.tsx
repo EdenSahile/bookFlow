@@ -490,7 +490,7 @@ const AmBtn = styled.button`
   border: none;
   border-radius: 4px;
   background: ${({ theme }) => theme.colors.navy};
-  color: #fff;
+  color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 11px;
   font-weight: 700;

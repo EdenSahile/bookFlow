@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { useCart, REMISE_RATES, getItemKey } from '@/contexts/CartContext'
@@ -7,8 +7,150 @@ import { useAuth } from '@/hooks/useAuth'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { Button } from '@/components/ui/Button'
 
+/* ── Confirm Dialog ── */
+const Overlay = styled.div`
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+`
+
+const Dialog = styled.div`
+  background: #fff;
+  border-radius: ${({ theme }) => theme.radii.xl};
+  padding: ${({ theme }) => theme.spacing.xl};
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+`
+
+const DialogTitle = styled.h3`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.lg};
+  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  color: ${({ theme }) => theme.colors.navy};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`
+
+const DialogText = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`
+
+const DialogActions = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  justify-content: flex-end;
+`
+
+const DialogBtn = styled.button<{ $danger?: boolean }>`
+  padding: 0 ${({ theme }) => theme.spacing.lg};
+  height: 44px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  cursor: pointer;
+  border: none;
+  transition: background .15s, color .15s;
+  background: ${({ $danger, theme }) => $danger ? theme.colors.error : theme.colors.gray[100]};
+  color: ${({ $danger }) => $danger ? '#fff' : '#374151'};
+  &:hover { filter: brightness(0.92); }
+  &:focus-visible { outline: 2px solid ${({ $danger, theme }) => $danger ? theme.colors.error : theme.colors.navy}; outline-offset: 2px; }
+`
+
+type ConfirmState = { open: false } | { open: true; title: string; message: string; onConfirm: () => void }
+
+function ConfirmDialog({ state, onCancel }: { state: ConfirmState; onCancel: () => void }) {
+  const confirmRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (state.open) confirmRef.current?.focus()
+  }, [state.open])
+
+  useEffect(() => {
+    if (!state.open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [state.open, onCancel])
+
+  if (!state.open) return null
+
+  return (
+    <Overlay onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <Dialog onClick={e => e.stopPropagation()}>
+        <DialogTitle id="dialog-title">{state.title}</DialogTitle>
+        <DialogText>{state.message}</DialogText>
+        <DialogActions>
+          <DialogBtn onClick={onCancel}>Annuler</DialogBtn>
+          <DialogBtn $danger ref={confirmRef} onClick={() => { state.onConfirm(); onCancel() }}>
+            Supprimer
+          </DialogBtn>
+        </DialogActions>
+      </Dialog>
+    </Overlay>
+  )
+}
+
+/* ── SVG Icons ── */
+function IconScreen() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+    </svg>
+  )
+}
+
+function IconTrash() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
+    </svg>
+  )
+}
+
+function IconCheck() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 12px', display: 'block', color: '#226241' }}>
+      <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+    </svg>
+  )
+}
+
+function IconCart() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }}>
+      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+  )
+}
+
+function IconTag() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+      <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function IconChevronLeft() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }}>
+      <path d="m15 18-6-6 6-6"/>
+    </svg>
+  )
+}
+
 /* ── Animations ── */
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
+
+
 
 /* ══════════════════════════════════════════════════════
    LAYOUT GÉNÉRAL
@@ -18,6 +160,7 @@ const Page = styled.div`
   max-width: 720px;
   margin: 0 auto;
   animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
 const PageTitle = styled.h1`
@@ -101,10 +244,8 @@ const SectionTitle = styled.h2`
 `
 
 const ItemCard = styled.div<{ $ebook?: boolean }>`
-  background: ${({ $ebook }) => $ebook ? '#EDF4FF' : '#fff'};
-  border: 1px solid ${({ $ebook }) => $ebook ? '#BEDAFF' : '#E6E1DA'};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
+  background: ${({ $ebook, theme }) => $ebook ? theme.colors.accentLight : theme.colors.white};
+  border: 1px solid ${({ $ebook, theme }) => $ebook ? theme.colors.gray[200] : theme.colors.gray[200]};
   padding: ${({ theme }) => theme.spacing.md};
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
@@ -116,7 +257,7 @@ const EbookFormatBadge = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #1E3A5F;
+  background: ${({ theme }) => theme.colors.navy};
   color: #fff;
   font-size: 10px;
   font-weight: 700;
@@ -185,24 +326,26 @@ const ItemPrice = styled.span`
 const ItemRemise = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.xs};
-  color: #2E7D32;
+  color: #226241;
 `
 
 const QtyControl = styled.div`
   display: flex;
   align-items: center;
-  gap: 2px;
   border: 2px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: ${({ theme }) => theme.radii.md};
+  overflow: hidden;
 `
 
 const QtyBtn = styled.button`
-  width: 30px; height: 30px;
+  width: 44px; height: 44px;
   background: none; border: none; cursor: pointer;
   font-size: 1.1rem; color: ${({ theme }) => theme.colors.navy};
   display: flex; align-items: center; justify-content: center;
-  transition: background .1s;
+  transition: background .15s;
+  border-radius: ${({ theme }) => theme.radii.sm};
   &:hover { background: ${({ theme }) => theme.colors.gray[100]}; }
+  &:focus-visible { outline: 2px solid ${({ theme }) => theme.colors.navy}; outline-offset: 1px; }
   &:disabled { opacity: .35; cursor: not-allowed; }
 `
 
@@ -217,9 +360,12 @@ const QtyValue = styled.span`
 const DeleteBtn = styled.button`
   background: none; border: none; cursor: pointer;
   color: ${({ theme }) => theme.colors.gray[400]};
-  font-size: 1.1rem; padding: 4px;
-  transition: color .15s;
-  &:hover { color: ${({ theme }) => theme.colors.error}; }
+  display: flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px;
+  border-radius: ${({ theme }) => theme.radii.sm};
+  transition: color .15s, background .15s;
+  &:hover { color: ${({ theme }) => theme.colors.error}; background: ${({ theme }) => theme.colors.gray[100]}; }
+  &:focus-visible { outline: 2px solid ${({ theme }) => theme.colors.error}; outline-offset: 1px; color: ${({ theme }) => theme.colors.error}; }
 `
 
 /* ══════════════════════════════════════════════════════
@@ -227,11 +373,9 @@ const DeleteBtn = styled.button`
 ══════════════════════════════════════════════════════ */
 const OPBlock = styled.div`
   border: 2px solid ${({ theme }) => theme.colors.navy};
-  border-radius: 12px;
   overflow: hidden;
   margin-bottom: ${({ theme }) => theme.spacing.md};
-  background: #fff;
-  box-shadow: 0 3px 14px rgba(30,58,95,0.10);
+  background: ${({ theme }) => theme.colors.white};
 `
 
 /* En-tête OP */
@@ -290,18 +434,20 @@ const OPDeleteBtn = styled.button`
   border: 1px solid rgba(255,255,255,0.25);
   border-radius: 6px;
   color: rgba(255,255,255,0.75);
-  padding: 4px 10px;
+  padding: 0 14px;
+  min-height: 44px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
   transition: background .15s, color .15s;
   &:hover { background: rgba(255,255,255,0.22); color: #fff; }
+  &:focus-visible { outline: 2px solid rgba(255,255,255,0.8); outline-offset: 2px; }
 `
 
 /* Lignes du tableau OP */
 const OPTable = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
 `
 
 const OPRow = styled.div<{ $variant?: 'book' | 'cadeau' | 'plv' | 'total' }>`
@@ -313,15 +459,15 @@ const OPRow = styled.div<{ $variant?: 'book' | 'cadeau' | 'plv' | 'total' }>`
   min-height: ${({ $variant }) =>
     $variant === 'total' ? '40px' :
     $variant === 'book'  ? '72px' : '52px'};
-  background: ${({ $variant }) =>
-    $variant === 'cadeau' ? '#F1F8E9' :
-    $variant === 'plv'    ? '#FFFDE7' :
-    $variant === 'total'  ? 'rgba(30,58,95,0.04)' :
-    '#fff'};
+  background: ${({ $variant, theme }) =>
+    $variant === 'cadeau' ? theme.colors.primaryLight :
+    $variant === 'plv'    ? theme.colors.accentLight :
+    $variant === 'total'  ? theme.colors.gray[50] :
+    theme.colors.white};
   border-top: ${({ $variant, theme }) =>
     $variant === 'total'  ? `2px solid ${theme.colors.gray[200]}` :
-    $variant === 'cadeau' ? `1px dashed #A5D6A7` :
-    $variant === 'plv'    ? `1px dashed #FFC000` :
+    $variant === 'cadeau' ? `1px dashed ${theme.colors.gray[200]}` :
+    $variant === 'plv'    ? `1px dashed ${theme.colors.accent}` :
     `1px solid ${theme.colors.gray[50]}`};
 `
 
@@ -368,7 +514,7 @@ const OPCell = styled.div<{ $color?: string; $bold?: boolean }>`
 
 /* Pied de bloc OP : totaux */
 const OPFooter = styled.div`
-  background: rgba(30,58,95,0.04);
+  background: ${({ theme }) => theme.colors.gray[50]};
   padding: 10px 14px;
   display: flex;
   align-items: center;
@@ -409,8 +555,7 @@ const OPFooterValue = styled.span<{ $highlight?: boolean }>`
 ══════════════════════════════════════════════════════ */
 const DeliveryCard = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   padding: ${({ theme }) => theme.spacing.lg};
   margin-bottom: ${({ theme }) => theme.spacing.xl};
 `
@@ -447,8 +592,7 @@ const DateInput = styled.input`
 ══════════════════════════════════════════════════════ */
 const ConfirmBox = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.radii.xl};
-  box-shadow: ${({ theme }) => theme.shadows.md};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   padding: ${({ theme }) => theme.spacing.xl};
   margin-bottom: ${({ theme }) => theme.spacing.xl};
 `
@@ -479,7 +623,6 @@ const Empty = styled.div`
   font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
-const EmptyIcon = styled.p`font-size: 3rem; margin-bottom: ${({ theme }) => theme.spacing.md};`
 const EmptyText = styled.p`
   font-size: ${({ theme }) => theme.typography.sizes.lg};
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
@@ -495,6 +638,7 @@ const SuccessBox = styled.div`
   text-align: center;
   padding: ${({ theme }) => theme.spacing['3xl']};
   animation: ${fadeIn} .3s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
 /* ══════════════════════════════════════════════════════
@@ -515,6 +659,10 @@ export function CartPage() {
   const [step, setStep]         = useState<Step>('cart')
   const [delivery, setDelivery] = useState<DeliveryMode>('standard')
   const [specificDate, setSpecific] = useState('')
+  const [confirm, setConfirm]   = useState<ConfirmState>({ open: false })
+
+  const askConfirm = (title: string, message: string, onConfirm: () => void) =>
+    setConfirm({ open: true, title, message, onConfirm })
 
   /* ── Taux de remise par univers (compte connecté, sinon REMISE_RATES) ── */
   const getUserRate = (universe: string): number => {
@@ -565,7 +713,7 @@ export function CartPage() {
   if (step === 'success') return (
     <Page>
       <SuccessBox>
-        <EmptyIcon>✅</EmptyIcon>
+        <IconCheck />
         <EmptyText>Commande confirmée !</EmptyText>
         <EmptySubtext style={{ marginBottom: '24px' }}>
           Votre commande a bien été transmise. Un récapitulatif vous sera envoyé par email.
@@ -582,7 +730,7 @@ export function CartPage() {
     <Page>
       <PageTitle>Panier</PageTitle>
       <Empty>
-        <EmptyIcon>🛒</EmptyIcon>
+        <IconCart />
         <EmptyText>Votre panier est vide</EmptyText>
         <EmptySubtext style={{ marginBottom: '24px' }}>
           Parcourez le catalogue pour ajouter des titres.
@@ -616,7 +764,7 @@ export function CartPage() {
         {/* OPs */}
         {opGroups.map(op => (
           <div key={op.id} style={{ margin: '8px 0', padding: '8px 0', borderTop: '1px dashed #eee' }}>
-            <ConfirmRow style={{ fontWeight: 700, color: '#1E3A5F' }}>
+            <ConfirmRow style={{ fontWeight: 700, color: '#226241' }}>
               <span>OP — {op.opTitle}</span>
               <span></span>
             </ConfirmRow>
@@ -626,11 +774,11 @@ export function CartPage() {
                 <span>{fmt(book.priceTTC * quantity)}</span>
               </ConfirmRow>
             ))}
-            <ConfirmRow style={{ paddingLeft: 12, color: '#2E7D32' }}>
+            <ConfirmRow style={{ paddingLeft: 12, color: '#226241' }}>
               <span>{op.cadeau.emoji} {op.cadeau.label} × {op.cadeau.quantity} (offert)</span>
               <span>0,00 €</span>
             </ConfirmRow>
-            <ConfirmRow style={{ paddingLeft: 12, color: '#B8740A' }}>
+            <ConfirmRow style={{ paddingLeft: 12, color: '#8B6914' }}>
               <span>PLV × {op.plv.quantity}</span>
               <span>{fmt(op.plv.pricePerUnit * op.plv.quantity)}</span>
             </ConfirmRow>
@@ -643,7 +791,7 @@ export function CartPage() {
           <ConfirmRow><span>Remise</span><span>− {fmt(remiseTotal)}</span></ConfirmRow>
           <ConfirmRow><span>Net HT</span><span>{fmt(netHT)}</span></ConfirmRow>
           <ConfirmRow><span>TVA 5,5%</span><span>{fmt(tvaCalc)}</span></ConfirmRow>
-          <ConfirmRow style={{ fontWeight: 700, fontSize: '1rem', color: '#1E3A5F', paddingTop: '8px' }}>
+          <ConfirmRow style={{ fontWeight: 700, fontSize: '1rem', color: '#226241', paddingTop: '8px' }}>
             <span>Total TTC</span><span>{fmt(totalCalc)}</span>
           </ConfirmRow>
         </div>
@@ -665,7 +813,7 @@ export function CartPage() {
           Confirmer la commande
         </Button>
         <Button variant="ghost" size="md" fullWidth onClick={() => setStep('cart')}>
-          ← Modifier le panier
+          <IconChevronLeft /> Modifier le panier
         </Button>
       </div>
     </Page>
@@ -674,6 +822,7 @@ export function CartPage() {
   /* ─────────── PANIER PRINCIPAL ─────────── */
   return (
     <Page>
+      <ConfirmDialog state={confirm} onCancel={() => setConfirm({ open: false })} />
       <PageTitle>Panier</PageTitle>
       <ClientCode>
         Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold>
@@ -741,7 +890,7 @@ export function CartPage() {
                   {isEbook && (
                     <div style={{ marginBottom: 4 }}>
                       <EbookFormatBadge>
-                        💻 EBOOK · {ebookOption!.format}
+                        <IconScreen /> EBOOK · {ebookOption!.format}
                       </EbookFormatBadge>
                       {showPlatformTag && (
                         <EbookPlatformTag $color={platformColor}>
@@ -764,7 +913,16 @@ export function CartPage() {
                         <QtyValue>{quantity}</QtyValue>
                         <QtyBtn onClick={() => updateQty(key, quantity + 1)} aria-label="Augmenter">+</QtyBtn>
                       </QtyControl>
-                      <DeleteBtn onClick={() => removeFromCart(key)} aria-label="Supprimer">🗑</DeleteBtn>
+                      <DeleteBtn
+                        aria-label={`Supprimer ${book.title}`}
+                        onClick={() => askConfirm(
+                          'Supprimer cet article ?',
+                          `"${book.title}" sera retiré de votre panier.`,
+                          () => removeFromCart(key)
+                        )}
+                      >
+                        <IconTrash />
+                      </DeleteBtn>
                     </div>
                   </ItemFooter>
                 </ItemInfo>
@@ -802,7 +960,15 @@ export function CartPage() {
                   </OPHeaderLeft>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                     {op.validUntil && <OPValidity>jusqu'au {op.validUntil}</OPValidity>}
-                    <OPDeleteBtn onClick={() => removeOP(op.id)}>Supprimer</OPDeleteBtn>
+                    <OPDeleteBtn
+                      onClick={() => askConfirm(
+                        'Supprimer cette opération ?',
+                        `L'opération "${op.opTitle}" et tous ses articles seront retirés du panier.`,
+                        () => removeOP(op.id)
+                      )}
+                    >
+                      Supprimer
+                    </OPDeleteBtn>
                   </div>
                 </OPHeader>
 
@@ -849,28 +1015,28 @@ export function CartPage() {
                       <span style={{ fontSize: 24, lineHeight: 1 }}>{op.cadeau.emoji}</span>
                     </OPCover>
                     <OPText>
-                      <OPRowTitle style={{ color: '#2E7D32' }}>{op.cadeau.label}</OPRowTitle>
-                      <OPRowMeta style={{ color: '#4CAF50' }}>Offert au lecteur final</OPRowMeta>
+                      <OPRowTitle style={{ color: '#226241' }}>{op.cadeau.label}</OPRowTitle>
+                      <OPRowMeta>Offert au lecteur final</OPRowMeta>
                       <OPRowIsbn>ISBN {op.cadeau.isbn}</OPRowIsbn>
                     </OPText>
-                    <OPCell $color="#2E7D32">0,00 €</OPCell>
-                    <OPCell $color="#2E7D32" style={{ textAlign: 'center' }}>{op.cadeau.quantity}</OPCell>
-                    <OPCell $bold $color="#2E7D32">0,00 €</OPCell>
+                    <OPCell $color="#226241">0,00 €</OPCell>
+                    <OPCell $color="#226241" style={{ textAlign: 'center' }}>{op.cadeau.quantity}</OPCell>
+                    <OPCell $bold $color="#226241">0,00 €</OPCell>
                   </OPRow>
 
                   {/* PLV */}
                   <OPRow $variant="plv">
-                    <OPCover>
-                      <span style={{ fontSize: 22, lineHeight: 1 }}>🪧</span>
+                    <OPCover style={{ color: '#8B6914' }}>
+                      <IconTag />
                     </OPCover>
                     <OPText>
-                      <OPRowTitle style={{ color: '#B8740A' }}>{op.plv.description}</OPRowTitle>
-                      <OPRowMeta style={{ color: '#C47B0A' }}>PLV payante</OPRowMeta>
+                      <OPRowTitle style={{ color: '#8B6914' }}>{op.plv.description}</OPRowTitle>
+                      <OPRowMeta>PLV payante</OPRowMeta>
                       <OPRowIsbn>ISBN {op.plv.isbn}</OPRowIsbn>
                     </OPText>
-                    <OPCell $color="#B8740A">{fmt(op.plv.pricePerUnit)}</OPCell>
-                    <OPCell $color="#B8740A" style={{ textAlign: 'center' }}>{op.plv.quantity}</OPCell>
-                    <OPCell $bold $color="#B8740A">{fmt(opPLVPrice)}</OPCell>
+                    <OPCell $color="#8B6914">{fmt(op.plv.pricePerUnit)}</OPCell>
+                    <OPCell $color="#8B6914" style={{ textAlign: 'center' }}>{op.plv.quantity}</OPCell>
+                    <OPCell $bold $color="#8B6914">{fmt(opPLVPrice)}</OPCell>
                   </OPRow>
                 </OPTable>
 
@@ -920,8 +1086,13 @@ export function CartPage() {
               Date spécifique
             </RadioLabel>
             {delivery === 'specific' && (
-              <DateInput type="date" min={today} value={specificDate}
-                onChange={e => setSpecific(e.target.value)} />
+              <div style={{ marginLeft: 'calc(1rem + 20px)', marginTop: 4 }}>
+                <label htmlFor="delivery-date" style={{ fontSize: '0.75rem', color: '#6B7280', display: 'block', marginBottom: 4 }}>
+                  Date souhaitée
+                </label>
+                <DateInput id="delivery-date" type="date" min={today} value={specificDate}
+                  onChange={e => setSpecific(e.target.value)} />
+              </div>
             )}
           </RadioGroup>
         </DeliveryCard>
