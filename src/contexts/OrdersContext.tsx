@@ -1,9 +1,14 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { MOCK_ORDERS, ORDER_STATUSES, type Order, type OrderItem } from '@/data/mockOrders'
 import type { CartItem } from '@/contexts/CartContext'
-import { REMISE_RATES } from '@/contexts/CartContext'
+import { useAuthContext } from '@/contexts/AuthContext'
 
-const STORAGE_KEY = 'bookflow_orders'
+/* Hoisted — MOCK_ORDERS est statique, pas besoin de recalculer à chaque render */
+const MOCK_IDS = new Set(Object.values(MOCK_ORDERS).flat().map(o => o.id))
+
+function ordersKey(codeClient: string | undefined) {
+  return `bookflow_orders_${codeClient ?? 'guest'}`
+}
 
 /* ── Génération numéro de commande ── */
 function generateNumero(): string {
@@ -36,37 +41,42 @@ interface OrdersContextValue {
 const OrdersContext = createContext<OrdersContextValue | null>(null)
 
 /* ── Provider ── */
-export function OrdersProvider({ children }: { children: React.ReactNode }) {
-  const [orders, setOrders] = useState<Order[]>(() => {
-    // Initialiser avec les mock orders statiques
-    const base = Object.values(MOCK_ORDERS).flat()
-
-    // Ajouter les commandes sauvegardées en localStorage (commandes réelles passées)
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const parsed: Order[] = JSON.parse(stored)
-        // Garder uniquement les commandes avec un statut valide (purge des données stales)
-        const validStatuses = new Set<string>(ORDER_STATUSES)
-        const existingIds = new Set(base.map(o => o.id))
-        const extras = parsed.filter(
-          o => !existingIds.has(o.id) && validStatuses.has(o.status)
-        )
-        return [...base, ...extras]
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY)
+function loadOrders(key: string): Order[] {
+  const base = Object.values(MOCK_ORDERS).flat()
+  try {
+    const stored = localStorage.getItem(key)
+    if (stored) {
+      const parsed: Order[] = JSON.parse(stored)
+      const validStatuses = new Set<string>(ORDER_STATUSES)
+      const existingIds = new Set(base.map(o => o.id))
+      const extras = parsed.filter(
+        o => !existingIds.has(o.id) && validStatuses.has(o.status)
+      )
+      return [...base, ...extras]
     }
-    return base
-  })
+  } catch {
+    localStorage.removeItem(key)
+  }
+  return base
+}
 
-  // Persister uniquement les nouvelles commandes (pas les mocks statiques)
-  const mockIds = new Set(Object.values(MOCK_ORDERS).flat().map(o => o.id))
+export function OrdersProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthContext()
+  const key = ordersKey(user?.codeClient)
 
+  const [orders, setOrders] = useState<Order[]>(() => loadOrders(ordersKey(user?.codeClient)))
+
+  /* Re-charger les commandes quand l'utilisateur change */
   useEffect(() => {
-    const newOrders = orders.filter(o => !mockIds.has(o.id))
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newOrders))
-  }, [orders])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOrders(loadOrders(key))
+  }, [key])
+
+  /* Persister uniquement les nouvelles commandes (pas les mocks statiques) */
+  useEffect(() => {
+    const newOrders = orders.filter(o => !MOCK_IDS.has(o.id))
+    localStorage.setItem(key, JSON.stringify(newOrders))
+  }, [orders, key])
 
   function addOrder(params: {
     codeClient: string

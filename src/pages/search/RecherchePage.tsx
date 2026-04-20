@@ -438,6 +438,7 @@ export function RecherchePage() {
   }, [q, navigate])
 
   /* Résultats catalogue — texte puis filtres avancés */
+  const paramsStr = params.toString()
   const allResults = useMemo(() => {
     let books = q ? searchCatalog(q) : [...MOCK_BOOKS]
 
@@ -451,8 +452,7 @@ export function RecherchePage() {
     if (pFormats.length) books = books.filter(b => b.format && pFormats.includes(b.format))
 
     return books
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, params.toString()])
+  }, [q, paramsStr])
 
   const results = useMemo(() =>
     universeFilter ? allResults.filter(b => b.universe === universeFilter) : allResults,

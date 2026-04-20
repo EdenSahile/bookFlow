@@ -1,5 +1,9 @@
 import bcrypt from 'bcryptjs'
 
+if (import.meta.env.PROD) {
+  throw new Error('mockUsers ne doit jamais être chargé en production. Migrer vers Prisma/Supabase (Phase 12).')
+}
+
 // DEV ONLY — remplacé par Prisma/Supabase en Phase 12
 const DEV_COST = 4
 

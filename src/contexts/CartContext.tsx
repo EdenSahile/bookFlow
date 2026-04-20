@@ -1,5 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { Book, Universe } from '@/data/mockBooks'
+import { useAuthContext } from '@/contexts/AuthContext'
+import { useToast } from '@/components/ui/Toast'
+
+const CART_LIMIT = 30
 
 /* ── Remises mock par univers (en attendant AS400/CRM) ── */
 export const REMISE_RATES: Record<Universe, number> = {
@@ -69,21 +73,35 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null)
 
-const STORAGE_KEY = 'bookflow_cart'
+function cartKey(codeClient: string | undefined) {
+  return `bookflow_cart_${codeClient ?? 'guest'}`
+}
 
-function computeTotals(items: CartItem[], opGroups: OPCartGroup[]) {
+function loadCart(key: string): StoredCart {
+  try {
+    const stored = localStorage.getItem(key)
+    if (!stored) return { items: [], opGroups: [] }
+    const parsed = JSON.parse(stored) as StoredCart | CartItem[]
+    if (Array.isArray(parsed)) return { items: parsed, opGroups: [] }
+    return { items: parsed.items ?? [], opGroups: parsed.opGroups ?? [] }
+  } catch { return { items: [], opGroups: [] } }
+}
+
+export function computeTotals(items: CartItem[], opGroups: OPCartGroup[], rates: Record<string, number>) {
+  const rate = (universe: string) => rates[universe] ?? 0
+
   /* Titres individuels — base TTC (prix public) */
   const booksTTC = items.reduce(
     (sum, { book, quantity }) => sum + book.priceTTC * quantity, 0)
   const booksRemise = items.reduce(
-    (sum, { book, quantity }) => sum + book.priceTTC * quantity * REMISE_RATES[book.universe], 0)
+    (sum, { book, quantity }) => sum + book.priceTTC * quantity * rate(book.universe), 0)
 
   /* OPs : ouvrages + PLV (remise sur ouvrages, pas sur PLV) */
   const opBooksTTC = opGroups.reduce((sum, op) =>
     sum + op.books.reduce((s, { book, quantity }) => s + book.priceTTC * quantity, 0), 0)
   const opBooksRemise = opGroups.reduce((sum, op) =>
     sum + op.books.reduce((s, { book, quantity }) =>
-      s + book.priceTTC * quantity * REMISE_RATES[book.universe], 0), 0)
+      s + book.priceTTC * quantity * rate(book.universe), 0), 0)
   const opPLVTTC = opGroups.reduce((sum, op) =>
     sum + op.plv.pricePerUnit * op.plv.quantity, 0)
 
@@ -103,28 +121,37 @@ interface StoredCart {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [{ items, opGroups }, setCart] = useState<StoredCart>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (!stored) return { items: [], opGroups: [] }
-      const parsed = JSON.parse(stored) as StoredCart | CartItem[]
-      if (Array.isArray(parsed)) return { items: parsed, opGroups: [] }
-      return { items: parsed.items ?? [], opGroups: parsed.opGroups ?? [] }
-    } catch { return { items: [], opGroups: [] } }
-  })
+  const { user } = useAuthContext()
+  const { showToast } = useToast()
+  const key = cartKey(user?.codeClient)
+
+  const [{ items, opGroups }, setCart] = useState<StoredCart>(() => loadCart(cartKey(user?.codeClient)))
+
+  /* Re-charger le panier quand l'utilisateur change (connexion/déconnexion) */
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCart(loadCart(key))
+  }, [key])
 
   const setItems   = (fn: (prev: CartItem[]) => CartItem[]) =>
     setCart(c => ({ ...c, items: fn(c.items) }))
   const setOpGroups = (fn: (prev: OPCartGroup[]) => OPCartGroup[]) =>
     setCart(c => ({ ...c, opGroups: fn(c.opGroups) }))
 
-  /* Persistance localStorage */
+  /* Persistance localStorage — clé par utilisateur */
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, opGroups }))
-  }, [items, opGroups])
+    localStorage.setItem(key, JSON.stringify({ items, opGroups }))
+  }, [items, opGroups, key])
 
   /* ── Titres individuels ── */
   const addToCart = (book: Book, qty = 1, ebookOption?: EbookCartOption) => {
+    if (totalItems >= CART_LIMIT) {
+      showToast(
+        `Limite de démonstration atteinte (${CART_LIMIT} articles max). Veuillez vider votre panier pour continuer.`,
+        'error'
+      )
+      return
+    }
     setItems(prev => {
       const key = ebookOption ? `${book.id}::${ebookOption.isbnEbook}` : book.id
       const existing = prev.find(i =>
@@ -151,6 +178,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   /* ── OPs ── */
   const addOPToCart = (group: Omit<OPCartGroup, 'id'>) => {
+    const opCount = group.books.reduce((s, { quantity }) => s + quantity, 0)
+    if (totalItems + opCount > CART_LIMIT) {
+      showToast(
+        `Limite de démonstration atteinte (${CART_LIMIT} articles max). Veuillez vider votre panier pour continuer.`,
+        'error'
+      )
+      return
+    }
     const id = `op-${group.serieId}-${Date.now()}`
     setOpGroups(prev => [...prev, { ...group, id }])
   }
@@ -159,6 +194,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setOpGroups(prev => prev.filter(op => op.id !== opId))
 
   const clearCart = () => setCart({ items: [], opGroups: [] })
+
+  /* Taux effectifs : remisesParUnivers du libraire connecté (÷100) ou taux par défaut */
+  const effectiveRates: Record<string, number> = user?.remisesParUnivers
+    ? Object.fromEntries(Object.entries(user.remisesParUnivers).map(([k, v]) => [k, v / 100]))
+    : REMISE_RATES
 
   const itemsTotal    = items.reduce((sum, i) => sum + i.quantity, 0)
   const opBooksTotal  = opGroups.reduce((sum, op) =>
@@ -176,7 +216,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addOPToCart,
       removeOP,
       clearCart,
-      ...computeTotals(items, opGroups),
+      ...computeTotals(items, opGroups, effectiveRates),
     }}>
       {children}
     </CartContext.Provider>

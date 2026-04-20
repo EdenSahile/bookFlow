@@ -13,14 +13,16 @@ const slideUp = keyframes`
   to   { opacity: 0; transform: translateY(-20px) translateX(-50%); }
 `
 
-const ToastBox = styled.div<{ $leaving: boolean }>`
+export type ToastType = 'success' | 'error'
+
+const ToastBox = styled.div<{ $leaving: boolean; $type: ToastType }>`
   position: fixed;
   top: 72px;           /* sous le header fixe */
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
 
-  background: ${({ theme }) => theme.colors.navy};
+  background: ${({ $type, theme }) => $type === 'error' ? theme.colors.error : theme.colors.navy};
   color: ${({ theme }) => theme.colors.white};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
@@ -30,13 +32,15 @@ const ToastBox = styled.div<{ $leaving: boolean }>`
   box-shadow: ${({ theme }) => theme.shadows.lg};
   white-space: nowrap;
   pointer-events: none;
+  max-width: 90vw;
+  text-align: center;
 
   animation: ${({ $leaving }) => css`${$leaving ? slideUp : slideDown} .25s ease forwards`};
 `
 
 /* ── Context ── */
 interface ToastContextValue {
-  showToast: (message: string) => void
+  showToast: (message: string, type?: ToastType) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -44,27 +48,28 @@ const ToastContext = createContext<ToastContextValue | null>(null)
 interface ToastState {
   id: number
   message: string
+  type: ToastType
   leaving: boolean
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null)
 
-  const showToast = useCallback((message: string) => {
+  const showToast = useCallback((message: string, type: ToastType = 'success') => {
     const id = Date.now()
-    setToast({ id, message, leaving: false })
+    setToast({ id, message, type, leaving: false })
 
-    /* Déclenche l'animation de sortie 200ms avant la fin */
-    setTimeout(() => setToast(t => t?.id === id ? { ...t, leaving: true } : t), 2800)
-    setTimeout(() => setToast(t => t?.id === id ? null : t), 3100)
+    const duration = type === 'error' ? 4800 : 2800
+    setTimeout(() => setToast(t => t?.id === id ? { ...t, leaving: true } : t), duration)
+    setTimeout(() => setToast(t => t?.id === id ? null : t), duration + 300)
   }, [])
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {toast && createPortal(
-        <ToastBox $leaving={toast.leaving}>
-          ✓ {toast.message}
+        <ToastBox $leaving={toast.leaving} $type={toast.type}>
+          {toast.type === 'error' ? '⚠ ' : '✓ '}{toast.message}
         </ToastBox>,
         document.body
       )}

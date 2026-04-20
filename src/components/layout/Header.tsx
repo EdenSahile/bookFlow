@@ -318,35 +318,46 @@ const NotifDot = styled.span`
 `
 
 /* ── Panier ── */
-const CartBtn = styled.button`
+const CartBtn = styled.button<{ $hasItems: boolean }>`
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: ${GOLD_BG};
-  border: 1px solid ${GOLD_BORDER};
-  border-radius: 6px;
-  padding: 5px 12px;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 8px;
   cursor: pointer;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
-  font-weight: 500;
-  color: ${GOLD};
+  font-size: 13px;
+  font-weight: 600;
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 
-  &:hover { background: rgba(201,168,76,0.24); }
+  ${({ $hasItems }) => $hasItems ? `
+    background: ${GOLD};
+    border: 1.5px solid ${GOLD};
+    color: #1E3A5F;
+    box-shadow: 0 2px 8px rgba(201,168,76,0.35);
+    &:hover { background: #d4b05a; border-color: #d4b05a; box-shadow: 0 4px 14px rgba(201,168,76,0.45); }
+    &:active { background: #b8962e; border-color: #b8962e; }
+  ` : `
+    background: transparent;
+    border: 1.5px solid rgba(201,168,76,0.5);
+    color: ${GOLD};
+    &:hover { background: rgba(201,168,76,0.12); border-color: ${GOLD}; }
+  `}
+
+  &:focus-visible { outline: 2px solid ${GOLD}; outline-offset: 2px; }
 `
 
 const CartBadge = styled.span`
-  background: ${GOLD};
-  color: #3d2f00;
+  background: #1E3A5F;
+  color: #fff;
   font-family: ${({ theme }) => theme.typography.fontFamilyMono};
   font-size: 10px;
   font-weight: 700;
   border-radius: 10px;
-  padding: 0 6px;
-  margin-left: 4px;
-  line-height: 1.7;
+  padding: 1px 7px;
+  line-height: 1.6;
 `
 
 /* ── Icônes SVG ── */
@@ -384,12 +395,12 @@ function IconBell() {
   )
 }
 
-function IconCartSvg() {
+function IconCartSvg({ filled }: { filled: boolean }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="9" cy="21" r="1"/>
-      <circle cx="20" cy="21" r="1"/>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="21" r="1" fill={filled ? 'currentColor' : 'none'}/>
+      <circle cx="20" cy="21" r="1" fill={filled ? 'currentColor' : 'none'}/>
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
     </svg>
   )
@@ -495,18 +506,22 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
 
   /* ── Auto-clear selections that become unavailable ── */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selGenre  && !availableGenres.has(selGenre))   setSelGenre(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableGenres])
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selLangue && !availableLangues.has(selLangue)) setSelLangue(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableLangues])
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selPrix   && !availablePrix.has(selPrix))      setSelPrix(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availablePrix])
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selFormat && !availableFormats.has(selFormat)) setSelFormat(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableFormats])
@@ -716,10 +731,11 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
         </NotifBtn>
 
         <CartBtn
+          $hasItems={cartCount > 0}
           onClick={onCartClick}
           aria-label={`Panier — ${cartCount} article${cartCount !== 1 ? 's' : ''}`}
         >
-          <IconCartSvg />
+          <IconCartSvg filled={cartCount > 0} />
           Panier
           {cartCount > 0 && (
             <CartBadge>{cartCount > 99 ? '99+' : cartCount}</CartBadge>

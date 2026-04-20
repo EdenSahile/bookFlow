@@ -6,6 +6,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Résumé
 À chaque fin de session ou sur demande, ajoute un bloc daté en haut du fichier résumant : ce qui a été fait, l’état actuel du code, et les prochaines étapes.
 
+---
+
+### Session du 2026-04-20 — Audit de sécurité & dettes techniques
+
+**Ce qui a été fait :**
+- Rotation credentials : mot de passe Supabase + NEXTAUTH_SECRET régénéré
+- Providers réordonnés : `AuthProvider` enveloppe désormais `CartProvider` + `OrdersProvider`
+- Clés localStorage suffixées par `codeClient` (`bookflow_cart_LIB001`) — isolation multi-utilisateur
+- `logout()` vide les données cart/orders de l’utilisateur déconnecté
+- `computeTotals` utilise `user.remisesParUnivers` (taux personnalisés) au lieu des taux globaux
+- ESLint opérationnel : config Next.js remplacée par `@typescript-eslint` + `react-hooks` — **0 erreurs**
+- `COMPTES_TEST.md` déplacé dans `docs/dev/` — hors `src/` et hors bundle
+- Code splitting : bundle principal réduit de 641 KB → 104 KB via `React.lazy` + `manualChunks`
+- Cast `(theme as any)` supprimé dans SelectionsPage
+- Guard anti-prod dans `mockUsers.ts` (throw si chargé en prod)
+
+**État actuel :** build TypeScript propre, 0 erreurs ESLint, 7 warnings mineurs, code splitting actif.
+
+**Limitation connue Phase 12 :** `mockUsers.ts` est encore importé statiquement par `AuthContext` → les mots de passe de test (`Libraire123!`) restent dans le bundle. Suppression définitive à la migration Prisma/Supabase (Phase 12).
+
+**Prochaines étapes :** Phase 10 (PWA), puis recette finale + déploiement Vercel. Migration Next.js annulée — projet reste sur Vite.
+
+---
+
 ## Contexte du projet
 
 Application B2B **BookFlow** à destination exclusive des **libraires**, permettant de passer des commandes de livres (notamment les titres de fonds déjà parus) et de consulter les actualités éditoriales.
@@ -125,33 +149,31 @@ En permanence : **Menu Burger** (gauche) + **Panier** (droite, avec badge quanti
 
 ## Stack technique
 
-> **Stratégie** : développement initial en **React + Vite** (itération rapide, pas de SSR), migration vers **Next.js 14** en Phase 12 (SSR, API routes, NextAuth, next-pwa).
+> **Stratégie** : **Vite 5 + React 18** — stack définitif pour le projet test Vercel. Pas de migration Next.js prévue. L'application reste en SPA avec mock auth et données locales.
 
-| Couche | Phase 1–11 (transitoire) | Phase 12+ (production) |
-|--------|--------------------------|------------------------|
-| Framework | **Vite 5 + React 18** | **Next.js 14** (App Router) |
-| Routing | **React Router v6** | Next.js App Router |
-| Langage | **TypeScript** (strict) | TypeScript (strict) |
-| Style | **Styled-components v6** | Styled-components v6 |
-| Auth | **Mock JWT** (localStorage) | **NextAuth.js v5** (httpOnly cookie) |
-| BDD | **Prisma ORM** installé — branché à la migration | **PostgreSQL** via Prisma (Supabase) |
-| Validation | **Zod** (tous les inputs) | Zod |
-| PWA | **vite-plugin-pwa** | **next-pwa** |
-| Déploiement | Local / Vercel (build Vite) | **Vercel** (Next.js) |
+| Couche | Stack |
+|--------|-------|
+| Framework | **Vite 5 + React 18** |
+| Routing | **React Router v6** |
+| Langage | **TypeScript** (strict) |
+| Style | **Styled-components v6** |
+| Auth | **Mock JWT** (localStorage, bcrypt cost 12) |
+| BDD | **Prisma ORM** installé (non branché — données mock) |
+| Validation | **Zod** (tous les inputs) |
+| Tests | **Vitest** (jsdom) |
+| Déploiement | **Vercel** (build Vite, projet test) |
 ---
 
 ## Sécurité — règles non négociables
 
 - Mots de passe hashés avec **bcrypt** (cost factor ≥ 12) — actif dès Phase 3
-- JWT avec expiration courte — refresh token en **httpOnly cookie** uniquement (Phase 12, migration Next.js)
-- Rate limiting sur `/api/auth/*` : max 5 tentatives/minute par IP (Phase 12)
+- Mots de passe hashés avec **bcrypt** (cost factor 12 en prod, 4 en dev pour performance)
+- Mock JWT avec expiration 8h — token en localStorage (acceptable pour projet test)
 - Toute donnée entrante validée avec **Zod** avant traitement
-- Prix et remises toujours recalculés **côté serveur** (Phase 12)
-- Toutes les routes `/api/*` vérifient le token JWT (Phase 12)
-- Un libraire ne peut accéder qu'à ses propres données (vérification `codeClient`)
-- Headers HTTP sécurisés (CSP, X-Frame-Options, HSTS…) — `next.config.mjs` en Phase 12, `vite.config.ts` en dev
-- **Prisma** exclusivement — jamais de SQL brut avec interpolations
+- **Un compte par librairie** — le panier et l'historique sont partagés entre tous les utilisateurs d'un même `codeClient` et persistent après déconnexion
+- Les données sont isolées par `codeClient` (clés localStorage suffixées) — deux librairies différentes ne se voient pas
 - Variables d'environnement dans `.env` — jamais dans le code, `.env` dans `.gitignore`
+- **Prisma** exclusivement si BDD branchée — jamais de SQL brut avec interpolations
 
 ---
 
@@ -161,15 +183,38 @@ En permanence : **Menu Burger** (gauche) + **Panier** (droite, avec badge quanti
 |-------|---------|--------|
 | 1 | Setup projet + structure + `.env` + Prisma schema | ✅ Fait |
 | 1bis | **Migration React/Vite** — remplacement Next.js par Vite + React Router | ✅ Fait |
-| 2 | Layout global (nav bottom mobile / sidebar desktop) + design system | ⬜ À faire |
-| 3 | Authentification mock (inscription + connexion + mot de passe oublié) | ⬜ À faire |
-| 4 | Accueil (recherche + scanner UI) | ⬜ À faire |
-| 5 | Catalogue Fonds + Nouveautés (liste, filtres, fiche produit) | ⬜ À faire |
-| 6 | Panier + commande | ⬜ À faire |
-| 7 | Flash Infos | ⬜ À faire |
-| 8 | Menu Burger + Mon compte + Historique | ⬜ À faire |
-| 9 | Scanner caméra (lecture code-barres réelle) | ⬜ À faire |
+| 2 | Layout global (nav bottom mobile / sidebar desktop) + design system | ✅ Fait |
+| 3 | Authentification mock (inscription + connexion + mot de passe oublié) | ✅ Fait |
+| 4 | Accueil (recherche + scanner UI) | ✅ Fait |
+| 5 | Catalogue Fonds + Nouveautés (liste, filtres, fiche produit) | ✅ Fait |
+| 6 | Panier + commande | ✅ Fait |
+| 7 | Flash Infos | ✅ Fait |
+| 8 | Menu Burger + Mon compte + Historique | ✅ Fait |
+| 9 | Scanner caméra (lecture code-barres réelle) | ✅ Fait |
 | 10 | PWA — vite-plugin-pwa (manifest + service worker + icônes) | ⬜ À faire |
-| 11 | Tests + recette fonctionnelle | ⬜ À faire |
-| 12 | **Migration Next.js 14** — SSR, App Router, NextAuth.js v5, next-pwa, API routes, Supabase live | ⬜ À faire |
-| 13 | Audit sécurité + déploiement Vercel production | ⬜ À faire |
+| 11 | Tests + recette fonctionnelle | ✅ Fait (Vitest — computeTotals + isOrderable) |
+| 12 | ~~Migration Next.js 14~~ — **annulé**, projet reste sur Vite (test Vercel) | 🚫 Annulé |
+| 13 | Recette finale + déploiement Vercel | ⬜ À faire |
+
+
+---
+
+## Skills actifs — utilisation automatique
+
+Les skills suivants sont installés via les plugins `superpowers` et `code-review`.
+Claude doit les invoquer automatiquement selon le contexte, sans attendre une demande explicite.
+
+### Quand invoquer quoi
+
+| Contexte | Skill à invoquer |
+|----------|-----------------|
+| Début d'une nouvelle phase ou feature | `/test-driven-development` |
+| Avant de déclarer une tâche terminée | `/verification-before-completion` |
+| Avant un commit ou une PR | `/requesting-code-review` |
+| Bug détecté ou comportement inattendu | `/systematic-debugging` |
+| Plan d'implémentation d'une phase | `/writing-plans` |
+| Fin d'une phase de développement | `/finishing-a-development-branch` |
+
+### Règle générale
+Ne jamais marquer une phase comme ✅ dans le tableau des phases sans avoir exécuté
+`/verification-before-completion` au préalable.

@@ -150,6 +150,36 @@ function IconChevronLeft() {
 /* ── Animations ── */
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
 
+const PageHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+`
+
+const ClearCartBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  min-height: 36px;
+  border: 1.5px solid ${({ theme }) => theme.colors.error};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: none;
+  color: ${({ theme }) => theme.colors.error};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  transition: background .15s, color .15s;
+  &:hover { background: ${({ theme }) => theme.colors.error}; color: #fff; }
+  &:focus-visible { outline: 2px solid ${({ theme }) => theme.colors.error}; outline-offset: 2px; }
+`
+
 
 
 /* ══════════════════════════════════════════════════════
@@ -824,7 +854,20 @@ export function CartPage() {
   return (
     <Page>
       <ConfirmDialog state={confirm} onCancel={() => setConfirm({ open: false })} />
-      <PageTitle>Panier</PageTitle>
+      <PageHeader>
+        <PageTitle style={{ marginBottom: 0 }}>Panier</PageTitle>
+        <ClearCartBtn
+          aria-label="Vider tout le panier"
+          onClick={() => askConfirm(
+            'Vider le panier ?',
+            'Tous les articles et opérations commerciales seront supprimés. Cette action est irréversible.',
+            () => clearCart()
+          )}
+        >
+          <IconTrash />
+          Tout vider
+        </ClearCartBtn>
+      </PageHeader>
       <ClientCode>
         Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold>
         {' · '}{totalItems} article{totalItems > 1 ? 's' : ''}

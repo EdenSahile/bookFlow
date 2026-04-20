@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -6,26 +7,27 @@ import { OrdersProvider } from '@/contexts/OrdersContext'
 import { ToastProvider } from '@/components/ui/Toast'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { LoginPage } from '@/pages/auth/LoginPage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
-import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
-import { HomePage } from '@/pages/home/HomePage'
-import { RecherchePage } from '@/pages/search/RecherchePage'
-import { NouveautesPage } from '@/pages/nouveautes/NouveautesPage'
-import { FondsPage } from '@/pages/fonds/FondsPage'
-import { FicheProduitPage } from '@/pages/catalogue/FicheProduitPage'
-import { CartPage } from '@/pages/cart/CartPage'
-import { FlashInfosPage } from '@/pages/flash-infos/FlashInfosPage'
-import { MonComptePage } from '@/pages/compte/MonComptePage'
-import { HistoriquePage } from '@/pages/historique/HistoriquePage'
-import { ContactPage } from '@/pages/contact/ContactPage'
-import { ParametresPage } from '@/pages/parametres/ParametresPage'
-import { AidePage } from '@/pages/aide/AidePage'
-import { CGVPage } from '@/pages/cgv/CGVPage'
-import { NewsletterPage } from '@/pages/newsletter/NewsletterPage'
-import { SelectionsPage } from '@/pages/selections/SelectionsPage'
-import { TopVentesPage } from '@/pages/top-ventes/TopVentesPage'
-import { AuteurPage } from '@/pages/auteur/AuteurPage'
+
+const LoginPage        = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
+const RegisterPage     = lazy(() => import('@/pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })))
+const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })))
+const HomePage         = lazy(() => import('@/pages/home/HomePage').then(m => ({ default: m.HomePage })))
+const RecherchePage    = lazy(() => import('@/pages/search/RecherchePage').then(m => ({ default: m.RecherchePage })))
+const NouveautesPage   = lazy(() => import('@/pages/nouveautes/NouveautesPage').then(m => ({ default: m.NouveautesPage })))
+const FondsPage        = lazy(() => import('@/pages/fonds/FondsPage').then(m => ({ default: m.FondsPage })))
+const FicheProduitPage = lazy(() => import('@/pages/catalogue/FicheProduitPage').then(m => ({ default: m.FicheProduitPage })))
+const CartPage         = lazy(() => import('@/pages/cart/CartPage').then(m => ({ default: m.CartPage })))
+const FlashInfosPage   = lazy(() => import('@/pages/flash-infos/FlashInfosPage').then(m => ({ default: m.FlashInfosPage })))
+const MonComptePage    = lazy(() => import('@/pages/compte/MonComptePage').then(m => ({ default: m.MonComptePage })))
+const HistoriquePage   = lazy(() => import('@/pages/historique/HistoriquePage').then(m => ({ default: m.HistoriquePage })))
+const ContactPage      = lazy(() => import('@/pages/contact/ContactPage').then(m => ({ default: m.ContactPage })))
+const ParametresPage   = lazy(() => import('@/pages/parametres/ParametresPage').then(m => ({ default: m.ParametresPage })))
+const AidePage         = lazy(() => import('@/pages/aide/AidePage').then(m => ({ default: m.AidePage })))
+const CGVPage          = lazy(() => import('@/pages/cgv/CGVPage').then(m => ({ default: m.CGVPage })))
+const NewsletterPage   = lazy(() => import('@/pages/newsletter/NewsletterPage').then(m => ({ default: m.NewsletterPage })))
+const SelectionsPage   = lazy(() => import('@/pages/selections/SelectionsPage').then(m => ({ default: m.SelectionsPage })))
+const TopVentesPage    = lazy(() => import('@/pages/top-ventes/TopVentesPage').then(m => ({ default: m.TopVentesPage })))
+const AuteurPage       = lazy(() => import('@/pages/auteur/AuteurPage').then(m => ({ default: m.AuteurPage })))
 
 function ProtectedLayout() {
   return (
@@ -40,9 +42,10 @@ export default function App() {
     <ThemeProvider>
       <BrowserRouter>
           <ToastProvider>
-          <CartProvider>
-            <OrdersProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <CartProvider>
+              <OrdersProvider>
+              <Suspense fallback={null}>
               <Routes>
                 {/* Routes publiques */}
                 <Route path="/login" element={<LoginPage />} />
@@ -72,9 +75,10 @@ export default function App() {
                   </Route>
                 </Route>
               </Routes>
-            </AuthProvider>
-            </OrdersProvider>
-          </CartProvider>
+              </Suspense>
+              </OrdersProvider>
+            </CartProvider>
+          </AuthProvider>
           </ToastProvider>
       </BrowserRouter>
     </ThemeProvider>

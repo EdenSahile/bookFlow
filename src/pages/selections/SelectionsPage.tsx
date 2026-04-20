@@ -253,7 +253,7 @@ const GreenDot = styled.span`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: ${({ theme }) => (theme as any).colors?.success ?? '#2E7D32'};
+  background-color: ${({ theme }) => theme.colors.success};
   flex-shrink: 0;
 `
 
@@ -1174,6 +1174,7 @@ export function SelectionsPage() {
   /* Reset à chaque changement de série */
   useEffect(() => {
     if (!selectedSerie) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNbPLV(1)
     setOpAdded(false)
     setAddedMap({})

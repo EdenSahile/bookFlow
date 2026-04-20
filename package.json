@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext ts,tsx",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "node node_modules/eslint/bin/eslint.js src --ext ts,tsx",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio"
@@ -24,16 +26,21 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^4.1.4",
     "babel-plugin-styled-components": "^2.1.4",
     "dotenv": "^16.4.5",
     "eslint": "^8",
+    "jsdom": "^29.0.2",
     "prisma": "^7.7.0",
     "typescript": "^5.9.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^4.1.4"
   }
 }

@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY)
     setUser(null)
-    /* sessionUsersRef conservé — les comptes restent disponibles pour une reconnexion */
+    /* Panier et historique conservés — partagés entre tous les utilisateurs de la librairie */
   }
 
   return (
