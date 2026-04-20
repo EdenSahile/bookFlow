@@ -34,15 +34,28 @@ const HeaderBar = styled.header`
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
     left: ${({ theme }) => theme.layout.sidebarWidth};
   }
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px ${({ theme }) => theme.spacing.md};
+    gap: 8px 0;
+    align-items: center;
+  }
 `
 
 const LogoWrap = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
     display: none;
+  }
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    order: 1;
   }
 `
 
@@ -80,6 +93,11 @@ const RightSection = styled.div`
   gap: 12px;
   min-width: 0;
 
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    order: 2;
+    gap: 8px;
+  }
+
   @media (max-width: 479px) {
     gap: 6px;
   }
@@ -91,12 +109,22 @@ const SearchContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    order: 3;
+    width: 100%;
+    margin-top: 4px;
+  }
 `
 
 const SearchWrap = styled.div`
   position: relative;
   display: flex;
   align-items: center;
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    flex: 1;
+  }
 `
 
 const SearchIconWrap = styled.span`
@@ -134,14 +162,11 @@ const SearchInput = styled.input`
     outline: none;
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    width: 130px;
-    &:focus { width: 160px; }
-  }
-
-  @media (max-width: 479px) {
-    width: 80px;
-    &:focus { width: 110px; }
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    width: 100%;
+    &:focus { width: 100%; }
+    font-size: 14px;
+    padding: 8px 12px 8px 34px;
   }
 `
 
@@ -168,16 +193,15 @@ const AdvancedBtn = styled.button<{ $active: boolean }>`
     border-color: rgba(255,255,255,0.30);
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    padding: 5px 8px;
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    padding: 7px 12px;
+    font-size: 13px;
+    align-self: stretch;
+    align-items: center;
   }
 `
 
-const AdvBtnLabel = styled.span`
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    display: none;
-  }
-`
+const AdvBtnLabel = styled.span``
 
 const ActiveBadge = styled.span`
   background: ${GOLD};
@@ -207,8 +231,10 @@ const AdvancedPanel = styled.div`
   flex-direction: column;
   gap: 18px;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    top: ${({ theme }) => theme.layout.mobileHeaderHeight};
     width: 100vw;
+    left: 0;
     border-radius: 0 0 14px 14px;
     padding: 16px;
     gap: 14px;

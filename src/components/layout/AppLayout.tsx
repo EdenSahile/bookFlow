@@ -13,11 +13,12 @@ const LayoutRoot = styled.div`
 `
 
 const Main = styled.main`
-  padding-top: ${({ theme }) => theme.layout.headerHeight};
+  padding-top: ${({ theme }) => theme.layout.mobileHeaderHeight};
   padding-bottom: ${({ theme }) => theme.layout.bottomNavHeight};
   min-height: 100vh;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    padding-top: ${({ theme }) => theme.layout.headerHeight};
     padding-left: ${({ theme }) => theme.layout.sidebarWidth};
     padding-bottom: 0;
   }

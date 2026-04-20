@@ -77,9 +77,10 @@ export const theme = {
     mobile: '768px',
   },
   layout: {
-    sidebarWidth:    '220px',
-    headerHeight:    '56px',
-    bottomNavHeight: '64px',
+    sidebarWidth:        '220px',
+    headerHeight:        '56px',
+    mobileHeaderHeight:  '96px',
+    bottomNavHeight:     '64px',
   },
 } as const
 
