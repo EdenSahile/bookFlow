@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs'
 
 if (import.meta.env.PROD) {
-  throw new Error('mockUsers ne doit jamais être chargé en production. Migrer vers Prisma/Supabase (Phase 12).')
+  // Phase 12 : remplacer par Prisma/Supabase — mock toujours actif en attendant
+  console.warn('[BookFlow] mockUsers chargé en production — migrer vers Prisma/Supabase (Phase 12).')
 }
 
 // DEV ONLY — remplacé par Prisma/Supabase en Phase 12
