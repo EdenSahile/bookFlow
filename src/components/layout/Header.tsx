@@ -235,9 +235,11 @@ const AdvancedPanel = styled.div`
     top: ${({ theme }) => theme.layout.mobileHeaderHeight};
     width: 100vw;
     left: 0;
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 16px 16px;
     padding: 16px;
     gap: 14px;
+    max-height: calc(100dvh - ${({ theme }) => theme.layout.mobileHeaderHeight});
+    overflow-y: auto;
   }
 `
 
@@ -298,6 +300,15 @@ const PanelFooter = styled.div`
   align-items: center;
   justify-content: space-between;
   padding-top: 2px;
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 12px 0 0;
+    border-top: 1px solid ${({ theme }) => theme.colors.gray[100]};
+    margin-top: 4px;
+  }
 `
 
 const ResultCount = styled.span`
@@ -338,6 +349,54 @@ const ApplyBtn = styled.button`
   cursor: pointer;
   transition: background .12s;
   &:hover { background: #25477A; }
+`
+
+/* ── Mobile backdrop ── */
+const MobileBackdrop = styled.div`
+  display: none;
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    top: ${({ theme }) => theme.layout.mobileHeaderHeight};
+    background: rgba(0,0,0,0.45);
+    z-index: 150;
+  }
+`
+
+/* ── Panel mobile header (titre + fermer) ── */
+const MobilePanelTop = styled.div`
+  display: none;
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 4px;
+  }
+`
+
+const MobilePanelTitle = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 16px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+`
+
+const ClosePanelBtn = styled.button`
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  transition: background 0.15s;
+  &:hover { background: ${({ theme }) => theme.colors.gray[200]}; }
 `
 
 /* ── Notifications ── */
@@ -646,15 +705,36 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
   }
 
   return (
-    <HeaderBar>
-      <LogoWrap>
-        <BurgerBtn onClick={onBurgerClick} aria-label="Ouvrir le menu">
-          <span /><span /><span />
-        </BurgerBtn>
-        <Wordmark onDark size="sm" />
-      </LogoWrap>
+    <>
+      {showPanel && <MobileBackdrop onClick={() => setShowPanel(false)} aria-hidden="true" />}
 
-      <RightSection>
+      <HeaderBar>
+        <LogoWrap>
+          <BurgerBtn onClick={onBurgerClick} aria-label="Ouvrir le menu">
+            <span /><span /><span />
+          </BurgerBtn>
+          <Wordmark onDark size="sm" />
+        </LogoWrap>
+
+        <RightSection>
+          <NotifBtn aria-label="Notifications">
+            <IconBell />
+            {hasNotif && <NotifDot />}
+          </NotifBtn>
+
+          <CartBtn
+            $hasItems={cartCount > 0}
+            onClick={onCartClick}
+            aria-label={`Panier — ${cartCount} article${cartCount !== 1 ? 's' : ''}`}
+          >
+            <IconCartSvg filled={cartCount > 0} />
+            <CartLabel>Panier</CartLabel>
+            {cartCount > 0 && (
+              <CartBadge>{cartCount > 99 ? '99+' : cartCount}</CartBadge>
+            )}
+          </CartBtn>
+        </RightSection>
+
         <SearchContainer ref={containerRef}>
           <SearchWrap>
             <SearchIconWrap><IconSearch /></SearchIconWrap>
@@ -683,6 +763,11 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
           {showPanel && (
             <AdvancedPanel role="dialog" aria-label="Filtres de recherche avancée">
 
+              <MobilePanelTop>
+                <MobilePanelTitle>Filtres</MobilePanelTitle>
+                <ClosePanelBtn onClick={() => setShowPanel(false)} aria-label="Fermer les filtres">✕</ClosePanelBtn>
+              </MobilePanelTop>
+
               {/* Thématique */}
               <PanelSection>
                 <PanelLabel>Thématique</PanelLabel>
@@ -701,7 +786,6 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                 </ChipGroup>
               </PanelSection>
 
-              {/* Genre — cascade, visible uniquement si un univers est sélectionné */}
               {selUniverse && (
                 <PanelSection>
                   <PanelLabel>Genre</PanelLabel>
@@ -722,7 +806,6 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
 
               <PanelDivider />
 
-              {/* Langue */}
               <PanelSection>
                 <PanelLabel>Langue</PanelLabel>
                 <ChipGroup>
@@ -739,7 +822,6 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                 </ChipGroup>
               </PanelSection>
 
-              {/* Prix */}
               <PanelSection>
                 <PanelLabel>Prix</PanelLabel>
                 <ChipGroup>
@@ -756,7 +838,6 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                 </ChipGroup>
               </PanelSection>
 
-              {/* Format */}
               <PanelSection>
                 <PanelLabel>Format</PanelLabel>
                 <ChipGroup>
@@ -789,24 +870,7 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
             </AdvancedPanel>
           )}
         </SearchContainer>
-
-        <NotifBtn aria-label="Notifications">
-          <IconBell />
-          {hasNotif && <NotifDot />}
-        </NotifBtn>
-
-        <CartBtn
-          $hasItems={cartCount > 0}
-          onClick={onCartClick}
-          aria-label={`Panier — ${cartCount} article${cartCount !== 1 ? 's' : ''}`}
-        >
-          <IconCartSvg filled={cartCount > 0} />
-          <CartLabel>Panier</CartLabel>
-          {cartCount > 0 && (
-            <CartBadge>{cartCount > 99 ? '99+' : cartCount}</CartBadge>
-          )}
-        </CartBtn>
-      </RightSection>
-    </HeaderBar>
+      </HeaderBar>
+    </>
   )
 }
