@@ -87,14 +87,14 @@ const BurgerBtn = styled.button`
 `
 
 const RightSection = styled.div`
-  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;
+  flex-shrink: 0;
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
     order: 2;
+    margin-left: auto;
     gap: 8px;
   }
 
@@ -108,12 +108,16 @@ const SearchContainer = styled.div`
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  flex: 1;
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
     order: 3;
+    flex: none;
     width: 100%;
     margin-top: 4px;
+    justify-content: flex-start;
   }
 `
 
@@ -137,7 +141,7 @@ const SearchIconWrap = styled.span`
 `
 
 const SearchInput = styled.input`
-  width: 260px;
+  width: 340px;
   padding: 6px 12px 6px 30px;
   background: rgba(255,255,255,0.10);
   border: none;
@@ -157,7 +161,7 @@ const SearchInput = styled.input`
   &::-webkit-search-cancel-button { display: none; }
 
   &:focus {
-    width: 300px;
+    width: 420px;
     background: rgba(255,255,255,0.15);
     outline: none;
   }
@@ -731,25 +735,6 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
           <Wordmark onDark size="sm" />
         </LogoWrap>
 
-        <RightSection>
-          <NotifBtn aria-label="Notifications">
-            <IconBell />
-            {hasNotif && <NotifDot />}
-          </NotifBtn>
-
-          <CartBtn
-            $hasItems={cartCount > 0}
-            onClick={onCartClick}
-            aria-label={`Panier — ${cartCount} article${cartCount !== 1 ? 's' : ''}`}
-          >
-            <IconCartSvg filled={cartCount > 0} />
-            <CartLabel>Panier</CartLabel>
-            {cartCount > 0 && (
-              <CartBadge>{cartCount > 99 ? '99+' : cartCount}</CartBadge>
-            )}
-          </CartBtn>
-        </RightSection>
-
         <SearchContainer ref={containerRef}>
           <SearchWrap>
             <SearchIconWrap><IconSearch /></SearchIconWrap>
@@ -886,6 +871,25 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
             </AdvancedPanel>
           )}
         </SearchContainer>
+
+        <RightSection>
+          <NotifBtn aria-label="Notifications">
+            <IconBell />
+            {hasNotif && <NotifDot />}
+          </NotifBtn>
+
+          <CartBtn
+            $hasItems={cartCount > 0}
+            onClick={onCartClick}
+            aria-label={`Panier — ${cartCount} article${cartCount !== 1 ? 's' : ''}`}
+          >
+            <IconCartSvg filled={cartCount > 0} />
+            <CartLabel>Panier</CartLabel>
+            {cartCount > 0 && (
+              <CartBadge>{cartCount > 99 ? '99+' : cartCount}</CartBadge>
+            )}
+          </CartBtn>
+        </RightSection>
       </HeaderBar>
     </>
   )
