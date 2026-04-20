@@ -190,31 +190,32 @@ const SearchInput = styled.input`
 const AdvancedBtn = styled.button<{ $active: boolean }>`
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: ${({ $active }) => $active ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.09)'};
-  border: 1px solid ${({ $active }) => $active ? 'rgba(255,255,255,0.38)' : 'rgba(255,255,255,0.14)'};
-  border-radius: 6px;
-  padding: 5px 10px;
-  color: ${({ $active }) => $active ? '#fff' : 'rgba(255,255,255,0.60)'};
+  gap: 6px;
+  align-self: stretch;
+  background: ${({ $active }) => $active ? '#1E3A5F' : '#c8c8c8'};
+  border: none;
+  border-radius: 8px;
+  padding: 0 16px;
+  color: ${({ $active }) => $active ? '#fff' : '#111'};
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s;
 
   &:hover {
-    background: rgba(255,255,255,0.18);
-    color: #fff;
-    border-color: rgba(255,255,255,0.30);
+    background: ${({ $active }) => $active ? '#25477A' : '#b8b8b8'};
   }
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    padding: 7px 12px;
+    padding: 0 14px;
     font-size: 13px;
-    align-self: stretch;
-    align-items: center;
+    background: ${({ $active }) => $active ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.15)'};
+    color: #fff;
+    border-radius: 8px;
+    &:hover { background: rgba(255,255,255,0.22); }
   }
 `
 
