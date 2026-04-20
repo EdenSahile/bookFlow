@@ -38,18 +38,18 @@ const Text = styled.span<{ $size: WordmarkSize; $onDark: boolean }>`
   color: ${({ $onDark }) => ($onDark ? '#FAFAF7' : '#1E3A5F')};
 `
 
-const Diff = styled.span<{ $onDark: boolean }>`
-  color: ${({ $onDark }) => $onDark ? '#FAD96E' : '#8B5A00'};
+const Diff = styled.span`
+  color: #E89B2E;
 `
 
-const ProTag = styled.span<{ $size: WordmarkSize; $onDark: boolean }>`
+const ProTag = styled.span<{ $size: WordmarkSize }>`
   font-size: ${({ $size }) => sizes[$size].tagFont};
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: ${({ $onDark }) => $onDark ? '#FAD96E' : '#8B5A00'};
+  color: #E89B2E;
   padding: ${({ $size }) => sizes[$size].tagPad};
-  border: ${({ $size }) => sizes[$size].tagBorder} solid ${({ $onDark }) => $onDark ? '#FAD96E' : '#8B5A00'};
+  border: ${({ $size }) => sizes[$size].tagBorder} solid #E89B2E;
   border-radius: 3px;
   line-height: 1;
   flex-shrink: 0;
@@ -67,9 +67,9 @@ export function Wordmark({ onDark = false, size = 'md', showBaseline = false }: 
     <Wrap>
       <Row>
         <Text $size={size} $onDark={onDark}>
-          Flow<Diff $onDark={onDark}>Diff</Diff>
+          Flow<Diff>Diff</Diff>
         </Text>
-        <ProTag $size={size} $onDark={onDark}>PRO</ProTag>
+        <ProTag $size={size}>PRO</ProTag>
       </Row>
       {showBaseline && (
         <Baseline $size={size} $onDark={onDark}>
