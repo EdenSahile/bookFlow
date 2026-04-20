@@ -774,7 +774,7 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
     <Card $mode={mode}>
 
       {/* ── Rangée principale ── */}
-      <MainRow onClick={() => navigate(`/livre/${book.id}`)}>
+      <MainRow onClick={() => { if (window.getSelection()?.toString()) return; navigate(`/livre/${book.id}`) }}>
 
         {/* Sidebar couverture */}
         <CoverSidebar>

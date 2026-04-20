@@ -286,9 +286,14 @@ export function BookCard({ book, showType = false }: Props) {
     setQty(q => Math.max(1, q + delta))
   }
 
+  const handleCardClick = () => {
+    if (window.getSelection()?.toString()) return
+    navigate(`/livre/${book.id}`)
+  }
+
   return (
     <Card
-      onClick={() => navigate(`/livre/${book.id}`)}
+      onClick={handleCardClick}
       role="button"
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && navigate(`/livre/${book.id}`)}
