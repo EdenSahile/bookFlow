@@ -32,7 +32,9 @@ const AuteurPage       = lazy(() => import('@/pages/auteur/AuteurPage').then(m =
 function ProtectedLayout() {
   return (
     <AppLayout>
-      <Outlet />
+      <Suspense fallback={null}>
+        <Outlet />
+      </Suspense>
     </AppLayout>
   )
 }
