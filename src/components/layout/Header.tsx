@@ -575,15 +575,19 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [showPanel, setShowPanel]     = useState(false)
-  const [selUniverse, setSelUniverse] = useState<Universe | null>(null)
-  const [selGenre, setSelGenre]       = useState<string | null>(null)
-  const [selLangue, setSelLangue]     = useState<string | null>(null)
-  const [selPrix, setSelPrix]         = useState<string | null>(null)
-  const [selFormat, setSelFormat]     = useState<string | null>(null)
+  const [selUniverse, setSelUniverse] = useState<Universe[]>([])
+  const [selGenre, setSelGenre]       = useState<string[]>([])
+  const [selLangue, setSelLangue]     = useState<string[]>([])
+  const [selPrix, setSelPrix]         = useState<string[]>([])
+  const [selFormat, setSelFormat]     = useState<string[]>([])
 
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const activeCount = (selUniverse ? 1 : 0) + (selGenre ? 1 : 0) + (selLangue ? 1 : 0) + (selPrix ? 1 : 0) + (selFormat ? 1 : 0)
+  function toggle<T>(arr: T[], val: T): T[] {
+    return arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]
+  }
+
+  const activeCount = selUniverse.length + selGenre.length + selLangue.length + selPrix.length + selFormat.length
 
   /* ── Base books (by search query) ── */
   const baseBooks = useMemo(() =>
@@ -591,58 +595,60 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
     [search]
   )
 
-  /* ── Helper: apply price range filter ── */
-  function applyPrix(books: typeof MOCK_BOOKS, label: string | null) {
-    if (!label) return books
-    const r = PRICE_RANGES.find(r => r.label === label)
-    return r ? books.filter(b => b.priceTTC >= r.min && b.priceTTC < r.max) : books
+  /* ── Helper: apply price range filter (multi) ── */
+  function applyPrix(books: typeof MOCK_BOOKS, labels: string[]) {
+    if (!labels.length) return books
+    return books.filter(b => labels.some(label => {
+      const r = PRICE_RANGES.find(r => r.label === label)
+      return r && b.priceTTC >= r.min && b.priceTTC < r.max
+    }))
   }
 
   /* ── For each group: books filtered by ALL OTHER groups ── */
   const booksForUniverse = useMemo(() => {
     let b = baseBooks
-    if (selGenre)  b = b.filter(x => x.genre === selGenre)
-    if (selLangue) b = b.filter(x => x.language === selLangue)
+    if (selGenre.length)  b = b.filter(x => x.genre  && selGenre.includes(x.genre))
+    if (selLangue.length) b = b.filter(x => x.language && selLangue.includes(x.language))
     b = applyPrix(b, selPrix)
-    if (selFormat) b = b.filter(x => x.format === selFormat)
+    if (selFormat.length) b = b.filter(x => x.format && selFormat.includes(x.format))
     return b
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBooks, selGenre, selLangue, selPrix, selFormat])
 
   const booksForGenre = useMemo(() => {
     let b = baseBooks
-    if (selUniverse) b = b.filter(x => x.universe === selUniverse)
-    if (selLangue)   b = b.filter(x => x.language === selLangue)
+    if (selUniverse.length) b = b.filter(x => selUniverse.includes(x.universe))
+    if (selLangue.length)   b = b.filter(x => x.language && selLangue.includes(x.language))
     b = applyPrix(b, selPrix)
-    if (selFormat)   b = b.filter(x => x.format === selFormat)
+    if (selFormat.length)   b = b.filter(x => x.format && selFormat.includes(x.format))
     return b
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBooks, selUniverse, selLangue, selPrix, selFormat])
 
   const booksForLangue = useMemo(() => {
     let b = baseBooks
-    if (selUniverse) b = b.filter(x => x.universe === selUniverse)
-    if (selGenre)    b = b.filter(x => x.genre === selGenre)
+    if (selUniverse.length) b = b.filter(x => selUniverse.includes(x.universe))
+    if (selGenre.length)    b = b.filter(x => x.genre && selGenre.includes(x.genre))
     b = applyPrix(b, selPrix)
-    if (selFormat)   b = b.filter(x => x.format === selFormat)
+    if (selFormat.length)   b = b.filter(x => x.format && selFormat.includes(x.format))
     return b
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBooks, selUniverse, selGenre, selPrix, selFormat])
 
   const booksForPrix = useMemo(() => {
     let b = baseBooks
-    if (selUniverse) b = b.filter(x => x.universe === selUniverse)
-    if (selGenre)    b = b.filter(x => x.genre === selGenre)
-    if (selLangue)   b = b.filter(x => x.language === selLangue)
-    if (selFormat)   b = b.filter(x => x.format === selFormat)
+    if (selUniverse.length) b = b.filter(x => selUniverse.includes(x.universe))
+    if (selGenre.length)    b = b.filter(x => x.genre && selGenre.includes(x.genre))
+    if (selLangue.length)   b = b.filter(x => x.language && selLangue.includes(x.language))
+    if (selFormat.length)   b = b.filter(x => x.format && selFormat.includes(x.format))
     return b
   }, [baseBooks, selUniverse, selGenre, selLangue, selFormat])
 
   const booksForFormat = useMemo(() => {
     let b = baseBooks
-    if (selUniverse) b = b.filter(x => x.universe === selUniverse)
-    if (selGenre)    b = b.filter(x => x.genre === selGenre)
-    if (selLangue)   b = b.filter(x => x.language === selLangue)
+    if (selUniverse.length) b = b.filter(x => selUniverse.includes(x.universe))
+    if (selGenre.length)    b = b.filter(x => x.genre && selGenre.includes(x.genre))
+    if (selLangue.length)   b = b.filter(x => x.language && selLangue.includes(x.language))
     b = applyPrix(b, selPrix)
     return b
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -663,34 +669,30 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
 
   /* ── Auto-clear selections that become unavailable ── */
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (selGenre  && !availableGenres.has(selGenre))   setSelGenre(null)
+    setSelGenre(prev => prev.filter(g => availableGenres.has(g)))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableGenres])
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (selLangue && !availableLangues.has(selLangue)) setSelLangue(null)
+    setSelLangue(prev => prev.filter(l => availableLangues.has(l)))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableLangues])
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (selPrix   && !availablePrix.has(selPrix))      setSelPrix(null)
+    setSelPrix(prev => prev.filter(p => availablePrix.has(p)))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availablePrix])
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (selFormat && !availableFormats.has(selFormat)) setSelFormat(null)
+    setSelFormat(prev => prev.filter(f => availableFormats.has(f)))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableFormats])
 
   /* ── Filtered count (all filters applied) ── */
   const filteredCount = useMemo(() => {
     let b = baseBooks
-    if (selUniverse) b = b.filter(x => x.universe === selUniverse)
-    if (selGenre)    b = b.filter(x => x.genre === selGenre)
-    if (selLangue)   b = b.filter(x => x.language === selLangue)
+    if (selUniverse.length) b = b.filter(x => selUniverse.includes(x.universe))
+    if (selGenre.length)    b = b.filter(x => x.genre && selGenre.includes(x.genre))
+    if (selLangue.length)   b = b.filter(x => x.language && selLangue.includes(x.language))
     b = applyPrix(b, selPrix)
-    if (selFormat)   b = b.filter(x => x.format === selFormat)
+    if (selFormat.length)   b = b.filter(x => x.format && selFormat.includes(x.format))
     return b.length
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBooks, selUniverse, selGenre, selLangue, selPrix, selFormat])
@@ -707,21 +709,21 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
   }, [showPanel])
 
   function handleReset() {
-    setSelUniverse(null)
-    setSelGenre(null)
-    setSelLangue(null)
-    setSelPrix(null)
-    setSelFormat(null)
+    setSelUniverse([])
+    setSelGenre([])
+    setSelLangue([])
+    setSelPrix([])
+    setSelFormat([])
   }
 
   function buildParams(q: string) {
     const params = new URLSearchParams()
-    if (q.trim())    params.set('q', q.trim())
-    if (selUniverse) params.set('universe', selUniverse)
-    if (selGenre)    params.set('genres',   selGenre)
-    if (selLangue)   params.set('langues',  selLangue)
-    if (selPrix)     params.set('prix',     selPrix)
-    if (selFormat)   params.set('formats',  selFormat)
+    if (q.trim())           params.set('q',       q.trim())
+    if (selUniverse.length) params.set('universe', selUniverse.join(','))
+    if (selGenre.length)    params.set('genres',   selGenre.join(','))
+    if (selLangue.length)   params.set('langues',  selLangue.join(','))
+    if (selPrix.length)     params.set('prix',     selPrix.join(','))
+    if (selFormat.length)   params.set('formats',  selFormat.join(','))
     return params.toString()
   }
 
@@ -786,13 +788,16 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                 <PanelSection>
                   <PanelLabel>Thématique</PanelLabel>
                   <ChipGroup>
-                    <Chip $active={selUniverse === null} onClick={() => setSelUniverse(null)}>Toutes</Chip>
                     {UNIVERSES.map(u => (
                       <Chip
                         key={u}
-                        $active={selUniverse === u}
+                        $active={selUniverse.includes(u)}
                         disabled={!availableUniverses.has(u)}
-                        onClick={() => setSelUniverse(selUniverse === u ? null : u)}
+                        onClick={() => {
+                          const next = toggle(selUniverse, u)
+                          setSelUniverse(next)
+                          if (!next.includes(u)) setSelGenre(prev => prev.filter(g => next.flatMap(nu => GENRE_BY_UNIVERSE[nu]).includes(g)))
+                        }}
                       >
                         {u}
                       </Chip>
@@ -800,16 +805,16 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                   </ChipGroup>
                 </PanelSection>
 
-                {selUniverse && (
+                {selUniverse.length > 0 && (
                   <PanelSection>
                     <PanelLabel>Genre</PanelLabel>
                     <ChipGroup>
-                      {GENRE_BY_UNIVERSE[selUniverse].map(g => (
+                      {[...new Set(selUniverse.flatMap(u => GENRE_BY_UNIVERSE[u]))].map(g => (
                         <Chip
                           key={g}
-                          $active={selGenre === g}
+                          $active={selGenre.includes(g)}
                           disabled={!availableGenres.has(g)}
-                          onClick={() => setSelGenre(selGenre === g ? null : g)}
+                          onClick={() => setSelGenre(toggle(selGenre, g))}
                         >
                           {g}
                         </Chip>
@@ -826,9 +831,9 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                     {LANGUAGES.map(l => (
                       <Chip
                         key={l}
-                        $active={selLangue === l}
+                        $active={selLangue.includes(l)}
                         disabled={!availableLangues.has(l)}
-                        onClick={() => setSelLangue(selLangue === l ? null : l)}
+                        onClick={() => setSelLangue(toggle(selLangue, l))}
                       >
                         {l}
                       </Chip>
@@ -842,9 +847,9 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                     {PRICE_RANGES.map(r => (
                       <Chip
                         key={r.label}
-                        $active={selPrix === r.label}
+                        $active={selPrix.includes(r.label)}
                         disabled={!availablePrix.has(r.label)}
-                        onClick={() => setSelPrix(selPrix === r.label ? null : r.label)}
+                        onClick={() => setSelPrix(toggle(selPrix, r.label))}
                       >
                         {r.label}
                       </Chip>
@@ -858,9 +863,9 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
                     {FORMATS.map(f => (
                       <Chip
                         key={f}
-                        $active={selFormat === f}
+                        $active={selFormat.includes(f)}
                         disabled={!availableFormats.has(f)}
-                        onClick={() => setSelFormat(selFormat === f ? null : f)}
+                        onClick={() => setSelFormat(toggle(selFormat, f))}
                       >
                         {f}
                       </Chip>
