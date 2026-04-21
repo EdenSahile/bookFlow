@@ -7,6 +7,8 @@ import { BookCover } from './BookCover'
 import { useOrders } from '@/contexts/OrdersContext'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { ORDER_STATUS_LABELS } from '@/data/mockOrders'
+import { useWishlist } from '@/contexts/WishlistContext'
+import { ListPickerPopover } from './ListPickerPopover'
 
 /* ══════════════════════════════════════════════════════
    TYPES & DONNÉES
@@ -550,6 +552,32 @@ const AmBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.navyHover}; }
 `
 
+const StarRowWrap = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`
+
+const StarRowBtn = styled.button<{ $active: boolean }>`
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1.5px solid ${({ $active }) => $active ? 'rgba(201,168,76,0.5)' : 'rgba(28,58,95,0.15)'};
+  background: ${({ $active }) => $active ? 'rgba(201,168,76,0.10)' : 'transparent'};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+
+  &:hover {
+    background: ${({ $active }) => $active ? 'rgba(201,168,76,0.2)' : 'rgba(28,58,95,0.06)'};
+    border-color: ${({ $active }) => $active ? '#C9A84C' : 'rgba(28,58,95,0.3)'};
+    transform: scale(1.08);
+  }
+  &:active { transform: scale(0.93); }
+`
+
+
 
 /* ══════════════════════════════════════════════════════
    MODALE ANTÉCÉDENTS AM
@@ -702,10 +730,22 @@ interface Props {
   onToggle: () => void
 }
 
+function IconStarRow({ filled }: { filled: boolean }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24"
+      fill={filled ? '#C9A84C' : 'none'}
+      stroke={filled ? '#C9A84C' : '#1E3A5F'}
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  )
+}
+
 export function BookCardRow({ book, selected, onToggle }: Props) {
   const navigate   = useNavigate()
   const { orders } = useOrders()
   const { user }   = useAuthContext()
+  const { isInAnyList } = useWishlist()
 
   const [mode, setMode]           = useState<Mode>('print')
   const [selectedEbook, setEbook] = useState<EbookOption | null>(null)
@@ -713,9 +753,11 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
   const [dropOpen, setDropOpen]   = useState(false)
   const [amOpen, setAmOpen]       = useState(false)
   const [panelPos, setPanelPos]   = useState({ top: 0, left: 0 })
+  const [starAnchor, setStarAnchor]         = useState<DOMRect | null>(null)
   const dropRef                   = useRef<HTMLDivElement>(null)
   const triggerRef                = useRef<HTMLButtonElement>(null)
   const panelRef                  = useRef<HTMLDivElement>(null)
+  const starRowRef                = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!dropOpen) return
@@ -735,6 +777,13 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
       setPanelPos({ top: r.bottom + 4, left: r.left + (r.width - 447) / 2 })
     }
     setDropOpen(o => !o)
+  }
+
+  const inList = isInAnyList(book.id)
+
+  function handleStarRowClick(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (starRowRef.current) setStarAnchor(starRowRef.current.getBoundingClientRect())
   }
 
   const isOrderable = book.type !== 'a-paraitre'
@@ -954,6 +1003,19 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
                 {amLabel ? amLabel : 'A M'}
               </AmBtn>
             </CtrlItem>
+
+            <CtrlItem>
+              <StarRowWrap ref={starRowRef}>
+                <StarRowBtn
+                  $active={inList}
+                  onClick={handleStarRowClick}
+                  aria-label="Ajouter à une liste"
+                  title="Ajouter à une liste"
+                >
+                  <IconStarRow filled={inList} />
+                </StarRowBtn>
+              </StarRowWrap>
+            </CtrlItem>
           </RightControls>
         )}
       </OrderBar>
@@ -1032,6 +1094,14 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
         </AMBox>
       </AMOverlay>,
       document.body
+    )}
+
+    {starAnchor && (
+      <ListPickerPopover
+        book={book}
+        anchorRect={starAnchor}
+        onClose={() => setStarAnchor(null)}
+      />
     )}
     </>
   )

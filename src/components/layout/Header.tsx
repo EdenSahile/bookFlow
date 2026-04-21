@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import styled from 'styled-components'
 import { useNavigate } from 'react-router-dom'
 import { Wordmark } from '@/components/brand/Wordmark'
@@ -10,6 +11,8 @@ import {
   searchBooks,
   type Universe,
 } from '@/data/mockBooks'
+import { useWishlist } from '@/contexts/WishlistContext'
+import { useCart } from '@/contexts/CartContext'
 
 const GOLD        = '#C9A84C'
 const GOLD_BG     = 'rgba(201,168,76,0.15)'
@@ -31,10 +34,6 @@ const HeaderBar = styled.header`
   gap: 12px;
   z-index: 100;
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    left: ${({ theme }) => theme.layout.sidebarWidth};
-  }
-
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
     flex-wrap: wrap;
     height: auto;
@@ -51,7 +50,9 @@ const LogoWrap = styled.div`
   flex-shrink: 0;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    display: none;
+    width: ${({ theme }) => theme.layout.sidebarWidth};
+    padding-left: 4px;
+    flex-shrink: 0;
   }
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
@@ -84,6 +85,10 @@ const BurgerBtn = styled.button`
 
   &:hover { background: rgba(255,255,255,0.18); }
   &:active { background: rgba(255,255,255,0.25); }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    display: none;
+  }
 `
 
 const RightSection = styled.div`
@@ -517,6 +522,394 @@ const CartBadge = styled.span`
   line-height: 1.6;
 `
 
+/* ── Bouton Listes ── */
+const ListsBtn = styled.button<{ $hasLists: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.75);
+
+  &:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.4);
+    color: #fff;
+  }
+
+  ${({ $hasLists }) => $hasLists && `
+    border-color: rgba(201,168,76,0.5);
+    color: #C9A84C;
+    &:hover { border-color: #C9A84C; }
+  `}
+
+  @media (max-width: 479px) {
+    padding: 0 10px;
+    min-height: 36px;
+  }
+`
+
+const ListsBadge = styled.span`
+  background: #C9A84C;
+  color: #1E3A5F;
+  font-family: ${({ theme }) => theme.typography.fontFamilyMono};
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 7px;
+  line-height: 1.6;
+`
+
+const ListsLabel = styled.span`
+  @media (max-width: 479px) {
+    display: none;
+  }
+`
+
+/* ── Panneau Listes ── */
+const ListsPanel = styled.div<{ $top: number; $right: number }>`
+  position: fixed;
+  top: ${({ $top }) => $top}px;
+  right: ${({ $right }) => $right}px;
+  z-index: 9999;
+  background: #fff;
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 12px 40px rgba(28,58,95,0.20), 0 2px 8px rgba(28,58,95,0.08);
+  border: 1px solid rgba(28,58,95,0.08);
+  width: 320px;
+  max-width: calc(100vw - 16px);
+  padding: 0;
+  overflow: hidden;
+`
+
+const ListsPanelHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid rgba(28,58,95,0.08);
+`
+
+const ListsPanelTitle = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+`
+
+const ListsPanelClose = styled.button`
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border: none; border-radius: 50%;
+  cursor: pointer; font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  transition: background 0.15s;
+  &:hover { background: ${({ theme }) => theme.colors.gray[200]}; }
+`
+
+const ListsPanelBody = styled.div`
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 8px 0;
+`
+
+const ListsPanelEmpty = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  text-align: center;
+  padding: 24px 16px;
+  font-style: italic;
+`
+
+const ListRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-bottom: 1px solid rgba(28,58,95,0.05);
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(28,58,95,0.04); }
+`
+
+const ListRowIcon = styled.div`
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.3);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+`
+
+const ListRowInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`
+
+const ListRowName = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.navy};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+const ListRowCount = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-top: 1px;
+`
+
+const ListRowDelete = styled.button`
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  border-radius: 6px;
+  flex-shrink: 0;
+  font-size: 14px;
+  transition: color 0.12s, background 0.12s;
+
+  &:hover {
+    color: #e24b4a;
+    background: rgba(226,75,74,0.08);
+  }
+`
+
+/* ── Vue détail d'une liste ── */
+const DetailHead = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(28,58,95,0.08);
+`
+
+const BackBtn = styled.button`
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border: none; border-radius: 50%;
+  cursor: pointer; font-size: 14px;
+  color: ${({ theme }) => theme.colors.navy};
+  flex-shrink: 0;
+  transition: background 0.15s;
+  &:hover { background: ${({ theme }) => theme.colors.gray[200]}; }
+`
+
+const DetailTitle = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+const BookRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(28,58,95,0.05);
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(28,58,95,0.04); }
+`
+
+const BookRowCover = styled.div`
+  width: 32px; height: 44px;
+  border-radius: 3px;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+`
+
+const BookRowInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`
+
+const BookRowTitle = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.navy};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+const BookRowAuthor = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+`
+
+const BookRowRemove = styled.button`
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  border-radius: 5px;
+  flex-shrink: 0;
+  font-size: 14px;
+  transition: color 0.12s, background 0.12s;
+
+  &:hover {
+    color: #e24b4a;
+    background: rgba(226,75,74,0.08);
+  }
+`
+
+const BookRowIsbn = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamilyMono};
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-top: 1px;
+`
+
+const BookRowAddedBy = styled.span`
+  display: inline-block;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 10px;
+  color: #3d2f00;
+  background: rgba(201,168,76,0.20);
+  border-radius: 10px;
+  padding: 1px 7px;
+  margin-top: 2px;
+`
+
+const PrenomsBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(28,58,95,0.06);
+  background: ${({ theme }) => theme.colors.gray[50]};
+`
+
+const PrenomChip = styled.button<{ $active: boolean }>`
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
+  background: ${({ $active, theme }) => $active ? theme.colors.navy : '#fff'};
+  color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.gray[600]};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.navy};
+    color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.navy};
+  }
+`
+
+const BookRowCartBtn = styled.button`
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: ${({ theme }) => theme.colors.navy};
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.12s;
+
+  &:hover { background: #25477A; }
+`
+
+const DetailFooter = styled.div`
+  border-top: 1px solid rgba(28,58,95,0.08);
+  padding: 10px 14px;
+  background: #fafafa;
+`
+
+const AddAllBtn = styled.button`
+  width: 100%;
+  padding: 9px;
+  border: none;
+  border-radius: 7px;
+  background: ${({ theme }) => theme.colors.navy};
+  color: #fdfdfd;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s;
+
+  &:hover { background: #25477A; }
+`
+
+const ExportCsvBtn = styled.button`
+  width: 100%;
+  margin-top: 7px;
+  padding: 8px;
+  border: 1.5px solid rgba(28,58,95,0.18);
+  border-radius: 7px;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.navy};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    background: rgba(28,58,95,0.05);
+    border-color: rgba(28,58,95,0.35);
+  }
+`
+
 /* ── Icônes SVG ── */
 function IconSearch() {
   return (
@@ -552,6 +945,42 @@ function IconBell() {
   )
 }
 
+function IconLists() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6"/>
+      <line x1="8" y1="12" x2="21" y2="12"/>
+      <line x1="8" y1="18" x2="21" y2="18"/>
+      <line x1="3" y1="6" x2="3.01" y2="6"/>
+      <line x1="3" y1="12" x2="3.01" y2="12"/>
+      <line x1="3" y1="18" x2="3.01" y2="18"/>
+    </svg>
+  )
+}
+
+function IconStarSmall() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24"
+      fill="#C9A84C" stroke="#C9A84C"
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  )
+}
+
+function IconTrash() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+      <path d="M10 11v6M14 11v6"/>
+      <path d="M9 6V4h6v2"/>
+    </svg>
+  )
+}
+
 function IconCartSvg({ filled }: { filled: boolean }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -573,15 +1002,70 @@ interface HeaderProps {
 
 export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = true }: HeaderProps) {
   const navigate = useNavigate()
+  const { lists, deleteList, removeFromList } = useWishlist()
+  const { addToCart } = useCart()
+
+  const exportListCSV = (list: { name: string; items: Array<{ book: { isbn: string; title: string; authors: string[]; priceTTC: number; publicationDate: string }; addedBy?: string }> }) => {
+    const header = ['ISBN', 'Titre', 'Auteur', 'Prix TTC', 'Date parution', 'Nom de la liste', 'Ajouté par']
+    const rows = list.items.map(({ book, addedBy }) => [
+      book.isbn,
+      `"${book.title.replace(/"/g, '""')}"`,
+      `"${book.authors.join(', ').replace(/"/g, '""')}"`,
+      book.priceTTC.toFixed(2).replace('.', ','),
+      book.publicationDate,
+      `"${list.name.replace(/"/g, '""')}"`,
+      addedBy ? `"${addedBy.replace(/"/g, '""')}"` : '',
+    ])
+    const csv = [header.join(';'), ...rows.map(r => r.join(';'))].join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `${list.name.replace(/[^a-z0-9]/gi, '_')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const [search, setSearch] = useState('')
-  const [showPanel, setShowPanel]     = useState(false)
+  const [showPanel, setShowPanel]           = useState(false)
+  const [showListsPanel, setShowListsPanel] = useState(false)
+  const [selectedListId, setSelectedListId] = useState<string | null>(null)
+  const [filterPrenom, setFilterPrenom]     = useState<string | null>(null)
+  const listsPanelRef = useRef<HTMLDivElement>(null)
   const [selUniverse, setSelUniverse] = useState<Universe[]>([])
   const [selGenre, setSelGenre]       = useState<string[]>([])
   const [selLangue, setSelLangue]     = useState<string[]>([])
   const [selPrix, setSelPrix]         = useState<string[]>([])
   const [selFormat, setSelFormat]     = useState<string[]>([])
 
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef  = useRef<HTMLDivElement>(null)
+  const listsBtnRef   = useRef<HTMLButtonElement>(null)
+  const [listsPanelPos, setListsPanelPos] = useState({ top: 0, right: 0 })
+
+  /* Fermer panneau listes au clic extérieur */
+  useEffect(() => {
+    if (!showListsPanel) return
+    function handler(e: MouseEvent) {
+      if (listsPanelRef.current?.contains(e.target as Node)) return
+      if (listsBtnRef.current?.contains(e.target as Node)) return
+      setShowListsPanel(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showListsPanel])
+
+  function toggleListsPanel() {
+    if (!showListsPanel && listsBtnRef.current) {
+      const rect = listsBtnRef.current.getBoundingClientRect()
+      setListsPanelPos({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      })
+      setSelectedListId(null)
+      setFilterPrenom(null)
+    }
+    setShowListsPanel(v => !v)
+  }
 
   function toggle<T>(arr: T[], val: T): T[] {
     return arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]
@@ -897,6 +1381,20 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
             {hasNotif && <NotifDot />}
           </NotifBtn>
 
+          {/* ─ Bouton Listes ─ */}
+          <ListsBtn
+            ref={listsBtnRef}
+            $hasLists={lists.length > 0}
+            onClick={toggleListsPanel}
+            aria-label={`Mes listes — ${lists.length} liste${lists.length !== 1 ? 's' : ''}`}
+          >
+            <IconLists />
+            <ListsLabel>Listes</ListsLabel>
+            {lists.length > 0 && (
+              <ListsBadge>{lists.length}</ListsBadge>
+            )}
+          </ListsBtn>
+
           <CartBtn
             $hasItems={cartCount > 0}
             onClick={onCartClick}
@@ -910,6 +1408,136 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
           </CartBtn>
         </RightSection>
       </HeaderBar>
+
+      {showListsPanel && createPortal(
+        <ListsPanel
+          ref={listsPanelRef}
+          $top={listsPanelPos.top}
+          $right={listsPanelPos.right}
+          role="dialog"
+          aria-label="Mes listes de commandes"
+        >
+          {selectedListId ? (() => {
+            const list = lists.find(l => l.id === selectedListId)
+            if (!list) { setSelectedListId(null); return null }
+            const prenoms = [...new Set(list.items.map(i => i.addedBy).filter(Boolean) as string[])]
+            const visibleItems = filterPrenom
+              ? list.items.filter(i => i.addedBy === filterPrenom)
+              : list.items
+            return (
+              <>
+                <DetailHead>
+                  <BackBtn onClick={() => { setSelectedListId(null); setFilterPrenom(null) }} aria-label="Retour">←</BackBtn>
+                  <DetailTitle>{list.name}</DetailTitle>
+                  <ListsPanelClose onClick={() => { setShowListsPanel(false); setSelectedListId(null); setFilterPrenom(null) }} aria-label="Fermer">✕</ListsPanelClose>
+                </DetailHead>
+                {prenoms.length >= 2 && (
+                  <PrenomsBar>
+                    <PrenomChip $active={filterPrenom === null} onClick={() => setFilterPrenom(null)}>
+                      Tous
+                    </PrenomChip>
+                    {prenoms.map(p => (
+                      <PrenomChip
+                        key={p}
+                        $active={filterPrenom === p}
+                        onClick={() => setFilterPrenom(prev => prev === p ? null : p)}
+                      >
+                        {p}
+                      </PrenomChip>
+                    ))}
+                  </PrenomsBar>
+                )}
+                <ListsPanelBody>
+                  {visibleItems.length === 0 ? (
+                    <ListsPanelEmpty>Aucun titre ajouté par {filterPrenom}.</ListsPanelEmpty>
+                  ) : (
+                    visibleItems.map(({ book, addedBy }) => (
+                      <BookRow key={book.id} onClick={() => { navigate(`/livre/${book.id}`); setShowListsPanel(false); setSelectedListId(null) }}>
+                        <BookRowCover>
+                          <span style={{ fontSize: 20 }}>📖</span>
+                        </BookRowCover>
+                        <BookRowInfo>
+                          <BookRowTitle>{book.title}</BookRowTitle>
+                          <BookRowAuthor>{book.authors.join(', ')}</BookRowAuthor>
+                          <BookRowIsbn>{book.isbn}</BookRowIsbn>
+                          {addedBy && <BookRowAddedBy>{addedBy}</BookRowAddedBy>}
+                        </BookRowInfo>
+                        {book.type !== 'a-paraitre' && (
+                          <BookRowCartBtn
+                            onClick={e => { e.stopPropagation(); addToCart(book, 1) }}
+                            aria-label={`Ajouter ${book.title} au panier`}
+                            title="Ajouter au panier"
+                          >
+                            <IconCartSvg filled={false} />
+                          </BookRowCartBtn>
+                        )}
+                        <BookRowRemove
+                          onClick={e => { e.stopPropagation(); removeFromList(list.id, book.id) }}
+                          aria-label={`Retirer ${book.title}`}
+                          title="Retirer de la liste"
+                        >
+                          <IconTrash />
+                        </BookRowRemove>
+                      </BookRow>
+                    ))
+                  )}
+                </ListsPanelBody>
+                <DetailFooter>
+                  {list.items.some(i => i.book.type !== 'a-paraitre') && (
+                    <AddAllBtn
+                      onClick={() => {
+                        list.items
+                          .filter(i => i.book.type !== 'a-paraitre')
+                          .forEach(i => addToCart(i.book, 1))
+                      }}
+                    >
+                      <IconCartSvg filled={false} />
+                      Tout ajouter au panier
+                    </AddAllBtn>
+                  )}
+                  <ExportCsvBtn
+                    onClick={() => exportListCSV(list)}
+                    aria-label={`Exporter la liste "${list.name}" en CSV`}
+                    title="Exporter en CSV"
+                  >
+                    ↓ Exporter la liste (.csv)
+                  </ExportCsvBtn>
+                </DetailFooter>
+              </>
+            )
+          })() : (
+            <>
+              <ListsPanelHead>
+                <ListsPanelTitle>Mes listes ({lists.length})</ListsPanelTitle>
+                <ListsPanelClose onClick={() => setShowListsPanel(false)} aria-label="Fermer">✕</ListsPanelClose>
+              </ListsPanelHead>
+              <ListsPanelBody>
+                {lists.length === 0 ? (
+                  <ListsPanelEmpty>Aucune liste créée.<br />Cliquez sur ★ sur un livre pour commencer.</ListsPanelEmpty>
+                ) : (
+                  lists.map(list => (
+                    <ListRow key={list.id} onClick={() => setSelectedListId(list.id)}>
+                      <ListRowIcon><IconStarSmall /></ListRowIcon>
+                      <ListRowInfo>
+                        <ListRowName>{list.name}</ListRowName>
+                        <ListRowCount>{list.items.length} titre{list.items.length !== 1 ? 's' : ''}</ListRowCount>
+                      </ListRowInfo>
+                      <ListRowDelete
+                        onClick={e => { e.stopPropagation(); deleteList(list.id) }}
+                        aria-label={`Supprimer la liste ${list.name}`}
+                        title="Supprimer cette liste"
+                      >
+                        <IconTrash />
+                      </ListRowDelete>
+                    </ListRow>
+                  ))
+                )}
+              </ListsPanelBody>
+            </>
+          )}
+        </ListsPanel>,
+        document.body
+      )}
     </>
   )
 }

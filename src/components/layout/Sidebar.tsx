@@ -18,15 +18,17 @@ const SidebarContainer = styled.aside`
   background-color: ${({ theme }) => theme.colors.navy};
   display: none;
   flex-direction: column;
-  z-index: 101;
+  z-index: 99;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
     display: flex;
+    top: ${({ theme }) => theme.layout.headerHeight};
+    height: calc(100vh - ${({ theme }) => theme.layout.headerHeight});
   }
 `
 
 /* ══════════════════════════════════════
-   ZONE HEADER SIDEBAR (#226241)
+   ZONE HEADER SIDEBAR — masquée sur desktop (logo dans le header)
 ══════════════════════════════════════ */
 const SidebarHeaderZone = styled.div`
   flex-shrink: 0;
@@ -37,6 +39,10 @@ const SidebarHeaderZone = styled.div`
   padding: 14px 16px;
   text-align: center;
   gap: 6px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    display: none;
+  }
 `
 
 const SidebarLogoBtn = styled.button`

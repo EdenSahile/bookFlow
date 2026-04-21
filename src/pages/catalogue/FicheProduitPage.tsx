@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
@@ -7,6 +7,8 @@ import { slugifyAuthor } from '@/pages/auteur/AuteurPage'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/components/ui/Toast'
+import { useWishlist } from '@/contexts/WishlistContext'
+import { ListPickerPopover } from '@/components/catalogue/ListPickerPopover'
 
 /* ── Formats physiques ── */
 type FormatId = 'broche' | 'poche'
@@ -958,11 +960,14 @@ export function FicheProduitPage() {
   const navigate      = useNavigate()
   const { addToCart } = useCart()
   const { showToast } = useToast()
+  const { isInAnyList } = useWishlist()
 
   const [qty, setQty]             = useState(1)
   const [added, setAdded]         = useState(false)
   const [formatId, setFormatId]   = useState<FormatId>('broche')
   const [resumeOpen, setResumeOpen] = useState(true)
+  const [listAnchor, setListAnchor] = useState<DOMRect | null>(null)
+  const listBtnRef = useRef<HTMLButtonElement>(null)
 
   /* Modals */
   const [pagesOpen, setPagesOpen] = useState(false)
@@ -1138,7 +1143,21 @@ export function FicheProduitPage() {
               <SecBtn onClick={() => navigate(`/auteur/${slugifyAuthor(book.authors[0])}`)}>
                 📚 Parutions de l'auteur
               </SecBtn>
-              <SecBtn>🤍 Ma liste</SecBtn>
+              <SecBtn
+                ref={listBtnRef}
+                onClick={() => {
+                  if (listBtnRef.current) setListAnchor(listBtnRef.current.getBoundingClientRect())
+                }}
+                aria-label="Ajouter à une liste"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                  fill={book && isInAnyList(book.id) ? '#C9A84C' : 'none'}
+                  stroke={book && isInAnyList(book.id) ? '#C9A84C' : 'currentColor'}
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                {book && isInAnyList(book.id) ? 'Dans une liste' : 'Ajouter à une liste'}
+              </SecBtn>
             </SecondaryActions>
           </CoverCol>
 
@@ -1328,6 +1347,14 @@ export function FicheProduitPage() {
         </ModalOverlay>,
         document.body
       )}
+
+    {listAnchor && book && (
+      <ListPickerPopover
+        book={book}
+        anchorRect={listAnchor}
+        onClose={() => setListAnchor(null)}
+      />
+    )}
 
     </Page>
   )

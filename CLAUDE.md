@@ -7,8 +7,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 À chaque fin de session ou sur demande, ajoute un bloc daté en haut du fichier résumant : ce qui a été fait, l’état actuel du code, et les prochaines étapes.
 
 ---
+### Session du 2026-04-20 — Audit architecture BDD
+
+**Décisions prises :**
+- Supprimer Prisma du projet (@prisma/client + prisma)
+- Garder le schéma prisma.schema comme référence 
+  pour créer les tables dans Supabase
+- Utiliser @supabase/supabase-js directement dans React
+- Pas de couche API intermédiaire
+
+**Prochaines étapes :** Phase 10 (PWA) puis Phase 13 déploiement Vercel
+
 
 ### Session du 2026-04-20 — Audit de sécurité & dettes techniques
+
 
 **Ce qui a été fait :**
 - Rotation credentials : mot de passe Supabase + NEXTAUTH_SECRET régénéré
@@ -32,7 +44,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Contexte du projet
 
-Application B2B **BookFlow** à destination exclusive des **libraires**, permettant de passer des commandes de livres (notamment les titres de fonds déjà parus) et de consulter les actualités éditoriales.
+Application B2B **FlowDiff** à destination exclusive des **libraires**, permettant de passer des commandes de livres (notamment les titres de fonds déjà parus) et de consulter les actualités éditoriales.
 
 **Cible** : application **desktop** (interface large) ET **mobile responsive** (téléphone).
 **Design source** : `/Users/macbookeden/Documents/Projets-code/ux-design-application-libraires.pdf`
@@ -67,13 +79,13 @@ Application B2B **BookFlow** à destination exclusive des **libraires**, permett
 
 | Onglet | Contenu |
 |--------|---------|
-| Accueil | Scanner + recherche + Flash infos |
+| Accueil | recherche + raccourcis + Nouveautés |
 | Nouveautés | Titres du mois + À paraître |
 | Fonds | Titres déjà parus, commandables |
 | Top Ventes | Meilleures ventes par thématique |
 | Sélections | Sélections éditoriales thématiques |
 
-En permanence : **Menu Burger** (gauche) + **Panier** (droite, avec badge quantité) + **Barre de recherche**.
+En permanence : **Panier** (droite, avec badge quantité) + **Barre de recherche**.
 
 ---
 
@@ -81,13 +93,9 @@ En permanence : **Menu Burger** (gauche) + **Panier** (droite, avec badge quanti
 
 ### Accueil
 - Barre de recherche (EAN, titre, éditeur, collection) avec micro (recherche vocale)
-- Zone scanner code-barres central
-- Bouton "Flash infos" avec badge de notifications
+- Raccourcis page
+- Nouveautés
 
-### Scanner & Recherche
-- **Scanner** : ouvre la caméra → lit le code-barre → affiche fiche produit → "Ajouter au panier"
-- **Recherche** : écrite ou vocale, par EAN / titre / éditeur / collection
-- Fiche résultat : couverture, titre, ISBN, éditeur, auteur, prix, type, format, date parution + "Pages intérieures", "Bande annonce", cœur (liste), quantité +/−, "Ajouter au panier"
 
 ### Nouveautés
 - Sous-onglets : **Nouveautés du mois** / **À paraître**
@@ -162,6 +170,7 @@ En permanence : **Menu Burger** (gauche) + **Panier** (droite, avec badge quanti
 | Validation | **Zod** (tous les inputs) |
 | Tests | **Vitest** (jsdom) |
 | Déploiement | **Vercel** (build Vite, projet test) |
+| BDD | Prisma ORM installé (non branché — données mock)
 ---
 
 ## Sécurité — règles non négociables

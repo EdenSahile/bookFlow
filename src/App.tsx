@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { CartProvider } from '@/contexts/CartContext'
 import { OrdersProvider } from '@/contexts/OrdersContext'
+import { WishlistProvider } from '@/contexts/WishlistContext'
 import { ToastProvider } from '@/components/ui/Toast'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -46,6 +47,7 @@ export default function App() {
           <ToastProvider>
           <AuthProvider>
             <CartProvider>
+              <WishlistProvider>
               <OrdersProvider>
               <Suspense fallback={null}>
               <Routes>
@@ -79,6 +81,7 @@ export default function App() {
               </Routes>
               </Suspense>
               </OrdersProvider>
+              </WishlistProvider>
             </CartProvider>
           </AuthProvider>
           </ToastProvider>

@@ -519,7 +519,8 @@ function buildCSVRows(orders: Order[]): string {
   const multiOrder = orders.length > 1
 
   const headers = [
-    ...(multiOrder ? ['Numéro', 'Date commande'] : []),
+    ...(multiOrder ? ['Numéro'] : []),
+    'Date cmd.',
     'ISBN', 'Titre', 'Auteur', 'Date de parution',
     'Prix TTC (€)', 'Prix remisé TTC (€)', 'Quantité',
   ]
@@ -533,7 +534,8 @@ function buildCSVRows(orders: Order[]): string {
       const prixRemise = (item.unitPriceHT * (1 - remiseRate) * 1.055).toFixed(2).replace('.', ',')
 
       return [
-        ...(multiOrder ? [order.numero, order.date] : []),
+        ...(multiOrder ? [order.numero] : []),
+        order.date,
         item.isbn,
         item.title,
         item.author,
@@ -696,7 +698,6 @@ export function HistoriquePage() {
   const [selectedMonth, setSelectedMonth]   = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(null)
   const [addedMap, setAddedMap]             = useState<Record<string, boolean>>({})
-  const [exportModal, setExportModal]       = useState<{ csv: string; filename: string } | null>(null)
 
   // Tous les hooks avant tout return conditionnel
   const allOrders = useMemo(
@@ -739,23 +740,26 @@ export function HistoriquePage() {
 
   const hasFilters = !!(search || selectedMonth || selectedStatus)
 
+  function downloadCSV(csv: string, filename: string) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   function handleExportAll() {
-    setExportModal({ csv: buildCSVRows(allOrders), filename: 'bookflow_historique_complet.csv' })
+    downloadCSV(buildCSVRows(filtered), 'bookflow_historique_complet.csv')
   }
 
   function handleExportOrder(order: Order) {
-    setExportModal({ csv: buildCSVRows([order]), filename: `${order.numero}_commande.csv` })
+    downloadCSV(buildCSVRows([order]), `${order.numero}_commande.csv`)
   }
 
   return (
     <>
-    {exportModal && (
-      <ExportModal
-        csv={exportModal.csv}
-        filename={exportModal.filename}
-        onClose={() => setExportModal(null)}
-      />
-    )}
     <Page>
       <TitleRow>
         <Title style={{ marginBottom: 0 }}>Mon historique</Title>

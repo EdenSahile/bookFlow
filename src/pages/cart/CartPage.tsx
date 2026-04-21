@@ -360,6 +360,48 @@ const ItemRemise = styled.span`
   color: #226241;
 `
 
+const PriceStrip = styled.div`
+  display: inline-flex;
+  align-items: stretch;
+  background: rgba(28, 58, 95, 0.03);
+  border: 1px solid rgba(28, 58, 95, 0.10);
+  border-radius: 7px;
+  overflow: hidden;
+  margin-top: 6px;
+`
+
+const PriceCell = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 12px;
+
+  & + & {
+    border-left: 1px solid rgba(28, 58, 95, 0.08);
+  }
+`
+
+const PriceCellLabel = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  white-space: nowrap;
+  line-height: 1;
+`
+
+const PriceCellValue = styled.span<{ $gold?: boolean; $emphasis?: boolean }>`
+  font-family: ${({ theme }) => theme.typography.fontFamilyMono};
+  font-size: ${({ $emphasis }) => $emphasis ? '13px' : '12px'};
+  font-weight: ${({ $emphasis }) => $emphasis ? '700' : '500'};
+  color: ${({ $gold, theme }) => $gold ? '#B8860B' : theme.colors.navy};
+  white-space: nowrap;
+  margin-top: 3px;
+  letter-spacing: -0.01em;
+`
+
 const QtyControl = styled.div`
   display: flex;
   align-items: center;
@@ -948,8 +990,20 @@ export function CartPage() {
                   <ItemIsbn>ISBN {isEbook ? ebookOption!.isbnEbook : book.isbn} · {isEbook ? ebookOption!.format : book.format}</ItemIsbn>
                   <ItemFooter>
                     <div>
-                      <ItemPrice>{fmt(ligneHT)}</ItemPrice>
-                      <ItemRemise> (−{(remise * 100).toFixed(0)}% → {fmt(ligneHT * (1 - remise))})</ItemRemise>
+                      <PriceStrip>
+                        <PriceCell>
+                          <PriceCellLabel>Prix TTC</PriceCellLabel>
+                          <PriceCellValue>{fmt(ligneHT)}</PriceCellValue>
+                        </PriceCell>
+                        <PriceCell>
+                          <PriceCellLabel>Remise</PriceCellLabel>
+                          <PriceCellValue $gold>−{(remise * 100).toFixed(0)} %</PriceCellValue>
+                        </PriceCell>
+                        <PriceCell>
+                          <PriceCellLabel>Prix TTC remisé</PriceCellLabel>
+                          <PriceCellValue $emphasis>{fmt(ligneHT * (1 - remise))}</PriceCellValue>
+                        </PriceCell>
+                      </PriceStrip>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <QtyControl>

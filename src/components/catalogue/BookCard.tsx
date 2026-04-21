@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import type { Book } from '@/data/mockBooks'
 import { BookCover } from './BookCover'
 import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/components/ui/Toast'
+import { useWishlist } from '@/contexts/WishlistContext'
+import { ListPickerPopover } from './ListPickerPopover'
 
 /* ── Palette catégories — ajouter ici pour étendre ── */
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
@@ -37,11 +39,45 @@ const Card = styled.article`
 `
 
 const CoverArea = styled.div`
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.md} 0;
   background: linear-gradient(180deg, #F7F5F1 0%, transparent 100%);
+`
+
+const StarBtn = styled.button<{ $active: boolean }>`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: ${({ $active }) => $active ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.85)'};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 1px 4px rgba(28,58,95,0.15);
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  z-index: 2;
+
+  &:hover {
+    background: ${({ $active }) => $active ? 'rgba(201,168,76,0.25)' : 'rgba(255,255,255,1)'};
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(28,58,95,0.2);
+  }
+  &:active { transform: scale(0.95); }
+`
+
+const StarWrap = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
 `
 
 const Body = styled.div`
@@ -259,20 +295,44 @@ function IconCart() {
   )
 }
 
+function IconStar({ filled }: { filled: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24"
+      fill={filled ? '#C9A84C' : 'none'}
+      stroke={filled ? '#C9A84C' : '#1E3A5F'}
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  )
+}
+
 interface Props {
   book: Book
   showType?: boolean
 }
 
 export function BookCard({ book, showType = false }: Props) {
-  const navigate      = useNavigate()
-  const { addToCart } = useCart()
-  const { showToast } = useToast()
-  const [qty, setQty] = useState(1)
+  const navigate       = useNavigate()
+  const { addToCart }  = useCart()
+  const { showToast }  = useToast()
+  const { isInAnyList, getListsContaining, removeFromList } = useWishlist()
+  const [qty, setQty]  = useState(1)
+  const [popoverAnchor, setPopoverAnchor] = useState<DOMRect | null>(null)
+  const starRef = useRef<HTMLDivElement>(null)
 
   const isOrderable = book.type !== 'a-paraitre'
   const catColors = CATEGORY_COLORS[book.universe] ?? CATEGORY_COLORS['Autres']
 
+  const inList = isInAnyList(book.id)
+
+  const handleStarClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (inList) {
+      getListsContaining(book.id).forEach(list => removeFromList(list.id, book.id))
+    } else if (starRef.current) {
+      setPopoverAnchor(starRef.current.getBoundingClientRect())
+    }
+  }
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -292,6 +352,7 @@ export function BookCard({ book, showType = false }: Props) {
   }
 
   return (
+    <>
     <Card
       onClick={handleCardClick}
       role="button"
@@ -309,6 +370,16 @@ export function BookCard({ book, showType = false }: Props) {
           publisher={book.publisher}
           collection={book.collection}
         />
+        <StarWrap ref={starRef}>
+          <StarBtn
+            $active={inList}
+            onClick={handleStarClick}
+            aria-label="Ajouter à une liste"
+            title="Ajouter à une liste"
+          >
+            <IconStar filled={inList} />
+          </StarBtn>
+        </StarWrap>
       </CoverArea>
 
       <Body>
@@ -357,5 +428,14 @@ export function BookCard({ book, showType = false }: Props) {
         </ActionZone>
       </Body>
     </Card>
+
+    {popoverAnchor && (
+      <ListPickerPopover
+        book={book}
+        anchorRect={popoverAnchor}
+        onClose={() => setPopoverAnchor(null)}
+      />
+    )}
+    </>
   )
 }
