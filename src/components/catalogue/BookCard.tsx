@@ -231,7 +231,7 @@ const AjouterBtn = styled.button`
   margin-top: 8px;
   border: none;
   border-radius: 7px;
-  background: #226241;
+  background: #232f3e;
   color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
@@ -245,7 +245,7 @@ const AjouterBtn = styled.button`
   justify-content: center;
   gap: 6px;
 
-  &:hover { background: #2D5C44; }
+  &:hover { background: #42556c; }
   &:active { transform: scale(0.97); }
 `
 
