@@ -1,7 +1,7 @@
 export const theme = {
   colors: {
     /* ── Palette Forêt & Lin ── */
-    primary:      '#232f3e;',   // Vert forêt — CTA, boutons, sidebar
+    primary:      '#232f3e;',   // Bleu — CTA, boutons, sidebar
     primaryHover: '#2D5C44',   // Vert légèrement plus clair au hover
     primaryLight: '#E6EFE9',   // Fond très clair (badges, highlights)
     accent:       '#C9A84C',   // Or — signal nouveauté, badges, accents
@@ -15,7 +15,7 @@ export const theme = {
     /* Surfaces & texte */
     white:        '#FFFFFF',    // Blanc pur — surfaces cards
     error:        '#C0392B',
-    success:      '#226241',
+    success:      '#232f3e',
 
     gray: {
       50:  '#F4F4F0',   // Fond page (lin neutre)
