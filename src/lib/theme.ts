@@ -1,14 +1,14 @@
 export const theme = {
   colors: {
     /* ── Palette Forêt & Lin ── */
-    primary:      '#226241',   // Vert forêt — CTA, boutons, sidebar
+    primary:      '#232f3e;',   // Vert forêt — CTA, boutons, sidebar
     primaryHover: '#2D5C44',   // Vert légèrement plus clair au hover
     primaryLight: '#E6EFE9',   // Fond très clair (badges, highlights)
     accent:       '#C9A84C',   // Or — signal nouveauté, badges, accents
     accentLight:  '#F7F0DC',   // Fond or très clair
 
     /* Sidebar / header dark */
-    navy:         '#226241',   // Vert forêt — fond sidebar/header
+    navy:         '#232f3e;',   // Vert forêt — fond sidebar/header
     navyHover:    '#2D5C44',   // Légèrement plus clair
     navyLight:    '#E6EFE9',   // Vert pâle pour surfaces alternées
 
