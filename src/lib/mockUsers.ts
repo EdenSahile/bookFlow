@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 
 if (import.meta.env.PROD) {
   // Phase 12 : remplacer par Prisma/Supabase — mock toujours actif en attendant
-  console.warn('[BookFlow] mockUsers chargé en production — migrer vers Prisma/Supabase (Phase 12).')
+  console.warn('[FlowDiff] mockUsers chargé en production — migrer vers Prisma/Supabase (Phase 12).')
 }
 
 // DEV ONLY — remplacé par Prisma/Supabase en Phase 12
@@ -46,8 +46,8 @@ function createMockUser(data: {
 export const MOCK_USERS: MockUser[] = [
   createMockUser({
     codeClient: 'LIB001',
-    nomLibrairie: 'Librairie du Parc',
-    email: 'marie.lecomte@librairie-du-parc.fr',
+    nomLibrairie: 'Librairie Lira ',
+    email: 'marie.lecomte@librairie-lira.fr',
     password: 'Libraire123!',
     adresseLivraison: '12 rue du Parc, 75001 Paris',
     remise: 15,

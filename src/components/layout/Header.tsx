@@ -478,7 +478,7 @@ const CartBtn = styled.button<{ $hasItems: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 14px;
   border-radius: 8px;
   cursor: pointer;
@@ -527,7 +527,7 @@ const ListsBtn = styled.button<{ $hasLists: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 14px;
   border-radius: 8px;
   cursor: pointer;
