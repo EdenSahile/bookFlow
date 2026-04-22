@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { loginSchema, getZodErrors, type LoginInput } from '@/lib/authUtils'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { DemoBanner } from '@/components/ui/DemoBanner'
 import { Wordmark } from '@/components/brand/Wordmark'
 import {
   AuthPage,
@@ -140,6 +141,7 @@ export function LoginPage() {
 
   return (
     <AuthPage>
+      <AuthStack>
       <AuthCard>
         <AuthLogo>
           <Wordmark size="lg" showBaseline />
@@ -219,7 +221,19 @@ export function LoginPage() {
         </AuthLink>
       </AuthCard>
 
+      <DemoBanner />
+      </AuthStack>
+
       {blockedMsg && <BlockedModal message={blockedMsg} onClose={() => setBlockedMsg(null)} />}
     </AuthPage>
   )
 }
+
+const AuthStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+`

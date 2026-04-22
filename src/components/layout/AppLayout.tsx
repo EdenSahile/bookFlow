@@ -5,6 +5,7 @@ import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import { Sidebar } from './Sidebar'
 import { BurgerMenu } from './BurgerMenu'
+import { DemoBanner } from '@/components/ui/DemoBanner'
 import { useCart } from '@/contexts/CartContext'
 
 const LayoutRoot = styled.div`
@@ -42,7 +43,10 @@ export function AppLayout({ children }: AppLayoutProps) {
         onBurgerClick={() => setMenuOpen(true)}
         onCartClick={() => navigate('/panier')}
       />
-      <Main>{children}</Main>
+      <Main>
+        {children}
+        <DemoBanner />
+      </Main>
       <BottomNav />
     </LayoutRoot>
   )
