@@ -90,7 +90,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     deliveryMode: 'standard' | 'specific'
     deliveryDate?: string
   }): Order {
-    const orderItems: OrderItem[] = params.items.map(({ book, quantity }) => ({
+    const orderItems: OrderItem[] = params.items.map(({ book, quantity, statut, enReliquat }) => ({
       bookId: book.id,
       title: book.title,
       author: book.authors.join(', '),
@@ -99,6 +99,8 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       quantity,
       unitPriceHT: book.price,
       universe: book.universe,
+      statut,
+      enReliquat,
     }))
 
     const order: Order = {

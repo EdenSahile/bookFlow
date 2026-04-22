@@ -6,6 +6,7 @@ import { useOrders } from '@/contexts/OrdersContext'
 import { useAuth } from '@/hooks/useAuth'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
 
 /* ── Confirm Dialog ── */
 const Overlay = styled.div`
@@ -329,6 +330,14 @@ const ItemAuthor = styled.p`
   font-size: ${({ theme }) => theme.typography.sizes.xs};
   color: ${({ theme }) => theme.colors.gray[600]};
   margin-bottom: 2px;
+`
+
+const ItemStatutLine = styled.p<{ $variant: 'sur_commande' | 'reimp' }>`
+  margin: 2px 0 4px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  font-weight: 500;
+  color: ${({ $variant }) => $variant === 'reimp' ? '#B65A00' : '#1C3252'};
 `
 
 const ItemIsbn = styled.p`
@@ -711,8 +720,9 @@ const fmt = (n: number) => n.toFixed(2).replace('.', ',') + ' €'
 const today = new Date().toISOString().split('T')[0]
 
 export function CartPage() {
-  const { items, opGroups, totalItems, updateQty, removeFromCart, removeOP, clearCart } = useCart()
+  const { items, opGroups, totalItems, updateQty, removeFromCart, removeOP, clearCart, hasReliquatItems } = useCart()
   const { addOrder } = useOrders()
+  const { showToast } = useToast()
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -859,6 +869,7 @@ export function CartPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <Button variant="primary" size="lg" fullWidth onClick={() => {
+          const reliquat = hasReliquatItems
           addOrder({
             codeClient: user?.codeClient ?? '',
             adresseLivraison: user?.adresseLivraison ?? '',
@@ -869,6 +880,9 @@ export function CartPage() {
           })
           clearCart()
           setStep('success')
+          if (reliquat) {
+            showToast('📧 Vous serez notifié par email dès l\'expédition des titres en reliquat.')
+          }
         }}>
           Confirmer la commande
         </Button>
@@ -973,6 +987,15 @@ export function CartPage() {
                     </div>
                   )}
                   <ItemTitle>{book.title}</ItemTitle>
+                  {item.enReliquat ? (
+                    <ItemStatutLine $variant="reimp">
+                      🔁 Reliquat — expédition dès disponibilité
+                    </ItemStatutLine>
+                  ) : item.statut === 'sur_commande' ? (
+                    <ItemStatutLine $variant="sur_commande">
+                      🔄 Sur commande — délai 7-15 jours
+                    </ItemStatutLine>
+                  ) : null}
                   <ItemAuthor>{book.authors.join(', ')} — {book.publisher}</ItemAuthor>
                   <ItemIsbn>ISBN {isEbook ? ebookOption!.isbnEbook : book.isbn} · {isEbook ? ebookOption!.format : book.format}</ItemIsbn>
                   <ItemFooter>

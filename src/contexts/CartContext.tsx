@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import type { Book, Universe } from '@/data/mockBooks'
+import type { Book, StockStatut, Universe } from '@/data/mockBooks'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useToast } from '@/components/ui/Toast'
 
@@ -25,6 +25,10 @@ export interface CartItem {
   book: Book
   quantity: number
   ebookOption?: EbookCartOption
+  /* Snapshot du statut au moment de l'ajout — évite un changement rétroactif */
+  statut?: StockStatut
+  /* true pour en_reimp (expédition différée), false sinon */
+  enReliquat?: boolean
 }
 
 export interface OPCartGroup {
@@ -53,16 +57,22 @@ export function getItemKey(item: CartItem): string {
   return item.ebookOption ? `${item.book.id}::${item.ebookOption.isbnEbook}` : item.book.id
 }
 
+export interface AddToCartOptions {
+  ebookOption?: EbookCartOption
+  enReliquat?: boolean
+}
+
 interface CartContextValue {
   items: CartItem[]
   opGroups: OPCartGroup[]
   totalItems: number
-  addToCart: (book: Book, qty?: number, ebookOption?: EbookCartOption) => void
+  addToCart: (book: Book, qty?: number, opts?: AddToCartOptions) => void
   updateQty: (itemKey: string, qty: number) => void
   removeFromCart: (itemKey: string) => void
   addOPToCart: (group: Omit<OPCartGroup, 'id'>) => void
   removeOP: (opId: string) => void
   clearCart: () => void
+  hasReliquatItems: boolean
   /* Totaux calculés */
   subtotalTTC: number
   remiseAmount: number
@@ -144,7 +154,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, opGroups, key])
 
   /* ── Titres individuels ── */
-  const addToCart = (book: Book, qty = 1, ebookOption?: EbookCartOption) => {
+  const addToCart = (book: Book, qty = 1, opts: AddToCartOptions = {}) => {
     if (totalItems >= CART_LIMIT) {
       showToast(
         `Limite de démonstration atteinte (${CART_LIMIT} articles max). Veuillez vider votre panier pour continuer.`,
@@ -152,6 +162,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       )
       return
     }
+    const { ebookOption, enReliquat } = opts
     setItems(prev => {
       const key = ebookOption ? `${book.id}::${ebookOption.isbnEbook}` : book.id
       const existing = prev.find(i =>
@@ -164,7 +175,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const iKey = i.ebookOption ? `${i.book.id}::${i.ebookOption.isbnEbook}` : i.book.id
           return iKey === key ? { ...i, quantity: i.quantity + qty } : i
         })
-      return [...prev, { book, quantity: qty, ebookOption }]
+      return [...prev, {
+        book,
+        quantity: qty,
+        ebookOption,
+        statut: book.statut,
+        enReliquat: enReliquat ?? false,
+      }]
     })
   }
 
@@ -205,6 +222,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     sum + op.books.reduce((s, { quantity }) => s + quantity, 0), 0)
   const totalItems    = itemsTotal + opBooksTotal
 
+  const hasReliquatItems = items.some(i => i.enReliquat)
+
   return (
     <CartContext.Provider value={{
       items,
@@ -216,6 +235,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addOPToCart,
       removeOP,
       clearCart,
+      hasReliquatItems,
       ...computeTotals(items, opGroups, effectiveRates),
     }}>
       {children}

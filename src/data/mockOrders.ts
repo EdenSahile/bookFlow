@@ -1,5 +1,7 @@
 // DEV ONLY — remplacé par Prisma/Supabase en Phase 12
 
+import type { StockStatut } from './mockBooks'
+
 export type OrderStatus = 'en cours' | 'reçu' | 'facturé' | 'expédié'
 
 export const ORDER_STATUSES: OrderStatus[] = ['en cours', 'reçu', 'facturé', 'expédié']
@@ -23,6 +25,8 @@ export interface OrderItem {
   unitPriceHT: number
   universe: string
   typeCommande?: TypeCommande
+  statut?: StockStatut
+  enReliquat?: boolean
 }
 
 export interface Order {

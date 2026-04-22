@@ -7,6 +7,8 @@ import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/components/ui/Toast'
 import { useWishlist } from '@/contexts/WishlistContext'
 import { ListPickerPopover } from './ListPickerPopover'
+import { StockBadge } from './StockBadge'
+import { StockAlertModal } from '@/components/ui/StockAlertModal'
 
 /* ── Palette catégories — ajouter ici pour étendre ── */
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
@@ -261,18 +263,22 @@ const QtyValue = styled.span`
   color: ${({ theme }) => theme.colors.navy};
 `
 
-const AjouterBtn = styled.button`
+const AjouterBtn = styled.button<{ $variant?: 'default' | 'sur_commande' | 'en_reimp' | 'epuise' }>`
   width: 100%;
   padding: 0.625rem;
   margin-top: 8px;
   border: none;
   border-radius: 7px;
-  background: #232f3e;
-  color: #fdfdfd;
+  background: ${({ $variant }) =>
+    $variant === 'sur_commande' ? '#506680' :
+    $variant === 'en_reimp'     ? '#B65A00' :
+    $variant === 'epuise'       ? '#C9C9C2' :
+                                  '#232f3e'};
+  color: ${({ $variant }) => $variant === 'epuise' ? '#6B6B68' : '#fdfdfd'};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
-  cursor: pointer;
+  cursor: ${({ $variant }) => $variant === 'epuise' ? 'not-allowed' : 'pointer'};
   transition: background .15s, transform .1s;
   white-space: nowrap;
   letter-spacing: 0.02em;
@@ -281,8 +287,27 @@ const AjouterBtn = styled.button`
   justify-content: center;
   gap: 6px;
 
-  &:hover { background: #42556c; }
-  &:active { transform: scale(0.97); }
+  &:hover {
+    background: ${({ $variant }) =>
+      $variant === 'sur_commande' ? '#3f5369' :
+      $variant === 'en_reimp'     ? '#944700' :
+      $variant === 'epuise'       ? '#C9C9C2' :
+                                    '#42556c'};
+  }
+  &:active { transform: ${({ $variant }) => $variant === 'epuise' ? 'none' : 'scale(0.97)'}; }
+`
+
+const StockRow = styled.div`
+  margin-top: 6px;
+  display: flex;
+`
+
+const EpuiseNote = styled.p`
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-style: italic;
+  text-align: center;
 `
 
 function IconCart() {
@@ -318,10 +343,20 @@ export function BookCard({ book, showType = false }: Props) {
   const { isInAnyList, getListsContaining, removeFromList } = useWishlist()
   const [qty, setQty]  = useState(1)
   const [popoverAnchor, setPopoverAnchor] = useState<DOMRect | null>(null)
+  const [alertOpen, setAlertOpen] = useState(false)
   const starRef = useRef<HTMLDivElement>(null)
 
-  const isOrderable = book.type !== 'a-paraitre'
+  const isAParaitre   = book.type === 'a-paraitre'
+  const isEpuise      = book.statut === 'epuise'
+  const needsConfirm  = book.statut === 'sur_commande' || book.statut === 'en_reimp'
+  const isOrderable   = !isAParaitre && !isEpuise
   const catColors = CATEGORY_COLORS[book.universe] ?? CATEGORY_COLORS['Autres']
+
+  const btnVariant: 'default' | 'sur_commande' | 'en_reimp' | 'epuise' =
+    isEpuise             ? 'epuise' :
+    book.statut === 'sur_commande' ? 'sur_commande' :
+    book.statut === 'en_reimp'     ? 'en_reimp' :
+                                     'default'
 
   const inList = isInAnyList(book.id)
 
@@ -334,11 +369,20 @@ export function BookCard({ book, showType = false }: Props) {
     }
   }
 
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    addToCart(book, qty)
+  const confirmAdd = (enReliquat: boolean) => {
+    addToCart(book, qty, { enReliquat })
     showToast('Ouvrage ajouté au panier')
     setQty(1)
+  }
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isEpuise) return
+    if (needsConfirm) {
+      setAlertOpen(true)
+      return
+    }
+    confirmAdd(false)
   }
 
   const handleQty = (e: React.MouseEvent, delta: number) => {
@@ -401,6 +445,12 @@ export function BookCard({ book, showType = false }: Props) {
           <Publisher>{book.publisher}{book.collection ? ` · ${book.collection}` : ''}</Publisher>
         )}
 
+        {book.statut && !isAParaitre && (
+          <StockRow>
+            <StockBadge statut={book.statut} />
+          </StockRow>
+        )}
+
         <PillRow>
           <MetaPill>{book.isbn}</MetaPill>
         </PillRow>
@@ -420,10 +470,30 @@ export function BookCard({ book, showType = false }: Props) {
             )}
           </PriceRow>
 
-          {isOrderable && (
-            <AjouterBtn onClick={handleAdd} title="Ajouter au panier" aria-label="Ajouter au panier">
-              <IconCart /> Ajouter au panier
-            </AjouterBtn>
+          {!isAParaitre && (
+            isEpuise ? (
+              <>
+                <AjouterBtn
+                  $variant="epuise"
+                  disabled
+                  aria-disabled="true"
+                  title="Épuisé"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <IconCart /> Épuisé
+                </AjouterBtn>
+                <EpuiseNote>Cet ouvrage n'est plus disponible</EpuiseNote>
+              </>
+            ) : (
+              <AjouterBtn
+                $variant={btnVariant}
+                onClick={handleAdd}
+                title="Ajouter au panier"
+                aria-label="Ajouter au panier"
+              >
+                <IconCart /> Ajouter au panier
+              </AjouterBtn>
+            )
           )}
         </ActionZone>
       </Body>
@@ -434,6 +504,18 @@ export function BookCard({ book, showType = false }: Props) {
         book={book}
         anchorRect={popoverAnchor}
         onClose={() => setPopoverAnchor(null)}
+      />
+    )}
+
+    {needsConfirm && book.statut && (
+      <StockAlertModal
+        open={alertOpen}
+        statut={book.statut}
+        onConfirm={() => {
+          setAlertOpen(false)
+          confirmAdd(book.statut === 'en_reimp')
+        }}
+        onCancel={() => setAlertOpen(false)}
       />
     )}
     </>

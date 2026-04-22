@@ -275,6 +275,13 @@ const ItemIsbn = styled.div`
   letter-spacing: 0.03em;
 `
 
+const ItemStatutLine = styled.div<{ $variant: 'sur_commande' | 'reimp' }>`
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: ${({ $variant }) => $variant === 'reimp' ? '#B65A00' : '#1C3252'};
+`
+
 const ItemQtyPrice = styled.div`
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   color: ${({ theme }) => theme.colors.gray[600]};
@@ -657,6 +664,15 @@ export function HistoriquePage() {
                     <Item key={idx}>
                       <ItemInfo>
                         <ItemTitle>{item.title}</ItemTitle>
+                        {item.enReliquat ? (
+                          <ItemStatutLine $variant="reimp">
+                            🔁 En attente de réimpression
+                          </ItemStatutLine>
+                        ) : item.statut === 'sur_commande' ? (
+                          <ItemStatutLine $variant="sur_commande">
+                            🔄 Commande spéciale en cours
+                          </ItemStatutLine>
+                        ) : null}
                         <ItemIsbn>ISBN {item.isbn}</ItemIsbn>
                       </ItemInfo>
                       <ItemQtyPrice>

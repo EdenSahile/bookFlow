@@ -325,8 +325,16 @@ export function SelectionBar({ books, onClearAll }: Props) {
   const totalTTC = totalHT + tva
 
   function handleAddToCart() {
-    books.forEach(b => addToCart(b, 1))
-    showToast(`${count} ouvrage${count > 1 ? 's' : ''} ajouté${count > 1 ? 's' : ''} au panier`)
+    const addable = books.filter(b => b.statut !== 'epuise')
+    addable.forEach(b => addToCart(b, 1, { enReliquat: b.statut === 'en_reimp' }))
+    const addedCount = addable.length
+    const skipped    = books.length - addedCount
+    if (addedCount === 0) {
+      showToast('Aucun ouvrage ajouté (titres épuisés).', 'error')
+    } else {
+      const base = `${addedCount} ouvrage${addedCount > 1 ? 's' : ''} ajouté${addedCount > 1 ? 's' : ''} au panier`
+      showToast(skipped > 0 ? `${base} — ${skipped} épuisé${skipped > 1 ? 's' : ''} ignoré${skipped > 1 ? 's' : ''}` : base)
+    }
     onClearAll()
   }
 

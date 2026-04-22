@@ -9,6 +9,7 @@ import { useAuthContext } from '@/contexts/AuthContext'
 import { ORDER_STATUS_LABELS } from '@/data/mockOrders'
 import { useWishlist } from '@/contexts/WishlistContext'
 import { ListPickerPopover } from './ListPickerPopover'
+import { StockBadge } from './StockBadge'
 
 /* ══════════════════════════════════════════════════════
    TYPES & DONNÉES
@@ -785,7 +786,9 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
     if (starRowRef.current) setStarAnchor(starRowRef.current.getBoundingClientRect())
   }
 
-  const isOrderable = book.type !== 'a-paraitre'
+  const isAParaitre = book.type === 'a-paraitre'
+  const isEpuise    = book.statut === 'epuise'
+  const isOrderable = !isAParaitre && !isEpuise
   const badge       = TYPE_META[book.type] ?? TYPE_META['fonds']
   const classif     = CLASSIF[book.universe] ?? []
   const awards      = AWARDS[book.universe] ?? []
@@ -842,6 +845,11 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
             {book.pages && <MetaLine>{book.pages} p. – en français</MetaLine>}
             {book.collection && <MetaItalic>({book.collection})</MetaItalic>}
             <IsbnLine>ISBN {isbnDisplay}</IsbnLine>
+            {book.statut && !isAParaitre && (
+              <div style={{ marginTop: 6 }}>
+                <StockBadge statut={book.statut} />
+              </div>
+            )}
           </Col>
 
           {/* Col 2 — Classifications */}
@@ -905,7 +913,11 @@ export function BookCardRow({ book, selected, onToggle }: Props) {
         {/* Statut disponibilité */}
         <AvailStatus>
           <GreenDot />
-          <AvailText>{isOrderable ? 'Available' : 'À paraître'}</AvailText>
+          <AvailText>{
+            isAParaitre ? 'À paraître' :
+            isEpuise    ? 'Épuisé'     :
+                          'Available'
+          }</AvailText>
         </AvailStatus>
 
         <VLine />

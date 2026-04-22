@@ -1,6 +1,13 @@
 export type Universe = 'BD/Mangas' | 'Jeunesse' | 'Littérature' | 'Adulte-pratique'
 export type BookType = 'nouveaute' | 'a-paraitre' | 'fonds'
 
+export type StockStatut =
+  | 'disponible'
+  | 'stock_limite'
+  | 'sur_commande'
+  | 'en_reimp'
+  | 'epuise'
+
 export interface Book {
   id: string
   isbn: string
@@ -20,6 +27,7 @@ export interface Book {
   description: string
   programme?: string
   fictif?: boolean
+  statut?: StockStatut  // défaut : 'disponible' ; absent pour les a-paraitre
 }
 
 /* ── Genres par univers ── */
@@ -81,7 +89,7 @@ export function filterBooksByPrice(books: Book[], ranges: PriceRange[]): Book[] 
 /* ── Langues disponibles ── */
 export const LANGUAGES = ['Français', 'Anglais', 'Espagnol', 'Italien', 'Japonais', 'Allemand']
 
-export const MOCK_BOOKS: Book[] = [
+const _RAW_MOCK_BOOKS: Book[] = [
   /* ─────────────────────────────
      NOUVEAUTÉS DU MOIS — Littérature
   ───────────────────────────────── */
@@ -1098,6 +1106,43 @@ export const MOCK_BOOKS: Book[] = [
     description: "Esther a 11 ans et entre en 6e. L'école, les copines, les garçons — et une plume déjà acérée.", fictif: true,
   },
 ]
+
+/* ─── Statuts de stock — démo ─── */
+const STOCK_OVERRIDES: Record<string, StockStatut> = {
+  /* Stock limité */
+  'f-lit-01':          'stock_limite',    // L'Étranger
+  'f-bd-01':           'stock_limite',    // Tintin au Tibet
+  'f-bd-dragonball':   'stock_limite',    // Dragon Ball T.1
+  'n-jes-01':          'stock_limite',    // Le Petit Nicolas
+  'n-pra-01':          'stock_limite',    // Pâtisserie — Felder
+
+  /* Sur commande */
+  'f-lit-02':          'sur_commande',    // Le Petit Prince
+  'f-lit-03':          'sur_commande',    // Notre-Dame de Paris
+  'f-lit-miserable':   'sur_commande',    // Les Misérables
+  'f-lit-sapiens':     'sur_commande',    // Sapiens
+  'f-bd-naruto':       'sur_commande',    // Naruto T.1
+
+  /* En réimpression */
+  'f-lit-bovary':      'en_reimp',        // Madame Bovary
+  'f-lit-alchimiste':  'en_reimp',        // L'Alchimiste
+  'f-lit-gatsby':      'en_reimp',        // Gatsby le Magnifique
+  'n-lit-02':          'en_reimp',        // Chanson douce
+  'f-bd-onepiece':     'en_reimp',        // One Piece T.1
+
+  /* Épuisé */
+  'f-bd-02':           'epuise',          // Astérix chez les Bretons
+  'f-bd-spirou':       'epuise',          // Spirou et Fantasio T.1
+  'f-bd-xiii':         'epuise',          // XIII T.1
+  'f-bd-fruits-basket':'epuise',          // Fruits Basket T.1
+  'f-lit-musso':       'epuise',          // La Jeune Femme et la Nuit
+}
+
+export const MOCK_BOOKS: Book[] = _RAW_MOCK_BOOKS.map(b =>
+  b.type === 'a-paraitre'
+    ? b
+    : { ...b, statut: STOCK_OVERRIDES[b.id] ?? 'disponible' }
+)
 
 /* ─── Helpers ─── */
 export const UNIVERSES: Universe[] = ['BD/Mangas', 'Jeunesse', 'Littérature', 'Adulte-pratique']

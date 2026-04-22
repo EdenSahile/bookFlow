@@ -9,6 +9,8 @@ import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/components/ui/Toast'
 import { useWishlist } from '@/contexts/WishlistContext'
 import { ListPickerPopover } from '@/components/catalogue/ListPickerPopover'
+import { StockBadge } from '@/components/catalogue/StockBadge'
+import { StockAlertModal } from '@/components/ui/StockAlertModal'
 
 /* ── Formats physiques ── */
 type FormatId = 'broche' | 'poche'
@@ -967,6 +969,7 @@ export function FicheProduitPage() {
   const [formatId, setFormatId]   = useState<FormatId>('broche')
   const [resumeOpen, setResumeOpen] = useState(true)
   const [listAnchor, setListAnchor] = useState<DOMRect | null>(null)
+  const [alertOpen, setAlertOpen]   = useState(false)
   const listBtnRef = useRef<HTMLButtonElement>(null)
 
   /* Modals */
@@ -994,8 +997,10 @@ export function FicheProduitPage() {
   ]
 
   const selectedFormat = formats.find(f => f.id === formatId)!
-  const isOrderable    = book.type !== 'a-paraitre'
   const isAParaitre    = book.type === 'a-paraitre'
+  const isEpuise       = book.statut === 'epuise'
+  const needsConfirm   = book.statut === 'sur_commande' || book.statut === 'en_reimp'
+  const isOrderable    = !isAParaitre && !isEpuise
   const uvColor        = UNIVERSE_COLOR[book.universe] ?? '#1E3A5F'
   const typeLabel      = book.type === 'nouveaute' ? 'Nouveauté' : book.type === 'fonds' ? 'Fonds' : 'À paraître'
 
@@ -1007,16 +1012,25 @@ export function FicheProduitPage() {
     ? `${book.description}\n\n${LOREM_LONG}`
     : LOREM_LONG
 
-  const handleAdd = () => {
+  const performAdd = (enReliquat: boolean) => {
     const ratio = selectedFormat.priceTTC / book.priceTTC
     addToCart({
       ...book,
       priceTTC: selectedFormat.priceTTC,
       price: Math.round(book.price * ratio * 100) / 100,
-    }, qty)
+    }, qty, { enReliquat })
     showToast('Ouvrage ajouté au panier')
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
+  }
+
+  const handleAdd = () => {
+    if (isEpuise) return
+    if (needsConfirm) {
+      setAlertOpen(true)
+      return
+    }
+    performAdd(false)
   }
 
   const handleContactRep = () => {
@@ -1181,7 +1195,18 @@ export function FicheProduitPage() {
                 <MetaDt>Parution</MetaDt>
                 <MetaDd>{formattedDate}</MetaDd>
                 {book.programme && <><MetaDt>Programme</MetaDt><MetaDd>{book.programme}</MetaDd></>}
+                {book.statut && !isAParaitre && (
+                  <>
+                    <MetaDt>Disponibilité</MetaDt>
+                    <MetaDd><StockBadge statut={book.statut} size="md" /></MetaDd>
+                  </>
+                )}
               </MetaGrid>
+              {isEpuise && (
+                <p style={{ margin: '8px 0 0', fontSize: 13, color: '#555550', fontStyle: 'italic' }}>
+                  Cet ouvrage n'est plus disponible.
+                </p>
+              )}
             </InfoTop>
 
             <Divider />
@@ -1237,6 +1262,19 @@ export function FicheProduitPage() {
                 ✉️ Contacter mon représentant
               </ContactRepBtn>
             </ParaitreFooter>
+          ) : isEpuise ? (
+            <OrderRow>
+              <AddBtn
+                $added={false}
+                disabled
+                aria-disabled="true"
+                aria-label="Épuisé"
+                onClick={e => e.preventDefault()}
+                style={{ background: '#C9C9C2', color: '#6B6B68', cursor: 'not-allowed', flex: 1 }}
+              >
+                <IconCart /> Épuisé — indisponible
+              </AddBtn>
+            </OrderRow>
           ) : (
             <OrderRow>
               <QtyControl>
@@ -1244,13 +1282,34 @@ export function FicheProduitPage() {
                 <QtyValue>{qty}</QtyValue>
                 <QtyBtn onClick={() => setQty(q => q + 1)} aria-label="Augmenter">+</QtyBtn>
               </QtyControl>
-              <AddBtn $added={added} onClick={handleAdd} aria-label="Ajouter au panier">
+              <AddBtn
+                $added={added}
+                onClick={handleAdd}
+                aria-label="Ajouter au panier"
+                style={
+                  book.statut === 'sur_commande' ? { background: '#506680' } :
+                  book.statut === 'en_reimp'     ? { background: '#B65A00' } :
+                                                    undefined
+                }
+              >
                 {added ? '✓ Ajouté au panier !' : <><IconCart /> Ajouter {qty > 1 ? `${qty} ex. ` : ''}au panier</>}
               </AddBtn>
             </OrderRow>
           )}
         </Footer>
       </Wrap>
+
+      {needsConfirm && book.statut && (
+        <StockAlertModal
+          open={alertOpen}
+          statut={book.statut}
+          onConfirm={() => {
+            setAlertOpen(false)
+            performAdd(book.statut === 'en_reimp')
+          }}
+          onCancel={() => setAlertOpen(false)}
+        />
+      )}
 
       {/* ══════════════════════════════════════════════════════
           MODAL — PAGES INTÉRIEURES
