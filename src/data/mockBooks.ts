@@ -28,6 +28,7 @@ export interface Book {
   programme?: string
   fictif?: boolean
   statut?: StockStatut  // défaut : 'disponible' ; absent pour les a-paraitre
+  delaiReimp?: string  // ex: "2 semaines" | "15 mai 2026" — uniquement pour en_reimp
 }
 
 /* ── Genres par univers ── */
@@ -349,6 +350,7 @@ const _RAW_MOCK_BOOKS: Book[] = [
     price: 5.90, priceTTC: 8.80, format: 'Poche', pages: 464,
     publicationDate: '1857-01-01',
     description: "Emma Bovary rêve d'une vie meilleure et se perd dans ses illusions romantiques. Chef-d'œuvre du réalisme français.",
+    delaiReimp: '2 semaines',
   },
   {
     id: 'f-lit-vargas',
@@ -397,6 +399,7 @@ const _RAW_MOCK_BOOKS: Book[] = [
     price: 6.50, priceTTC: 7.90, format: 'Poche', pages: 192,
     publicationDate: '1996-01-01',
     description: "Santiago, un jeune berger andalou, part vers l'Égypte à la recherche d'un trésor. Un roman initiatique traduit en 80 langues.",
+    delaiReimp: '3 semaines',
   },
   {
     id: 'f-lit-gatsby',
@@ -409,6 +412,7 @@ const _RAW_MOCK_BOOKS: Book[] = [
     price: 6.90, priceTTC: 9.90, format: 'Poche', pages: 256,
     publicationDate: '1925-01-01',
     description: "Le mystérieux Jay Gatsby et son amour impossible pour Daisy, dans l'Amérique des années folles. Le roman américain par excellence.",
+    delaiReimp: '15 mai 2026',
   },
   {
     id: 'f-lit-musso',
