@@ -4,12 +4,12 @@ import styled from 'styled-components'
 import type { StockStatut } from '@/data/mockBooks'
 
 /* ── Palette par statut ── */
-const STATUT_CONFIG: Record<StockStatut, { icon: string; label: string; color: string }> = {
-  disponible:   { icon: '✅', label: 'Disponible',      color: '#2E7D32' },
-  stock_limite: { icon: '⚠️', label: 'Stock limité',    color: '#C17E00' },
-  sur_commande: { icon: '🔄', label: 'Sur commande',    color: '#5B7A9E' },
-  en_reimp:     { icon: '🔁', label: 'En réimpression', color: '#A07040' },
-  epuise:       { icon: '❌', label: 'Épuisé',          color: '#999999' },
+const STATUT_CONFIG: Record<StockStatut, { label: string; color: string }> = {
+  disponible:   { label: 'Disponible',      color: '#2E7D32' },
+  stock_limite: { label: 'Stock limité',    color: '#C17E00' },
+  sur_commande: { label: 'Sur commande',    color: '#5B7A9E' },
+  en_reimp:     { label: 'En réimpression', color: '#A07040' },
+  epuise:       { label: 'Épuisé',          color: '#999999' },
 }
 
 const STATUTS_WITH_TOOLTIP: ReadonlyArray<StockStatut> = ['sur_commande', 'en_reimp']
@@ -31,6 +31,15 @@ const Wrap = styled.span`
   gap: 4px;
 `
 
+const Dot = styled.span<{ $color: string }>`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+  flex-shrink: 0;
+  display: inline-block;
+`
+
 const Text = styled.span<{ $color: string }>`
   font-size: 11.5px;
   font-weight: 500;
@@ -39,11 +48,12 @@ const Text = styled.span<{ $color: string }>`
 `
 
 const InfoIcon = styled.span`
-  font-size: 11px;
-  color: #AAAAAA;
+  font-size: 13px;
+  color: #6B6B68;
   cursor: help;
   line-height: 1;
   flex-shrink: 0;
+  padding: 2px;
 `
 
 const Tooltip = styled.div<{ $top: number; $left: number }>`
@@ -72,7 +82,7 @@ export interface StockStatusProps {
 }
 
 export function StockStatus({ statut, delaiReimp, className }: StockStatusProps) {
-  const { icon, label, color } = STATUT_CONFIG[statut]
+  const { label, color } = STATUT_CONFIG[statut]
   const tooltipText = getTooltipText(statut, delaiReimp)
   const hasTooltip = STATUTS_WITH_TOOLTIP.includes(statut) && tooltipText !== null
 
@@ -89,9 +99,14 @@ export function StockStatus({ statut, delaiReimp, className }: StockStatusProps)
 
   return (
     <Wrap className={className}>
-      <Text $color={color}>
-        {icon} {label}
-      </Text>
+      {statut === 'epuise' ? (
+        <Text $color={color}>❌ {label}</Text>
+      ) : (
+        <>
+          <Dot $color={color} />
+          <Text $color={color}>{label}</Text>
+        </>
+      )}
       {hasTooltip && (
         <InfoIcon
           ref={iconRef}

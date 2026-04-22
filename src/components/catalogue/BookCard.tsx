@@ -162,29 +162,26 @@ const Authors = styled.p`
 const Publisher = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 11px;
-  color: #888888;
+  color: #6B6B68;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `
 
-const PillRow = styled.div`
+const IsbnStockRow = styled.div`
   display: flex;
-  flex-direction: row;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
   flex-wrap: wrap;
-  margin-top: 2px;
+  margin-top: 4px;
 `
 
-const MetaPill = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px 4px 10px;
-  border-radius: 20px;
-  background: #f0f0f0;
-  color: #666666;
-  font-size: 12px;
-  font-weight: 400;
+const IsbnText = styled.span`
+  font-size: 11px;
+  color: #6B6B68;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 `
 
 /* ── Zone prix + quantité + bouton ── */
@@ -223,7 +220,7 @@ const Price = styled.span`
 const PriceLabel = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 10px;
-  color: #AAAAAA;
+  color: #6B6B68;
 `
 
 const QtyControl = styled.div`
@@ -262,22 +259,18 @@ const QtyValue = styled.span`
   color: ${({ theme }) => theme.colors.navy};
 `
 
-const AjouterBtn = styled.button<{ $variant?: 'default' | 'sur_commande' | 'en_reimp' | 'epuise' }>`
+const AjouterBtn = styled.button<{ $epuise?: boolean }>`
   width: 100%;
   padding: 0.625rem;
   margin-top: 8px;
   border: none;
   border-radius: 7px;
-  background: ${({ $variant }) =>
-    $variant === 'sur_commande' ? '#506680' :
-    $variant === 'en_reimp'     ? '#B65A00' :
-    $variant === 'epuise'       ? '#C9C9C2' :
-                                  '#232f3e'};
-  color: ${({ $variant }) => $variant === 'epuise' ? '#6B6B68' : '#fdfdfd'};
+  background: ${({ $epuise }) => $epuise ? '#C9C9C2' : '#232f3e'};
+  color: ${({ $epuise }) => $epuise ? '#6B6B68' : '#fdfdfd'};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
-  cursor: ${({ $variant }) => $variant === 'epuise' ? 'not-allowed' : 'pointer'};
+  cursor: ${({ $epuise }) => $epuise ? 'not-allowed' : 'pointer'};
   transition: background .15s, transform .1s;
   white-space: nowrap;
   letter-spacing: 0.02em;
@@ -287,19 +280,11 @@ const AjouterBtn = styled.button<{ $variant?: 'default' | 'sur_commande' | 'en_r
   gap: 6px;
 
   &:hover {
-    background: ${({ $variant }) =>
-      $variant === 'sur_commande' ? '#3f5369' :
-      $variant === 'en_reimp'     ? '#944700' :
-      $variant === 'epuise'       ? '#C9C9C2' :
-                                    '#42556c'};
+    background: ${({ $epuise }) => $epuise ? '#C9C9C2' : '#42556c'};
   }
-  &:active { transform: ${({ $variant }) => $variant === 'epuise' ? 'none' : 'scale(0.97)'}; }
+  &:active { transform: ${({ $epuise }) => $epuise ? 'none' : 'scale(0.97)'}; }
 `
 
-const StockRow = styled.div`
-  margin-top: 6px;
-  display: flex;
-`
 
 const EpuiseNote = styled.p`
   margin: 4px 0 0;
@@ -350,12 +335,6 @@ export function BookCard({ book, showType = false }: Props) {
   const needsConfirm  = book.statut === 'sur_commande' || book.statut === 'en_reimp'
   const isOrderable   = !isAParaitre && !isEpuise
   const catColors = CATEGORY_COLORS[book.universe] ?? CATEGORY_COLORS['Autres']
-
-  const btnVariant: 'default' | 'sur_commande' | 'en_reimp' | 'epuise' =
-    isEpuise             ? 'epuise' :
-    book.statut === 'sur_commande' ? 'sur_commande' :
-    book.statut === 'en_reimp'     ? 'en_reimp' :
-                                     'default'
 
   const inList = isInAnyList(book.id)
 
@@ -444,15 +423,12 @@ export function BookCard({ book, showType = false }: Props) {
           <Publisher>{book.publisher}{book.collection ? ` · ${book.collection}` : ''}</Publisher>
         )}
 
-        {book.statut && !isAParaitre && (
-          <StockRow>
+        <IsbnStockRow>
+          <IsbnText>{book.isbn}</IsbnText>
+          {book.statut && !isAParaitre && (
             <StockStatus statut={book.statut} delaiReimp={book.delaiReimp} />
-          </StockRow>
-        )}
-
-        <PillRow>
-          <MetaPill>{book.isbn}</MetaPill>
-        </PillRow>
+          )}
+        </IsbnStockRow>
 
         <ActionZone>
           <PriceRow>
@@ -473,7 +449,7 @@ export function BookCard({ book, showType = false }: Props) {
             isEpuise ? (
               <>
                 <AjouterBtn
-                  $variant="epuise"
+                  $epuise
                   disabled
                   aria-disabled="true"
                   title="Épuisé"
@@ -485,7 +461,6 @@ export function BookCard({ book, showType = false }: Props) {
               </>
             ) : (
               <AjouterBtn
-                $variant={btnVariant}
                 onClick={handleAdd}
                 title="Ajouter au panier"
                 aria-label="Ajouter au panier"

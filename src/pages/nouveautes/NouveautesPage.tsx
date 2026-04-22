@@ -111,14 +111,10 @@ function IconInfo() {
 
 const ResultCount = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  color: ${({ theme }) => theme.colors.gray[600]};
+  font-size: 19px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
   margin-bottom: ${({ theme }) => theme.spacing.md};
-
-  strong {
-    color: ${({ theme }) => theme.colors.navy};
-    font-weight: 700;
-  }
 `
 
 const Grid = styled.div`
@@ -131,11 +127,11 @@ const Grid = styled.div`
   }
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   }
 
   @media (min-width: 1024px) {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 `
 
@@ -240,7 +236,7 @@ export function NouveautesPage() {
         <>
           {nouveautes.length > 0 && (
             <ResultCount>
-              <strong>{nouveautes.length}</strong> titre{nouveautes.length > 1 ? 's' : ''} ce mois-ci
+              {nouveautes.length} titre{nouveautes.length > 1 ? 's' : ''} ce mois-ci
             </ResultCount>
           )}
           {nouveautes.length > 0 ? (

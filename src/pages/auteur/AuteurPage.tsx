@@ -138,7 +138,7 @@ const MonthLine = styled.div`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: ${({ theme }) => theme.spacing.md};
 `
 

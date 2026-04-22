@@ -6,13 +6,13 @@ import { getBooksByType, searchBooks } from '@/data/mockBooks'
 import type { Universe, StockStatut } from '@/data/mockBooks'
 import { Input } from '@/components/ui/Input'
 
-// Labels must stay in sync with STATUT_CONFIG in src/components/ui/StockStatus.tsx
-const DISPO_OPTIONS: Array<{ value: StockStatut; label: string }> = [
-  { value: 'disponible',   label: '✅ Disponible' },
-  { value: 'stock_limite', label: '⚠️ Stock limité' },
-  { value: 'sur_commande', label: '🔄 Sur commande' },
-  { value: 'en_reimp',     label: '🔁 En réimpression' },
-  { value: 'epuise',       label: '❌ Épuisé' },
+// Colors must stay in sync with STATUT_CONFIG in src/components/ui/StockStatus.tsx
+const DISPO_OPTIONS: Array<{ value: StockStatut; label: string; color: string | null }> = [
+  { value: 'disponible',   label: 'Disponible',      color: '#2E7D32' },
+  { value: 'stock_limite', label: 'Stock limité',     color: '#C17E00' },
+  { value: 'sur_commande', label: 'Sur commande',     color: '#5B7A9E' },
+  { value: 'en_reimp',     label: 'En réimpression',  color: '#A07040' },
+  { value: 'epuise',       label: 'Épuisé',           color: null },
 ]
 
 const Page = styled.div`
@@ -44,7 +44,13 @@ const Controls = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`
+
+const FilterGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 30px;
 `
 
 const FilterRow = styled.div`
@@ -54,23 +60,36 @@ const FilterRow = styled.div`
   flex-wrap: wrap;
 `
 
-const VDivider = styled.span`
-  width: 1px;
-  height: 24px;
-  background: ${({ theme }) => theme.colors.gray[200]};
+const FilterLabel = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   flex-shrink: 0;
-  margin: 0 4px;
+  width: 80px;
+`
 
-  @media (max-width: 600px) { display: none; }
+const ResultsBar = styled.div`
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `
 
 const CountLabel = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  color: ${({ theme }) => theme.colors.gray[400]};
-  margin-left: auto;
+  font-size: 19px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
   white-space: nowrap;
+`
+
+const DotFilter = styled.span<{ $color: string }>`
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
   flex-shrink: 0;
+  display: inline-block;
 `
 
 const DispoPill = styled.button<{ $active: boolean }>`
@@ -108,11 +127,11 @@ const Grid = styled.div`
   }
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   }
 
   @media (min-width: 1024px) {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 `
 
@@ -184,28 +203,35 @@ export function FondsPage() {
           />
         </SearchWrapper>
 
-        <FilterRow role="group" aria-label="Filtres">
-          <UniverseFilter value={universe} onChange={setUniverse} />
+        <FilterGroup role="group" aria-label="Filtres">
+          <FilterRow>
+            <FilterLabel>Thématique</FilterLabel>
+            <UniverseFilter value={universe} onChange={setUniverse} />
+          </FilterRow>
 
-          <VDivider aria-hidden="true" />
-
-          <DispoPill type="button" $active={statut === null} onClick={() => setStatut(null)}>
-            Tous
-          </DispoPill>
-          {DISPO_OPTIONS.map(opt => (
-            <DispoPill
-              type="button"
-              key={opt.value}
-              $active={statut === opt.value}
-              onClick={() => setStatut(statut === opt.value ? null : opt.value)}
-            >
-              {opt.label}
+          <FilterRow>
+            <FilterLabel>Disponibilité</FilterLabel>
+            <DispoPill type="button" $active={statut === null} onClick={() => setStatut(null)}>
+              Tous
             </DispoPill>
-          ))}
-
-          <CountLabel>{books.length} titre{books.length > 1 ? 's' : ''}</CountLabel>
-        </FilterRow>
+            {DISPO_OPTIONS.map(opt => (
+              <DispoPill
+                type="button"
+                key={opt.value}
+                $active={statut === opt.value}
+                onClick={() => setStatut(statut === opt.value ? null : opt.value)}
+              >
+                {opt.color ? <DotFilter $color={opt.color} /> : '❌ '}
+                {opt.label}
+              </DispoPill>
+            ))}
+          </FilterRow>
+        </FilterGroup>
       </Controls>
+
+      <ResultsBar>
+        <CountLabel>{books.length} titre{books.length > 1 ? 's' : ''}</CountLabel>
+      </ResultsBar>
 
       {books.length > 0 ? (
         <Grid>
