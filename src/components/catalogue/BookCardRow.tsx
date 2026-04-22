@@ -330,12 +330,6 @@ const AvailStatus = styled.div`
   flex-shrink: 0;
 `
 
-const GreenDot = styled.span`
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: ${({ theme }) => theme.colors.success};
-`
-
 const AvailText = styled.span`
   font-size: 11px;
   font-weight: 600;
