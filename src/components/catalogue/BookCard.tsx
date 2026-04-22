@@ -7,7 +7,7 @@ import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/components/ui/Toast'
 import { useWishlist } from '@/contexts/WishlistContext'
 import { ListPickerPopover } from './ListPickerPopover'
-import { StockBadge } from './StockBadge'
+import { StockStatus } from '@/components/ui/StockStatus'
 import { StockAlertModal } from '@/components/ui/StockAlertModal'
 
 /* ── Palette catégories — ajouter ici pour étendre ── */
@@ -139,9 +139,9 @@ const AParaitreBadge = styled.span`
 
 const Title = styled.h3`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 15px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.gray[800]};
+  font-size: 14px;
+  font-weight: 700;
+  color: #1A2332;
   line-height: 1.25;
   margin-bottom: 8px;
   white-space: nowrap;
@@ -152,7 +152,7 @@ const Title = styled.h3`
 const Authors = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: #555555;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -162,7 +162,7 @@ const Authors = styled.p`
 const Publisher = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 11px;
-  color: ${({ theme }) => theme.colors.gray[400]};
+  color: #888888;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -182,8 +182,7 @@ const MetaPill = styled.span`
   padding: 2px 8px 2px 0;
   border-radius: 20px;
   background: #f0f0f0;
-  color: #555;
-  font-family: 'Roboto', sans-serif;
+  color: #666666;
   font-size: 12px;
   font-weight: 400;
 `
@@ -215,16 +214,16 @@ const PriceInfo = styled.div`
 const Price = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 20px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.navy};
+  font-weight: 800;
+  color: #1A2332;
   letter-spacing: -0.01em;
   line-height: 1.1;
 `
 
 const PriceLabel = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.gray[400]};
+  font-size: 10px;
+  color: #AAAAAA;
 `
 
 const QtyControl = styled.div`
@@ -447,7 +446,7 @@ export function BookCard({ book, showType = false }: Props) {
 
         {book.statut && !isAParaitre && (
           <StockRow>
-            <StockBadge statut={book.statut} />
+            <StockStatus statut={book.statut} delaiReimp={book.delaiReimp} />
           </StockRow>
         )}
 
