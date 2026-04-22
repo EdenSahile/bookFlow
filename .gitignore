@@ -43,6 +43,7 @@ next-env.d.ts
 *.jpg
 *.jpeg
 .playwright-mcp/
+/screenshots/
 
 # docs internes — ne pas inclure dans src/
 src/**/*.md

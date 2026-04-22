@@ -17,7 +17,7 @@ import {
   PasswordWrapper,
   PasswordToggle,
   InputHint,
-} from './AuthLayout'
+} from '@/components/auth/AuthLayout'
 
 function EyeIcon({ visible }: { visible: boolean }) {
   return visible ? (

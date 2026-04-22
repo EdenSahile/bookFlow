@@ -18,7 +18,7 @@ import {
   AuthError,
   AuthLink,
   PasswordWrapper,
-} from './AuthLayout'
+} from '@/components/auth/AuthLayout'
 
 /* ── Blocked modal ── */
 const Overlay = styled.div`

@@ -13,7 +13,7 @@ import {
   AuthSubtitle,
   AuthForm,
   AuthLink,
-} from './AuthLayout'
+} from '@/components/auth/AuthLayout'
 
 const SuccessBox = styled.div`
   background-color: #E8F5E9;
