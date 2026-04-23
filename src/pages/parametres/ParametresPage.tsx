@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styled from 'styled-components'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/contexts/ToastContext'
 
 /* ── Types ── */
 type Universe = 'BD/Mangas' | 'Jeunesse' | 'Littérature' | 'Adulte-pratique'

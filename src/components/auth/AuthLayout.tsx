@@ -15,7 +15,6 @@ export const AuthCard = styled.div`
   padding: ${({ theme }) => theme.spacing['2xl']};
   width: 100%;
   max-width: 420px;
-  box-shadow: ${({ theme }) => theme.shadows.lg};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: ${({ theme }) => theme.spacing.xl};

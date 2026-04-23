@@ -5,7 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { CartProvider } from '@/contexts/CartContext'
 import { OrdersProvider } from '@/contexts/OrdersContext'
 import { WishlistProvider } from '@/contexts/WishlistContext'
-import { ToastProvider } from '@/components/ui/Toast'
+import { ToastProvider } from '@/contexts/ToastContext'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AppLayout } from '@/components/layout/AppLayout'
 

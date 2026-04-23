@@ -3,16 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { MOCK_BOOKS } from '@/data/mockBooks'
 import { BookCard } from '@/components/catalogue/BookCard'
-
-/* ── Utils ── */
-export function slugifyAuthor(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
+import { slugifyAuthor } from '@/lib/slugify'
 
 const MONTHS_FR = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',

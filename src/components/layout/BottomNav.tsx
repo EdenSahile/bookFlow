@@ -87,7 +87,6 @@ const Nav = styled.nav`
   background-color: ${({ theme }) => theme.colors.navy};
   display: flex;
   align-items: stretch;
-  box-shadow: ${({ theme }) => theme.shadows.nav};
   z-index: 100;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {

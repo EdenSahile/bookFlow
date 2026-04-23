@@ -18,7 +18,6 @@ const Title = styled.h1`
 const Card = styled.div`
   background-color: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.radii.xl};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
   overflow: hidden;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `
