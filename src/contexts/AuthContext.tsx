@@ -170,6 +170,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
+    if (user?.codeClient) {
+      localStorage.removeItem(`bookflow_wishlist_username_${user.codeClient}`)
+    }
     localStorage.removeItem(TOKEN_KEY)
     setUser(null)
     /* Panier et historique conservés — partagés entre tous les utilisateurs de la librairie */

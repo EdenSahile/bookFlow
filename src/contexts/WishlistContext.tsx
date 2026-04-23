@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { Book } from '@/data/mockBooks'
 import { useAuthContext } from '@/contexts/AuthContext'
+import { storedWishlistsSchema } from '@/lib/storageSchemas'
 
 export interface WishlistItem {
   book: Book
@@ -34,13 +35,17 @@ function storageKey(codeClient: string | undefined) {
   return `bookflow_wishlists_${codeClient ?? 'guest'}`
 }
 
-const NAME_KEY = 'bookflow_wishlist_username'
+function nameKey(codeClient: string | undefined) {
+  return `bookflow_wishlist_username_${codeClient ?? 'guest'}`
+}
 
 function loadLists(key: string): Wishlist[] {
   try {
     const stored = localStorage.getItem(key)
     if (!stored) return []
-    return JSON.parse(stored) as Wishlist[]
+    const result = storedWishlistsSchema.safeParse(JSON.parse(stored))
+    if (!result.success) { localStorage.removeItem(key); return [] }
+    return result.data as Wishlist[]
   } catch { return [] }
 }
 
@@ -50,13 +55,14 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   const [lists, setLists] = useState<Wishlist[]>(() => loadLists(storageKey(user?.codeClient)))
   const [currentUserName, setCurrentUserNameState] = useState<string>(
-    () => localStorage.getItem(NAME_KEY) ?? ''
+    () => localStorage.getItem(nameKey(user?.codeClient)) ?? ''
   )
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLists(loadLists(key))
-  }, [key])
+    setCurrentUserNameState(localStorage.getItem(nameKey(user?.codeClient)) ?? '')
+  }, [key, user?.codeClient])
 
   useEffect(() => {
     localStorage.setItem(key, JSON.stringify(lists))
@@ -64,7 +70,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   function setCurrentUserName(name: string) {
     setCurrentUserNameState(name)
-    localStorage.setItem(NAME_KEY, name)
+    localStorage.setItem(nameKey(user?.codeClient), name)
   }
 
   const createList = (name: string): Wishlist => {

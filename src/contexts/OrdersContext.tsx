@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { MOCK_ORDERS, ORDER_STATUSES, type Order, type OrderItem } from '@/data/mockOrders'
+import { MOCK_ORDERS, type Order, type OrderItem } from '@/data/mockOrders'
 import type { CartItem } from '@/contexts/CartContext'
 import { useAuthContext } from '@/contexts/AuthContext'
+import { storedOrdersSchema } from '@/lib/storageSchemas'
 
 /* Hoisted — MOCK_ORDERS est statique, pas besoin de recalculer à chaque render */
 const MOCK_IDS = new Set(Object.values(MOCK_ORDERS).flat().map(o => o.id))
@@ -46,12 +47,11 @@ function loadOrders(key: string): Order[] {
   try {
     const stored = localStorage.getItem(key)
     if (stored) {
-      const parsed: Order[] = JSON.parse(stored)
-      const validStatuses = new Set<string>(ORDER_STATUSES)
+      const parsed = JSON.parse(stored)
+      const result = storedOrdersSchema.safeParse(parsed)
+      if (!result.success) { localStorage.removeItem(key); return base }
       const existingIds = new Set(base.map(o => o.id))
-      const extras = parsed.filter(
-        o => !existingIds.has(o.id) && validStatuses.has(o.status)
-      )
+      const extras = (result.data as Order[]).filter(o => !existingIds.has(o.id))
       return [...base, ...extras]
     }
   } catch {

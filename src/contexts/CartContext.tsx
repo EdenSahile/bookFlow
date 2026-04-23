@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { Book, StockStatut, Universe } from '@/data/mockBooks'
 import { useAuthContext } from '@/contexts/AuthContext'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/contexts/ToastContext'
+import { storedCartSchema } from '@/lib/storageSchemas'
 
-const CART_LIMIT = 30
+export const CART_LIMIT = 30
 
 /* ── Remises mock par univers (en attendant AS400/CRM) ── */
 export const REMISE_RATES: Record<Universe, number> = {
@@ -88,13 +89,16 @@ function cartKey(codeClient: string | undefined) {
 }
 
 function loadCart(key: string): StoredCart {
+  const empty: StoredCart = { items: [], opGroups: [] }
   try {
     const stored = localStorage.getItem(key)
-    if (!stored) return { items: [], opGroups: [] }
-    const parsed = JSON.parse(stored) as StoredCart | CartItem[]
-    if (Array.isArray(parsed)) return { items: parsed, opGroups: [] }
-    return { items: parsed.items ?? [], opGroups: parsed.opGroups ?? [] }
-  } catch { return { items: [], opGroups: [] } }
+    if (!stored) return empty
+    const raw = JSON.parse(stored)
+    const normalized = Array.isArray(raw) ? { items: raw, opGroups: [] } : raw
+    const result = storedCartSchema.safeParse(normalized)
+    if (!result.success) { localStorage.removeItem(key); return empty }
+    return normalized as StoredCart
+  } catch { return empty }
 }
 
 export function computeTotals(items: CartItem[], opGroups: OPCartGroup[], rates: Record<string, number>) {
@@ -148,10 +152,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const setOpGroups = (fn: (prev: OPCartGroup[]) => OPCartGroup[]) =>
     setCart(c => ({ ...c, opGroups: fn(c.opGroups) }))
 
-  /* Persistance localStorage — clé par utilisateur */
+  /* Persistance localStorage — clé par utilisateur (skip si non connecté) */
   useEffect(() => {
+    if (!user?.codeClient) return
     localStorage.setItem(key, JSON.stringify({ items, opGroups }))
-  }, [items, opGroups, key])
+  }, [items, opGroups, key, user?.codeClient])
 
   /* ── Titres individuels ── */
   const addToCart = (book: Book, qty = 1, opts: AddToCartOptions = {}) => {
