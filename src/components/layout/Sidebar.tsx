@@ -293,8 +293,9 @@ const navItems = [
 ]
 
 const accountItems = [
-  { to: '/compte',      label: 'Mon compte'    },
-  { to: '/historique',  label: 'Mon historique'},
+  { to: '/compte',        label: 'Mon compte'     },
+  { to: '/historique',    label: 'Mon historique' },
+  { to: '/facturation',   label: 'Facturation'    },
 ]
 
 const infoItems = [

@@ -29,6 +29,7 @@ const NewsletterPage   = lazy(() => import('@/pages/newsletter/NewsletterPage').
 const SelectionsPage   = lazy(() => import('@/pages/selections/SelectionsPage').then(m => ({ default: m.SelectionsPage })))
 const TopVentesPage    = lazy(() => import('@/pages/top-ventes/TopVentesPage').then(m => ({ default: m.TopVentesPage })))
 const AuteurPage       = lazy(() => import('@/pages/auteur/AuteurPage').then(m => ({ default: m.AuteurPage })))
+const FacturationPage  = lazy(() => import('@/pages/facturation/FacturationPage').then(m => ({ default: m.FacturationPage })))
 
 function ProtectedLayout() {
   return (
@@ -76,6 +77,7 @@ export default function App() {
                     <Route path="/aide" element={<AidePage />} />
                     <Route path="/cgv" element={<CGVPage />} />
                     <Route path="/newsletter" element={<NewsletterPage />} />
+                    <Route path="/facturation" element={<FacturationPage />} />
                   </Route>
                 </Route>
               </Routes>

@@ -12,7 +12,7 @@ Identifiant accepté : **code client** ou **email**.
 
 | Librairie | Code client | Email | Mot de passe |
 |-----------|-------------|-------|-------------|
-| Librairie du Parc — Paris | `LIB001` | `marie.lecomte@librairie-du-parc.fr` | `Libraire123!` |
+| Librairie Lira — Paris | `LIB001` | `marie.lecomte@librairie-lira.fr` | `Libraire123!` |
 | Les Mots Voyageurs — Lyon | `LIB002` | `thomas.beaumont@motsvoyageurs.fr` | `Libraire123!` |
 | La Page Tournée — Bordeaux | `LIB003` | `sophie.girard@lapageturne.fr` | `Libraire123!` |
 
@@ -34,7 +34,7 @@ Exemple avec LIB002 :
 
 ## Détails des comptes
 
-### LIB001 — Librairie du Parc
+### LIB001 — Librairie Lira
 - Adresse de livraison : 12 rue du Parc, 75001 Paris
 - Remise : 15 %
 - Téléphone : 01 23 45 67 89

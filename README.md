@@ -1,4 +1,12 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FlowDiff PRO
+
+Application B2B de commande de livres à destination exclusive des libraires.
+
+**Compte de démonstration** — Librairie Lira (`LIB001`) — voir `docs/dev/COMPTES_TEST.md` pour les identifiants.
+
+---
+
+This is a [Vite 5 + React 18](https://vitejs.dev) project (stack définitif — voir CLAUDE.md).
 
 ## Getting Started
 

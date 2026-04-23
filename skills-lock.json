@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "comptable": {
+      "source": "romainsimon/paperasse",
+      "sourceType": "github",
+      "computedHash": "89d09fc70e2bce85c61d695fbe0547b6889baec70460732ac37acbed6631dff3"
+    }
+  }
+}
