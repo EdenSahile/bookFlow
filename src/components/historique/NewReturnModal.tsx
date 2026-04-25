@@ -150,7 +150,7 @@ const SubmitBtn = styled.button<{ $loading?: boolean }>`
 `
 
 const RETURN_REASONS = Object.keys(RETURN_REASON_LABELS) as ReturnReason[]
-const ELIGIBLE_STATUSES = new Set(['facturé', 'expédié'])
+const ELIGIBLE_STATUSES = new Set(['livré'])
 
 function formatEur(val: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)

@@ -11,6 +11,7 @@ import { MOCK_BOOKS } from '@/data/mockBooks'
 import { useReturns } from '@/contexts/ReturnsContext'
 import { ReturnCard } from '@/components/historique/ReturnCard'
 import { NewReturnModal } from '@/components/historique/NewReturnModal'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 /* ── Animations ── */
 const fadeSlideIn = keyframes`
@@ -20,10 +21,10 @@ const fadeSlideIn = keyframes`
 
 /* ── Couleurs par statut — palette Forêt & Lin ── */
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; dot: string }> = {
-  'en cours': { bg: '#F7F0DC', text: '#8B6914', dot: '#8B6914' },   // or — en attente
-  'reçu':     { bg: '#EFF4F1', text: '#2D6A52', dot: '#2D6A52' },   // vert doux — reçu
-  'facturé':  { bg: '#EAEAE6', text: '#555550', dot: '#555550' },   // gris neutre — admin
-  'expédié':  { bg: '#E6EFE9', text: theme.colors.success, dot: theme.colors.success },   // vert forêt — terminé
+  'en cours':    { bg: '#F7F0DC', text: '#8B6914', dot: '#8B6914' },
+  'réceptionné': { bg: '#EFF4F1', text: '#2D6A52', dot: '#2D6A52' },
+  'expédié':     { bg: '#E6EFE9', text: theme.colors.success, dot: theme.colors.success },
+  'livré':       { bg: '#D4EDDA', text: '#155724', dot: '#155724' },
 }
 
 /* ── Styled ── */
@@ -86,41 +87,18 @@ const SelectRow = styled.div`
   align-items: center;
 `
 
-const SelectGroup = styled.div`
+const DateGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
+  flex-shrink: 0;
 `
 
-const SelectLabel = styled.label`
+const DateLabel = styled.span`
   font-size: ${({ theme }) => theme.typography.sizes.xs};
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
   color: ${({ theme }) => theme.colors.gray[600]};
   white-space: nowrap;
-  flex-shrink: 0;
-`
-
-const Select = styled.select`
-  flex: 1;
-  padding: 8px 30px 8px 10px;
-  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.md};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  color: ${({ theme }) => theme.colors.navy};
-  background-color: ${({ theme }) => theme.colors.white};
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23226241' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  cursor: pointer;
-  min-width: 0;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
 `
 
 const ResultCount = styled.div`
@@ -158,65 +136,51 @@ const OrderDate = styled.div`
   margin-top: 2px;
 `
 
-/* ── Stepper statut ── */
-const StepperWrap = styled.div`
-  display: flex;
+/* ── Badge statut ── */
+const StatusBadge = styled.span<{ $bg: string; $text: string }>`
+  display: inline-flex;
   align-items: center;
-  padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
-  gap: 0;
-  overflow-x: auto;
-
-  &::-webkit-scrollbar { display: none; }
-`
-
-const Step = styled.div<{ $done: boolean; $active: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  min-width: 60px;
-  position: relative;
-`
-
-const StepDot = styled.div<{ $done: boolean; $active: boolean; $color: string }>`
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-  background-color: ${({ $done, $active, $color, theme }) =>
-    $active ? $color : $done ? $color : theme.colors.gray[200]};
-  color: ${({ $done, $active, theme }) =>
-    $done || $active ? theme.colors.white : theme.colors.gray[400]};
-  outline: ${({ $active }) => $active ? '3px solid rgba(34,98,65,0.25)' : 'none'};
-  outline-offset: 2px;
-  transform: ${({ $active }) => $active ? 'scale(1.15)' : 'scale(1)'};
-  z-index: 1;
-`
-
-const StepLabel = styled.div<{ $active: boolean; $done: boolean }>`
-  font-size: 10px;
-  font-weight: ${({ $active, theme }) => $active ? theme.typography.weights.bold : theme.typography.weights.medium};
-  color: ${({ $active, $done, theme }) =>
-    $active ? theme.colors.navy : $done ? theme.colors.gray[600] : theme.colors.gray[400]};
-  margin-top: 4px;
-  text-align: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: ${({ $bg }) => $bg};
+  color: ${({ $text }) => $text};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
   white-space: nowrap;
+  flex-shrink: 0;
 `
 
-const StepConnector = styled.div<{ $done: boolean; $color: string }>`
-  flex: 1;
-  height: 2px;
-  background-color: ${({ $done, $color, theme }) => $done ? $color : theme.colors.gray[200]};
-  margin-bottom: 18px;
-  transition: background-color 0.2s ease;
-  min-width: 12px;
+const StatusDot = styled.span<{ $color: string }>`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+  flex-shrink: 0;
+`
+
+/* ── Filtres pills statut ── */
+const FilterPillsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+`
+
+const FilterPill = styled.button<{ $active: boolean }>`
+  padding: 5px 13px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
+  background: ${({ $active, theme }) => $active ? theme.colors.navy : 'transparent'};
+  color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.gray[600]};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  cursor: pointer;
+  transition: all 0.15s ease;
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.navy};
+    color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.navy};
+  }
 `
 
 /* ── Bandeau livraison ── */
@@ -528,11 +492,6 @@ function formatDate(iso: string) {
 function formatDateLong(iso: string) {
   return new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(iso))
 }
-function formatMonthKey(iso: string) { return iso.slice(0, 7) }
-function formatMonthLabel(key: string) {
-  const [year, month] = key.split('-')
-  return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(new Date(Number(year), Number(month) - 1))
-}
 function formatEur(val: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)
 }
@@ -550,38 +509,9 @@ function IconCheck() {
 function IconDownload() {
   return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
 }
-/* ── Stepper component ── */
-function OrderStepper({ status }: { status: OrderStatus }) {
-  const currentIndex = ORDER_STATUSES.indexOf(status)
-  const color = (STATUS_COLORS[status] ?? STATUS_COLORS['en cours']).dot
-
-  return (
-    <StepperWrap aria-label="Statut de la commande">
-      {ORDER_STATUSES.map((s, i) => {
-        const isDone   = i < currentIndex
-        const isActive = i === currentIndex
-        return (
-          <Step key={s} $done={isDone} $active={isActive}>
-            {i > 0 && (
-              <StepConnector
-                $done={isDone || isActive}
-                $color={color}
-                style={{ position: 'absolute', left: '-50%', right: '50%', top: '13px' }}
-              />
-            )}
-            <StepDot $done={isDone} $active={isActive} $color={isDone ? STATUS_COLORS[s].dot : color}>
-              {isDone ? '✓' : i + 1}
-            </StepDot>
-            <StepLabel $active={isActive} $done={isDone}>
-              {ORDER_STATUS_LABELS[s]}
-            </StepLabel>
-          </Step>
-        )
-      })}
-    </StepperWrap>
-  )
+function IconDocument() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
 }
-
 /* ── Component ── */
 export function HistoriquePage() {
   const { user } = useAuthContext()
@@ -589,7 +519,8 @@ export function HistoriquePage() {
   const clientOrders = useClientOrders(user?.codeClient ?? '')
 
   const [search, setSearch]                 = useState('')
-  const [selectedMonth, setSelectedMonth]   = useState<string | null>(null)
+  const [dateFrom, setDateFrom]             = useState('')
+  const [dateTo,   setDateTo]               = useState('')
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(null)
   const [addedMap, setAddedMap]             = useState<Record<string, boolean>>({})
   const [trackingModal, setTrackingModal]   = useState<Shipment | null>(null)
@@ -597,28 +528,23 @@ export function HistoriquePage() {
   const [activeTab, setActiveTab] = useState<'commandes' | 'retours'>('commandes')
   const { returns, loading: returnsLoading, stats: returnsStats } = useReturns()
 
-  // Tous les hooks avant tout return conditionnel
   const allOrders = useMemo(
     () => clientOrders.slice().sort((a, b) => b.date.localeCompare(a.date)),
     [clientOrders]
   )
 
-  const months = useMemo(() => {
-    const keys = [...new Set(allOrders.map(o => formatMonthKey(o.date)))]
-    return keys.sort((a, b) => b.localeCompare(a))
-  }, [allOrders])
-
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return allOrders.filter(order => {
-      if (selectedMonth && formatMonthKey(order.date) !== selectedMonth) return false
+      if (dateFrom && order.date < dateFrom) return false
+      if (dateTo   && order.date > dateTo)   return false
       if (selectedStatus && order.status !== selectedStatus) return false
       if (!q) return true
       return order.items.some(
         item => item.title.toLowerCase().includes(q) || item.isbn.includes(q)
       )
     })
-  }, [allOrders, search, selectedMonth, selectedStatus])
+  }, [allOrders, search, dateFrom, dateTo, selectedStatus])
 
   if (!user) return null
 
@@ -636,7 +562,7 @@ export function HistoriquePage() {
     }
   }
 
-  const hasFilters = !!(search || selectedMonth || selectedStatus)
+  const hasFilters = !!(search || dateFrom || dateTo || selectedStatus)
 
   function downloadCSV(csv: string, filename: string) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -688,47 +614,52 @@ export function HistoriquePage() {
         <>
       {allOrders.length > 0 && (
         <FiltersBar>
-          {/* Recherche */}
-          <SearchWrapper>
-            <SearchIconWrap><IconSearch /></SearchIconWrap>
-            <SearchInput
-              type="search"
-              placeholder="Rechercher par titre ou ISBN…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </SearchWrapper>
-
-          {/* Filtre mois + statut sur la même ligne */}
+          {/* Recherche + plage de dates sur la même ligne */}
           <SelectRow>
-            <SelectGroup>
-              <SelectLabel htmlFor="filter-month">Mois</SelectLabel>
-              <Select
-                id="filter-month"
-                value={selectedMonth ?? ''}
-                onChange={e => setSelectedMonth(e.target.value || null)}
-              >
-                <option value="">Tous</option>
-                {months.map(m => (
-                  <option key={m} value={m}>{formatMonthLabel(m)}</option>
-                ))}
-              </Select>
-            </SelectGroup>
-
-            <SelectGroup>
-              <SelectLabel htmlFor="filter-status">Statut</SelectLabel>
-              <Select
-                id="filter-status"
-                value={selectedStatus ?? ''}
-                onChange={e => setSelectedStatus((e.target.value as OrderStatus) || null)}
-              >
-                <option value="">Tous</option>
-                {ORDER_STATUSES.map(s => (
-                  <option key={s} value={s}>{ORDER_STATUS_LABELS[s]}</option>
-                ))}
-              </Select>
-            </SelectGroup>
+            <SearchWrapper style={{ flex: 1, maxWidth: '320px' }}>
+              <SearchIconWrap><IconSearch /></SearchIconWrap>
+              <SearchInput
+                type="search"
+                placeholder="Titre ou ISBN…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </SearchWrapper>
+            <DateGroup>
+              <DateLabel>Du</DateLabel>
+              <DatePicker
+                value={dateFrom}
+                onChange={setDateFrom}
+                max={dateTo || undefined}
+                placeholder="JJ/MM/AAAA"
+              />
+            </DateGroup>
+            <DateGroup>
+              <DateLabel>Au</DateLabel>
+              <DatePicker
+                value={dateTo}
+                onChange={setDateTo}
+                min={dateFrom || undefined}
+                placeholder="JJ/MM/AAAA"
+              />
+            </DateGroup>
           </SelectRow>
+
+          {/* Filtre statut — pills */}
+          <FilterPillsRow>
+            <FilterPill $active={selectedStatus === null} onClick={() => setSelectedStatus(null)}>
+              Tous
+            </FilterPill>
+            {ORDER_STATUSES.map(s => (
+              <FilterPill
+                key={s}
+                $active={selectedStatus === s}
+                onClick={() => setSelectedStatus(prev => prev === s ? null : s)}
+              >
+                {ORDER_STATUS_LABELS[s]}
+              </FilterPill>
+            ))}
+          </FilterPillsRow>
 
           {hasFilters && (
             <ResultCount>
@@ -757,15 +688,21 @@ export function HistoriquePage() {
                   <OrderNumero>{order.numero}</OrderNumero>
                   <OrderDate>{formatDate(order.date)}</OrderDate>
                 </div>
-                {order.shipment && (
-                  <TrackingLink onClick={() => setTrackingModal(order.shipment!)} aria-label="Voir le suivi">
-                    📦 {order.shipment.trackingNumber}
-                  </TrackingLink>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {order.shipment && (
+                    <TrackingLink onClick={() => setTrackingModal(order.shipment!)} aria-label="Voir le suivi">
+                      📦 {order.shipment.trackingNumber}
+                    </TrackingLink>
+                  )}
+                  <StatusBadge
+                    $bg={STATUS_COLORS[order.status].bg}
+                    $text={STATUS_COLORS[order.status].text}
+                  >
+                    <StatusDot $color={STATUS_COLORS[order.status].dot} />
+                    {ORDER_STATUS_LABELS[order.status]}
+                  </StatusBadge>
+                </div>
               </OrderCardHeader>
-
-              {/* Stepper statut */}
-              <OrderStepper status={order.status} />
 
               {/* Livraison */}
               <DeliveryBanner>
@@ -812,11 +749,6 @@ export function HistoriquePage() {
                     Total TTC : <TotalAmount>{formatEur(order.totalTTC)}</TotalAmount>
                   </TotalLine>
                   <FooterRight>
-                    {(order.status === 'facturé' || order.status === 'expédié') && (
-                      <ReturnButton onClick={() => setNewReturnOrderId(order.id)}>
-                        ↩ Retour
-                      </ReturnButton>
-                    )}
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <ExportButton
                         onClick={() => handleExportOrder(order)}
@@ -835,6 +767,11 @@ export function HistoriquePage() {
                         {isDone ? <IconCheck /> : <IconDuplicate />}
                         {isDone ? 'Ajouté au panier' : 'Dupliquer'}
                       </DupliquerButton>
+                      {order.status === 'livré' && (
+                        <ReturnButton onClick={() => setNewReturnOrderId(order.id)}>
+                          <IconDocument /> Retour
+                        </ReturnButton>
+                      )}
                     </div>
                     {isDone && (
                       <SuccessAlert>
