@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { useCart, REMISE_RATES, getItemKey } from '@/contexts/CartContext'
@@ -11,109 +11,14 @@ import { useToast } from '@/contexts/ToastContext'
 import { theme } from '@/lib/theme'
 import { CHECKOUT_STEPS, type CheckoutStep, getNextStep, getPrevStep, getStepIndex, getStepLabel } from './checkoutSteps'
 import { addressSchema, parseAddressString, type AddressData } from './checkoutSchemas'
-
-/* ── Confirm Dialog ── */
-const Overlay = styled.div`
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-  padding: 16px;
-`
-
-const Dialog = styled.div`
-  background: #fff;
-  border-radius: ${({ theme }) => theme.radii.xl};
-  padding: ${({ theme }) => theme.spacing.xl};
-  max-width: 360px;
-  width: 100%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-`
-
-const DialogTitle = styled.h3`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.lg};
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
-  color: ${({ theme }) => theme.colors.navy};
-  margin-bottom: ${({ theme }) => theme.spacing.sm};
-`
-
-const DialogText = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  color: ${({ theme }) => theme.colors.gray[600]};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-`
-
-const DialogActions = styled.div`
-  display: flex;
-  gap: ${({ theme }) => theme.spacing.sm};
-  justify-content: flex-end;
-`
-
-const DialogBtn = styled.button<{ $danger?: boolean }>`
-  padding: 0 ${({ theme }) => theme.spacing.lg};
-  height: 44px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-weight: ${({ theme }) => theme.typography.weights.semibold};
-  cursor: pointer;
-  border: none;
-  transition: background .15s, color .15s;
-  background: ${({ $danger, theme }) => $danger ? theme.colors.error : theme.colors.gray[100]};
-  color: ${({ $danger }) => $danger ? '#fff' : '#374151'};
-  &:hover { filter: brightness(0.92); }
-  &:focus-visible { outline: 2px solid ${({ $danger, theme }) => $danger ? theme.colors.error : theme.colors.navy}; outline-offset: 2px; }
-`
-
-type ConfirmState = { open: false } | { open: true; title: string; message: string; onConfirm: () => void }
-
-function ConfirmDialog({ state, onCancel }: { state: ConfirmState; onCancel: () => void }) {
-  const confirmRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (state.open) confirmRef.current?.focus()
-  }, [state.open])
-
-  useEffect(() => {
-    if (!state.open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [state.open, onCancel])
-
-  if (!state.open) return null
-
-  return (
-    <Overlay onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-      <Dialog onClick={e => e.stopPropagation()}>
-        <DialogTitle id="dialog-title">{state.title}</DialogTitle>
-        <DialogText>{state.message}</DialogText>
-        <DialogActions>
-          <DialogBtn onClick={onCancel}>Annuler</DialogBtn>
-          <DialogBtn $danger ref={confirmRef} onClick={() => { state.onConfirm(); onCancel() }}>
-            Supprimer
-          </DialogBtn>
-        </DialogActions>
-      </Dialog>
-    </Overlay>
-  )
-}
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { IconTrash, IconCart, IconChevronLeft } from '@/components/ui/icons'
 
 /* ── SVG Icons ── */
 function IconScreen() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-    </svg>
-  )
-}
-
-function IconTrash() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
     </svg>
   )
 }
@@ -134,28 +39,11 @@ function IconCheckSmall() {
   )
 }
 
-function IconCart() {
-  return (
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }}>
-      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-    </svg>
-  )
-}
-
 function IconTag() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
       <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
-    </svg>
-  )
-}
-
-function IconChevronLeft() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }}>
-      <path d="m15 18-6-6 6-6"/>
     </svg>
   )
 }
@@ -1000,7 +888,7 @@ export function CartPage() {
   const [page, setPage]         = useState<Page>('cart')
   const [delivery, setDelivery] = useState<DeliveryMode>('standard')
   const [specificDate, setSpecific] = useState('')
-  const [confirm, setConfirm]   = useState<ConfirmState>({ open: false })
+  const [confirm, setConfirm]   = useState<{ open: false } | { open: true; title: string; message: string; onConfirm: () => void }>({ open: false })
 
   const [deliveryAddress, setDeliveryAddress] = useState<AddressData>(() =>
     parseAddressString(user?.adresseLivraison ?? '')
@@ -1124,7 +1012,9 @@ export function CartPage() {
     <Page>
       <PageTitle>Panier</PageTitle>
       <Empty>
-        <IconCart />
+        <span style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4, width: 'fit-content' }}>
+          <IconCart size={48} />
+        </span>
         <EmptyText>Votre panier est vide</EmptyText>
         <EmptySubtext style={{ marginBottom: '24px' }}>
           Parcourez le catalogue pour ajouter des titres.
@@ -1358,7 +1248,15 @@ export function CartPage() {
   ════════════════════════════════════════════════════════ */
   return (
     <Page>
-      <ConfirmDialog state={confirm} onCancel={() => setConfirm({ open: false })} />
+      <ConfirmDialog
+        open={confirm.open}
+        title={confirm.open ? confirm.title : ''}
+        message={confirm.open ? confirm.message : ''}
+        confirmLabel="Supprimer"
+        destructive
+        onConfirm={confirm.open ? confirm.onConfirm : () => {}}
+        onCancel={() => setConfirm({ open: false })}
+      />
       <PageHeader>
         <PageTitle style={{ marginBottom: 0 }}>Panier</PageTitle>
         <ClearCartBtn
