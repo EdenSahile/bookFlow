@@ -1,0 +1,17 @@
+import { z } from 'zod'
+
+export const addressSchema = z.object({
+  rue:        z.string().min(1, 'L\'adresse est requise'),
+  codePostal: z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)'),
+  ville:      z.string().min(1, 'La ville est requise'),
+})
+
+export type AddressData = z.infer<typeof addressSchema>
+
+export function parseAddressString(flat: string): AddressData {
+  if (!flat.trim()) return { rue: '', codePostal: '', ville: '' }
+  // Expected format: "12 rue du Parc, 75001 Paris"
+  const match = flat.match(/^(.+),\s*(\d{5})\s+(.+)$/)
+  if (!match) return { rue: flat, codePostal: '', ville: '' }
+  return { rue: match[1].trim(), codePostal: match[2], ville: match[3].trim() }
+}

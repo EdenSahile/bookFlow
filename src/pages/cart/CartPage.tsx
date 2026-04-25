@@ -6,8 +6,11 @@ import { useOrders } from '@/contexts/OrdersContext'
 import { useAuth } from '@/hooks/useAuth'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { Button } from '@/components/ui/Button'
+import { DatePicker } from '@/components/ui/DatePicker'
 import { useToast } from '@/contexts/ToastContext'
 import { theme } from '@/lib/theme'
+import { CHECKOUT_STEPS, type CheckoutStep, getNextStep, getPrevStep, getStepIndex, getStepLabel } from './checkoutSteps'
+import { addressSchema, parseAddressString, type AddressData } from './checkoutSchemas'
 
 /* ── Confirm Dialog ── */
 const Overlay = styled.div`
@@ -123,6 +126,14 @@ function IconCheck() {
   )
 }
 
+function IconCheckSmall() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 12 2 2 4-4"/>
+    </svg>
+  )
+}
+
 function IconCart() {
   return (
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }}>
@@ -152,12 +163,43 @@ function IconChevronLeft() {
 /* ── Animations ── */
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
 
+/* ══════════════════════════════════════════════════════
+   LAYOUT GÉNÉRAL
+══════════════════════════════════════════════════════ */
+const Page = styled.div`
+  padding: ${({ theme }) => theme.spacing.lg};
+  max-width: 720px;
+  margin: 0 auto;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
+`
+
 const PageHeader = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing.sm};
   margin-bottom: ${({ theme }) => theme.spacing.xs};
+`
+
+const PageTitle = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes['2xl']};
+  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  color: ${({ theme }) => theme.colors.navy};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+`
+
+const ClientCode = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`
+
+const ClientCodeBold = styled.span`
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  color: ${({ theme }) => theme.colors.navy};
 `
 
 const ClearCartBtn = styled.button`
@@ -180,39 +222,6 @@ const ClearCartBtn = styled.button`
   transition: background .15s, color .15s;
   &:hover { background: ${({ theme }) => theme.colors.error}; color: #fff; }
   &:focus-visible { outline: 2px solid ${({ theme }) => theme.colors.error}; outline-offset: 2px; }
-`
-
-
-
-/* ══════════════════════════════════════════════════════
-   LAYOUT GÉNÉRAL
-══════════════════════════════════════════════════════ */
-const Page = styled.div`
-  padding: ${({ theme }) => theme.spacing.lg};
-  max-width: 720px;
-  margin: 0 auto;
-  animation: ${fadeIn} .25s ease;
-  @media (prefers-reduced-motion: reduce) { animation: none; }
-`
-
-const PageTitle = styled.h1`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes['2xl']};
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
-  color: ${({ theme }) => theme.colors.navy};
-  margin-bottom: ${({ theme }) => theme.spacing.xs};
-`
-
-const ClientCode = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  color: ${({ theme }) => theme.colors.gray[400]};
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
-`
-
-const ClientCodeBold = styled.span`
-  font-weight: ${({ theme }) => theme.typography.weights.semibold};
-  color: ${({ theme }) => theme.colors.navy};
 `
 
 /* ══════════════════════════════════════════════════════
@@ -278,7 +287,7 @@ const SectionTitle = styled.h2`
 
 const ItemCard = styled.div<{ $ebook?: boolean }>`
   background: ${({ $ebook, theme }) => $ebook ? theme.colors.accentLight : theme.colors.white};
-  border: 1px solid ${({ $ebook, theme }) => $ebook ? theme.colors.gray[200] : theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   padding: ${({ theme }) => theme.spacing.md};
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
@@ -439,7 +448,7 @@ const DeleteBtn = styled.button`
 `
 
 /* ══════════════════════════════════════════════════════
-   BLOC OP — encadré distinctif
+   BLOC OP
 ══════════════════════════════════════════════════════ */
 const OPBlock = styled.div`
   border: 2px solid ${({ theme }) => theme.colors.navy};
@@ -448,7 +457,6 @@ const OPBlock = styled.div`
   background: ${({ theme }) => theme.colors.white};
 `
 
-/* En-tête OP */
 const OPHeader = styled.div`
   background: ${({ theme }) => theme.colors.navy};
   padding: 10px 14px;
@@ -515,7 +523,6 @@ const OPDeleteBtn = styled.button`
   &:focus-visible { outline: 2px solid rgba(255,255,255,0.8); outline-offset: 2px; }
 `
 
-/* Lignes du tableau OP */
 const OPTable = styled.div`
   background: ${({ theme }) => theme.colors.white};
 `
@@ -582,7 +589,6 @@ const OPCell = styled.div<{ $color?: string; $bold?: boolean }>`
   min-width: 64px;
 `
 
-/* Pied de bloc OP : totaux */
 const OPFooter = styled.div`
   background: ${({ theme }) => theme.colors.gray[50]};
   padding: 10px 14px;
@@ -646,42 +652,17 @@ const RadioLabel = styled.label`
   cursor: pointer;
 `
 
-const DateInput = styled.input`
-  margin-left: ${({ theme }) => theme.spacing.xl};
-  padding: 6px 10px;
-  border: 2px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.md};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  color: ${({ theme }) => theme.colors.navy};
-  &:focus { outline: none; border-color: ${({ theme }) => theme.colors.navy}; }
-`
-
-/* ══════════════════════════════════════════════════════
-   CONFIRMATION
-══════════════════════════════════════════════════════ */
-const ConfirmBox = styled.div`
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  padding: ${({ theme }) => theme.spacing.xl};
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
-`
-
-const ConfirmTitle = styled.h2`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.xl};
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
-  color: ${({ theme }) => theme.colors.navy};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`
-
-const ConfirmRow = styled.div`
+const DatePickerWrap = styled.div`
+  margin-left: calc(1rem + 20px);
+  margin-top: 8px;
   display: flex;
-  justify-content: space-between;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  color: ${({ theme }) => theme.colors.gray[600]};
-  padding: 4px 0;
+  flex-direction: column;
+  gap: 4px;
+`
+
+const DatePickerLabel = styled.label`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.gray[400]};
 `
 
 /* ══════════════════════════════════════════════════════
@@ -699,6 +680,7 @@ const EmptyText = styled.p`
   color: ${({ theme }) => theme.colors.navy};
   margin-bottom: ${({ theme }) => theme.spacing.sm};
 `
+
 const EmptySubtext = styled.p`
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   color: ${({ theme }) => theme.colors.gray[600]};
@@ -712,14 +694,302 @@ const SuccessBox = styled.div`
 `
 
 /* ══════════════════════════════════════════════════════
-   COMPOSANT
+   STEPPER
 ══════════════════════════════════════════════════════ */
-type Step = 'cart' | 'confirm' | 'success'
+const StepperWrap = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+  position: relative;
+`
+
+const StepperItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+`
+
+const StepperDot = styled.div<{ $active: boolean; $done: boolean }>`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  background: ${({ $active, $done, theme }) =>
+    $done   ? theme.colors.success :
+    $active ? theme.colors.navy   : theme.colors.gray[200]};
+  color: ${({ $active, $done }) => ($active || $done) ? '#fff' : '#9ca3af'};
+  z-index: 1;
+  transition: background .2s, color .2s;
+  flex-shrink: 0;
+`
+
+const StepperConnector = styled.div<{ $done: boolean }>`
+  position: absolute;
+  top: 16px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 2px;
+  background: ${({ $done, theme }) => $done ? theme.colors.success : theme.colors.gray[200]};
+  transition: background .3s;
+`
+
+const StepperLabel = styled.span<{ $active: boolean; $done: boolean }>`
+  margin-top: 7px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 10px;
+  font-weight: ${({ $active }) => $active ? 700 : 400};
+  color: ${({ $active, $done, theme }) =>
+    $active ? theme.colors.navy :
+    $done   ? theme.colors.success :
+    theme.colors.gray[400]};
+  text-align: center;
+  max-width: 68px;
+  line-height: 1.3;
+`
+
+/* ══════════════════════════════════════════════════════
+   FORMULAIRE ADRESSE
+══════════════════════════════════════════════════════ */
+const FormCard = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  padding: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`
+
+const FormGrid = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+`
+
+const FormRow = styled.div`
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: ${({ theme }) => theme.spacing.md};
+`
+
+const FormField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`
+
+const FormLabel = styled.label`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  color: ${({ theme }) => theme.colors.gray[600]};
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+`
+
+const FormInput = styled.input<{ $hasError?: boolean }>`
+  height: 44px;
+  padding: 0 12px;
+  border: 1.5px solid ${({ $hasError, theme }) => $hasError ? theme.colors.error : theme.colors.gray[200]};
+  background: ${({ theme }) => theme.colors.white};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.navy};
+  width: 100%;
+  transition: border-color .15s;
+  &:focus {
+    outline: none;
+    border-color: ${({ $hasError, theme }) => $hasError ? theme.colors.error : theme.colors.navy};
+  }
+`
+
+const FormError = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  color: ${({ theme }) => theme.colors.error};
+`
+
+const SameAsDeliveryRow = styled.label`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.navy};
+  cursor: pointer;
+  padding: 12px 14px;
+  background: ${({ theme }) => theme.colors.primaryLight};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`
+
+/* ══════════════════════════════════════════════════════
+   RECAP COMMANDE (étapes tunnel)
+══════════════════════════════════════════════════════ */
+const RecapCard = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  padding: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`
+
+const RecapTitle = styled.h2`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.xl};
+  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  color: ${({ theme }) => theme.colors.navy};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`
+
+const RecapRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.gray[600]};
+  padding: 4px 0;
+`
+
+const AddressSummary = styled.div`
+  background: ${({ theme }) => theme.colors.gray[50]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  padding: 12px 14px;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`
+
+const AddressSummaryLabel = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-bottom: 4px;
+`
+
+const AddressSummaryValue = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.navy};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+`
+
+const NavActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+`
+
+/* ══════════════════════════════════════════════════════
+   TYPE & HELPERS
+══════════════════════════════════════════════════════ */
+type Page = 'cart' | CheckoutStep | 'success'
 type DeliveryMode = 'standard' | 'specific'
+type FormErrors = Partial<Record<keyof AddressData, string>>
 
 const fmt = (n: number) => n.toFixed(2).replace('.', ',') + ' €'
 const today = new Date().toISOString().split('T')[0]
 
+function fmtAddress(a: AddressData) {
+  return `${a.rue}, ${a.codePostal} ${a.ville}`
+}
+
+function validateAddress(data: AddressData): FormErrors {
+  const result = addressSchema.safeParse(data)
+  if (result.success) return {}
+  const errs: FormErrors = {}
+  for (const issue of result.error.issues) {
+    const field = issue.path[0] as keyof AddressData
+    if (!errs[field]) errs[field] = issue.message
+  }
+  return errs
+}
+
+/* ══════════════════════════════════════════════════════
+   SOUS-COMPOSANTS
+══════════════════════════════════════════════════════ */
+function CheckoutStepper({ current }: { current: CheckoutStep }) {
+  const currentIdx = getStepIndex(current)
+  return (
+    <StepperWrap role="list" aria-label="Étapes de la commande">
+      {CHECKOUT_STEPS.map((step, i) => {
+        const done   = i < currentIdx
+        const active = i === currentIdx
+        const last   = i === CHECKOUT_STEPS.length - 1
+        return (
+          <StepperItem key={step} role="listitem">
+            <StepperDot $active={active} $done={done} aria-label={getStepLabel(step)}>
+              {done ? <IconCheckSmall /> : i + 1}
+            </StepperDot>
+            <StepperLabel $active={active} $done={done}>{getStepLabel(step)}</StepperLabel>
+            {!last && <StepperConnector $done={done} />}
+          </StepperItem>
+        )
+      })}
+    </StepperWrap>
+  )
+}
+
+function AddressFormFields({
+  data, errors, onChange,
+}: {
+  data: AddressData
+  errors: FormErrors
+  onChange: (field: keyof AddressData, val: string) => void
+}) {
+  return (
+    <FormGrid>
+      <FormField>
+        <FormLabel htmlFor="addr-rue">Rue / Adresse</FormLabel>
+        <FormInput
+          id="addr-rue"
+          $hasError={!!errors.rue}
+          value={data.rue}
+          onChange={e => onChange('rue', e.target.value)}
+          placeholder="12 rue de la Paix"
+          autoComplete="street-address"
+        />
+        {errors.rue && <FormError>{errors.rue}</FormError>}
+      </FormField>
+      <FormRow>
+        <FormField>
+          <FormLabel htmlFor="addr-cp">Code postal</FormLabel>
+          <FormInput
+            id="addr-cp"
+            $hasError={!!errors.codePostal}
+            value={data.codePostal}
+            onChange={e => onChange('codePostal', e.target.value)}
+            placeholder="75001"
+            maxLength={5}
+            autoComplete="postal-code"
+          />
+          {errors.codePostal && <FormError>{errors.codePostal}</FormError>}
+        </FormField>
+        <FormField>
+          <FormLabel htmlFor="addr-ville">Ville</FormLabel>
+          <FormInput
+            id="addr-ville"
+            $hasError={!!errors.ville}
+            value={data.ville}
+            onChange={e => onChange('ville', e.target.value)}
+            placeholder="Paris"
+            autoComplete="address-level2"
+          />
+          {errors.ville && <FormError>{errors.ville}</FormError>}
+        </FormField>
+      </FormRow>
+    </FormGrid>
+  )
+}
+
+/* ══════════════════════════════════════════════════════
+   COMPOSANT PRINCIPAL
+══════════════════════════════════════════════════════ */
 export function CartPage() {
   const { items, opGroups, totalItems, updateQty, removeFromCart, removeOP, clearCart, hasReliquatItems } = useCart()
   const { addOrder } = useOrders()
@@ -727,15 +997,25 @@ export function CartPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  const [step, setStep]         = useState<Step>('cart')
+  const [page, setPage]         = useState<Page>('cart')
   const [delivery, setDelivery] = useState<DeliveryMode>('standard')
   const [specificDate, setSpecific] = useState('')
   const [confirm, setConfirm]   = useState<ConfirmState>({ open: false })
 
+  const [deliveryAddress, setDeliveryAddress] = useState<AddressData>(() =>
+    parseAddressString(user?.adresseLivraison ?? '')
+  )
+  const [billingAddress, setBillingAddress] = useState<AddressData>(() =>
+    parseAddressString(user?.adresseLivraison ?? '')
+  )
+  const [sameAsDelivery, setSameAsDelivery] = useState(true)
+  const [deliveryErrors, setDeliveryErrors] = useState<FormErrors>({})
+  const [billingErrors, setBillingErrors]   = useState<FormErrors>({})
+
   const askConfirm = (title: string, message: string, onConfirm: () => void) =>
     setConfirm({ open: true, title, message, onConfirm })
 
-  /* ── Taux de remise par univers (compte connecté, sinon REMISE_RATES) ── */
+  /* ── Taux de remise ── */
   const getUserRate = (universe: string): number => {
     if (user?.remisesParUnivers) {
       const rate = user.remisesParUnivers[universe]
@@ -744,7 +1024,7 @@ export function CartPage() {
     return REMISE_RATES[universe as keyof typeof REMISE_RATES] ?? 0
   }
 
-  /* ── Totaux recalculés avec les taux personnalisés ── */
+  /* ── Totaux ── */
   const subtotalTTC = items.reduce((s, { book, quantity }) => s + book.priceTTC * quantity, 0)
     + opGroups.reduce((s, op) =>
         s + op.books.reduce((ss, { book, quantity }) => ss + book.priceTTC * quantity, 0)
@@ -756,17 +1036,15 @@ export function CartPage() {
         s + op.books.reduce((ss, { book, quantity }) =>
             ss + book.priceTTC * quantity * getUserRate(book.universe), 0), 0)
 
-  /* Net TTC après remise → TVA extraite (5,5% inclus dans le TTC, pas ajouté par-dessus) */
-  const netTTC     = subtotalTTC - remiseTotal
-  const netHT      = netTTC / 1.055
-  const tvaCalc    = netTTC - netHT
-  const totalCalc  = netTTC
-  /* Exclusion PLV du dénominateur : PLV n'est pas remisée */
+  const netTTC    = subtotalTTC - remiseTotal
+  const netHT     = netTTC / 1.055
+  const tvaCalc   = netTTC - netHT
+  const totalCalc = netTTC
+
   const booksTTCOnly = items.reduce((s, { book, quantity }) => s + book.priceTTC * quantity, 0)
     + opGroups.reduce((s, op) => s + op.books.reduce((ss, { book, quantity }) => ss + book.priceTTC * quantity, 0), 0)
-  const remisePct  = booksTTCOnly > 0 ? (remiseTotal / booksTTCOnly) * 100 : 0
+  const remisePct = booksTTCOnly > 0 ? (remiseTotal / booksTTCOnly) * 100 : 0
 
-  /* Remises multiples → vérifier items ET livres OP */
   const allUniverses = [
     ...items.map(i => i.book.universe),
     ...opGroups.flatMap(op => op.books.map(b => b.book.universe)),
@@ -780,12 +1058,57 @@ export function CartPage() {
 
   const hasItems = items.length > 0 || opGroups.length > 0
 
-  /* ─────────── SUCCÈS ─────────── */
-  if (step === 'success') return (
+  /* ── Navigation tunnel ── */
+  function goNext() {
+    if (page === 'delivery-address') {
+      const errs = validateAddress(deliveryAddress)
+      if (Object.keys(errs).length > 0) { setDeliveryErrors(errs); return }
+      setDeliveryErrors({})
+    }
+    if (page === 'billing-address' && !sameAsDelivery) {
+      const errs = validateAddress(billingAddress)
+      if (Object.keys(errs).length > 0) { setBillingErrors(errs); return }
+      setBillingErrors({})
+    }
+    const next = getNextStep(page as CheckoutStep)
+    if (next) setPage(next)
+  }
+
+  function goBack() {
+    const prev = getPrevStep(page as CheckoutStep)
+    if (prev) setPage(prev)
+    else setPage('cart')
+  }
+
+  function handleConfirmOrder() {
+    const effectiveBilling = sameAsDelivery ? deliveryAddress : billingAddress
+    const reliquat = hasReliquatItems
+    addOrder({
+      codeClient: user?.codeClient ?? '',
+      adresseLivraison: fmtAddress(deliveryAddress),
+      items,
+      subtotalHT: subtotalTTC / 1.055,
+      remiseAmount: remiseTotal,
+      netHT,
+      tva: tvaCalc,
+      totalTTC: totalCalc,
+      deliveryMode: delivery,
+      deliveryDate: delivery === 'specific' ? specificDate : undefined,
+    })
+    void effectiveBilling // billing address acknowledged
+    clearCart()
+    setPage('success')
+    if (reliquat) {
+      showToast('📧 Vous serez notifié par email dès l\'expédition des titres en reliquat.')
+    }
+  }
+
+  /* ── Succès ── */
+  if (page === 'success') return (
     <Page>
       <SuccessBox>
         <IconCheck />
-        <EmptyText>Commande confirmée !</EmptyText>
+        <EmptyText>Commande envoyée !</EmptyText>
         <EmptySubtext style={{ marginBottom: '24px' }}>
           Votre commande a bien été transmise. Un récapitulatif vous sera envoyé par email.
         </EmptySubtext>
@@ -796,8 +1119,8 @@ export function CartPage() {
     </Page>
   )
 
-  /* ─────────── PANIER VIDE ─────────── */
-  if (!hasItems) return (
+  /* ── Panier vide ── */
+  if (!hasItems && page === 'cart') return (
     <Page>
       <PageTitle>Panier</PageTitle>
       <Empty>
@@ -813,88 +1136,226 @@ export function CartPage() {
     </Page>
   )
 
-  /* ─────────── CONFIRMATION ─────────── */
-  if (step === 'confirm') return (
+  /* ────────── TUNNEL — ÉTAPE 1 : Récapitulatif ────────── */
+  if (page === 'recap') return (
     <Page>
-      <PageTitle>Récapitulatif</PageTitle>
-      <ClientCode>
-        Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold>
-      </ClientCode>
+      <PageTitle style={{ marginBottom: '4px' }}>Votre commande</PageTitle>
+      <ClientCode>Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold></ClientCode>
+      <CheckoutStepper current="recap" />
 
-      <ConfirmBox>
-        <ConfirmTitle>Détail de la commande</ConfirmTitle>
+      <RecapCard>
+        <RecapTitle>Détail de la commande</RecapTitle>
 
-        {/* Titres individuels */}
         {items.map(({ book, quantity }) => (
-          <ConfirmRow key={book.id}>
+          <RecapRow key={book.id}>
             <span>{book.title} × {quantity}</span>
             <span>{fmt(book.priceTTC * quantity)}</span>
-          </ConfirmRow>
+          </RecapRow>
         ))}
 
-        {/* OPs */}
         {opGroups.map(op => (
           <div key={op.id} style={{ margin: '8px 0', padding: '8px 0', borderTop: '1px dashed #eee' }}>
-            <ConfirmRow style={{ fontWeight: 700, color: theme.colors.success }}>
-              <span>OP — {op.opTitle}</span>
-              <span></span>
-            </ConfirmRow>
+            <RecapRow style={{ fontWeight: 700, color: theme.colors.success }}>
+              <span>OP — {op.opTitle}</span><span></span>
+            </RecapRow>
             {op.books.map(({ book, quantity }) => (
-              <ConfirmRow key={book.id} style={{ paddingLeft: 12 }}>
+              <RecapRow key={book.id} style={{ paddingLeft: 12 }}>
                 <span>{book.title} × {quantity}</span>
                 <span>{fmt(book.priceTTC * quantity)}</span>
-              </ConfirmRow>
+              </RecapRow>
             ))}
-            <ConfirmRow style={{ paddingLeft: 12, color: theme.colors.success }}>
+            <RecapRow style={{ paddingLeft: 12, color: theme.colors.success }}>
               <span>{op.cadeau.emoji} {op.cadeau.label} × {op.cadeau.quantity} (offert)</span>
               <span>0,00 €</span>
-            </ConfirmRow>
-            <ConfirmRow style={{ paddingLeft: 12, color: '#8B6914' }}>
+            </RecapRow>
+            <RecapRow style={{ paddingLeft: 12, color: '#8B6914' }}>
               <span>PLV × {op.plv.quantity}</span>
               <span>{fmt(op.plv.pricePerUnit * op.plv.quantity)}</span>
-            </ConfirmRow>
+            </RecapRow>
           </div>
         ))}
 
         <div style={{ borderTop: '1px solid #eee', marginTop: '12px', paddingTop: '12px' }}>
-          <ConfirmRow><span>Livraison</span><span>{deliveryLabel}</span></ConfirmRow>
-          <ConfirmRow><span>Sous-total TTC</span><span>{fmt(subtotalTTC)}</span></ConfirmRow>
-          <ConfirmRow><span>Remise</span><span>− {fmt(remiseTotal)}</span></ConfirmRow>
-          <ConfirmRow><span>Net HT</span><span>{fmt(netHT)}</span></ConfirmRow>
-          <ConfirmRow><span>TVA 5,5%</span><span>{fmt(tvaCalc)}</span></ConfirmRow>
-          <ConfirmRow style={{ fontWeight: 700, fontSize: '1rem', color: theme.colors.success, paddingTop: '8px' }}>
+          <RecapRow><span>Livraison</span><span>{deliveryLabel}</span></RecapRow>
+          <RecapRow><span>Sous-total TTC</span><span>{fmt(subtotalTTC)}</span></RecapRow>
+          <RecapRow><span>Remise</span><span>− {fmt(remiseTotal)}</span></RecapRow>
+          <RecapRow><span>Net HT</span><span>{fmt(netHT)}</span></RecapRow>
+          <RecapRow><span>TVA 5,5%</span><span>{fmt(tvaCalc)}</span></RecapRow>
+          <RecapRow style={{ fontWeight: 700, fontSize: '1rem', color: theme.colors.success, paddingTop: '8px' }}>
             <span>Total TTC</span><span>{fmt(totalCalc)}</span>
-          </ConfirmRow>
+          </RecapRow>
         </div>
-      </ConfirmBox>
+      </RecapCard>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <Button variant="primary" size="lg" fullWidth onClick={() => {
-          const reliquat = hasReliquatItems
-          addOrder({
-            codeClient: user?.codeClient ?? '',
-            adresseLivraison: user?.adresseLivraison ?? '',
-            items,
-            subtotalHT: subtotalTTC / 1.055, remiseAmount: remiseTotal, netHT: netHT, tva: tvaCalc, totalTTC: totalCalc,
-            deliveryMode: delivery,
-            deliveryDate: delivery === 'specific' ? specificDate : undefined,
-          })
-          clearCart()
-          setStep('success')
-          if (reliquat) {
-            showToast('📧 Vous serez notifié par email dès l\'expédition des titres en reliquat.')
-          }
-        }}>
-          Confirmer la commande
+      <NavActions>
+        <Button variant="primary" size="lg" fullWidth onClick={goNext}>
+          Suivant — Adresse de livraison
         </Button>
-        <Button variant="ghost" size="md" fullWidth onClick={() => setStep('cart')}>
+        <Button variant="ghost" size="md" fullWidth onClick={goBack}>
           <IconChevronLeft /> Modifier le panier
         </Button>
-      </div>
+      </NavActions>
     </Page>
   )
 
-  /* ─────────── PANIER PRINCIPAL ─────────── */
+  /* ────────── TUNNEL — ÉTAPE 2 : Adresse de livraison ────────── */
+  if (page === 'delivery-address') return (
+    <Page>
+      <PageTitle style={{ marginBottom: '4px' }}>Adresse de livraison</PageTitle>
+      <ClientCode>Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold></ClientCode>
+      <CheckoutStepper current="delivery-address" />
+
+      <FormCard>
+        <SectionTitle style={{ marginBottom: '16px' }}>Où livrer votre commande ?</SectionTitle>
+        <AddressFormFields
+          data={deliveryAddress}
+          errors={deliveryErrors}
+          onChange={(field, val) => {
+            setDeliveryAddress(prev => ({ ...prev, [field]: val }))
+            setDeliveryErrors(prev => ({ ...prev, [field]: undefined }))
+          }}
+        />
+      </FormCard>
+
+      <NavActions>
+        <Button variant="primary" size="lg" fullWidth onClick={goNext}>
+          Suivant — Adresse de facturation
+        </Button>
+        <Button variant="ghost" size="md" fullWidth onClick={goBack}>
+          <IconChevronLeft /> Récapitulatif
+        </Button>
+      </NavActions>
+    </Page>
+  )
+
+  /* ────────── TUNNEL — ÉTAPE 3 : Adresse de facturation ────────── */
+  if (page === 'billing-address') return (
+    <Page>
+      <PageTitle style={{ marginBottom: '4px' }}>Adresse de facturation</PageTitle>
+      <ClientCode>Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold></ClientCode>
+      <CheckoutStepper current="billing-address" />
+
+      <FormCard>
+        <SectionTitle style={{ marginBottom: '16px' }}>Adresse de facturation</SectionTitle>
+
+        <SameAsDeliveryRow>
+          <input
+            type="checkbox"
+            checked={sameAsDelivery}
+            onChange={e => {
+              setSameAsDelivery(e.target.checked)
+              if (e.target.checked) setBillingErrors({})
+            }}
+          />
+          Identique à l'adresse de livraison
+        </SameAsDeliveryRow>
+
+        {!sameAsDelivery && (
+          <AddressFormFields
+            data={billingAddress}
+            errors={billingErrors}
+            onChange={(field, val) => {
+              setBillingAddress(prev => ({ ...prev, [field]: val }))
+              setBillingErrors(prev => ({ ...prev, [field]: undefined }))
+            }}
+          />
+        )}
+      </FormCard>
+
+      <NavActions>
+        <Button variant="primary" size="lg" fullWidth onClick={goNext}>
+          Suivant — Confirmation finale
+        </Button>
+        <Button variant="ghost" size="md" fullWidth onClick={goBack}>
+          <IconChevronLeft /> Adresse de livraison
+        </Button>
+      </NavActions>
+    </Page>
+  )
+
+  /* ────────── TUNNEL — ÉTAPE 4 : Confirmation finale ────────── */
+  if (page === 'final') {
+    const effectiveBilling = sameAsDelivery ? deliveryAddress : billingAddress
+    return (
+      <Page>
+        <PageTitle style={{ marginBottom: '4px' }}>Confirmation finale</PageTitle>
+        <ClientCode>Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold></ClientCode>
+        <CheckoutStepper current="final" />
+
+        <RecapCard>
+          <RecapTitle>Récapitulatif complet</RecapTitle>
+
+          {items.map(({ book, quantity }) => (
+            <RecapRow key={book.id}>
+              <span>{book.title} × {quantity}</span>
+              <span>{fmt(book.priceTTC * quantity)}</span>
+            </RecapRow>
+          ))}
+
+          {opGroups.map(op => (
+            <div key={op.id} style={{ margin: '8px 0', padding: '8px 0', borderTop: '1px dashed #eee' }}>
+              <RecapRow style={{ fontWeight: 700, color: theme.colors.success }}>
+                <span>OP — {op.opTitle}</span><span></span>
+              </RecapRow>
+              {op.books.map(({ book, quantity }) => (
+                <RecapRow key={book.id} style={{ paddingLeft: 12 }}>
+                  <span>{book.title} × {quantity}</span>
+                  <span>{fmt(book.priceTTC * quantity)}</span>
+                </RecapRow>
+              ))}
+              <RecapRow style={{ paddingLeft: 12, color: theme.colors.success }}>
+                <span>{op.cadeau.emoji} {op.cadeau.label} × {op.cadeau.quantity} (offert)</span>
+                <span>0,00 €</span>
+              </RecapRow>
+              <RecapRow style={{ paddingLeft: 12, color: '#8B6914' }}>
+                <span>PLV × {op.plv.quantity}</span>
+                <span>{fmt(op.plv.pricePerUnit * op.plv.quantity)}</span>
+              </RecapRow>
+            </div>
+          ))}
+
+          <div style={{ borderTop: '1px solid #eee', marginTop: '12px', paddingTop: '12px' }}>
+            <RecapRow><span>Livraison</span><span>{deliveryLabel}</span></RecapRow>
+            <RecapRow><span>Sous-total TTC</span><span>{fmt(subtotalTTC)}</span></RecapRow>
+            <RecapRow><span>Remise</span><span>− {fmt(remiseTotal)}</span></RecapRow>
+            <RecapRow><span>Net HT</span><span>{fmt(netHT)}</span></RecapRow>
+            <RecapRow><span>TVA 5,5%</span><span>{fmt(tvaCalc)}</span></RecapRow>
+            <RecapRow style={{ fontWeight: 700, fontSize: '1rem', color: theme.colors.success, paddingTop: '8px' }}>
+              <span>Total TTC</span><span>{fmt(totalCalc)}</span>
+            </RecapRow>
+          </div>
+        </RecapCard>
+
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+          <div style={{ flex: 1 }}>
+            <AddressSummary>
+              <AddressSummaryLabel>Livraison</AddressSummaryLabel>
+              <AddressSummaryValue>{fmtAddress(deliveryAddress)}</AddressSummaryValue>
+            </AddressSummary>
+          </div>
+          <div style={{ flex: 1 }}>
+            <AddressSummary>
+              <AddressSummaryLabel>Facturation</AddressSummaryLabel>
+              <AddressSummaryValue>{fmtAddress(effectiveBilling)}</AddressSummaryValue>
+            </AddressSummary>
+          </div>
+        </div>
+
+        <NavActions>
+          <Button variant="primary" size="lg" fullWidth onClick={handleConfirmOrder}>
+            Confirmer la commande
+          </Button>
+          <Button variant="ghost" size="md" fullWidth onClick={goBack}>
+            <IconChevronLeft /> Adresse de facturation
+          </Button>
+        </NavActions>
+      </Page>
+    )
+  }
+
+  /* ════════════════════════════════════════════════════════
+     PANIER PRINCIPAL
+  ════════════════════════════════════════════════════════ */
   return (
     <Page>
       <ConfirmDialog state={confirm} onCancel={() => setConfirm({ open: false })} />
@@ -957,7 +1418,7 @@ export function CartPage() {
 
           {items.map((item) => {
             const { book, quantity, ebookOption } = item
-            const key     = getItemKey(item)
+            const key       = getItemKey(item)
             const isEbook   = !!ebookOption
             const unitPrice = isEbook ? ebookOption!.price : book.priceTTC
             const remise    = getUserRate(book.universe)
@@ -1054,13 +1515,10 @@ export function CartPage() {
             const opRemise   = op.books.reduce((s, { book, quantity }) =>
               s + book.priceTTC * quantity * getUserRate(book.universe), 0)
             const opPLVPrice = op.plv.pricePerUnit * op.plv.quantity
-            /* net TTC books après remise + PLV (déjà TTC, pas de TVA à ajouter) */
             const opTotalTTC = (opBooksTTC - opRemise) + opPLVPrice
 
             return (
               <OPBlock key={op.id}>
-
-                {/* En-tête */}
                 <OPHeader>
                   <OPHeaderLeft>
                     <OPTag>OP commerciale</OPTag>
@@ -1082,7 +1540,6 @@ export function CartPage() {
                 </OPHeader>
 
                 <OPTable>
-                  {/* En-têtes colonnes */}
                   <OPRow style={{ minHeight: 32, borderTop: 'none', background: '#FAFAF8' }}>
                     <OPCover />
                     <OPText>
@@ -1090,18 +1547,11 @@ export function CartPage() {
                         Titre / Article
                       </OPRowMeta>
                     </OPText>
-                    <OPCell style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#B5AFA7' }}>
-                      Prix unit.
-                    </OPCell>
-                    <OPCell style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#B5AFA7', textAlign: 'center' }}>
-                      Qté
-                    </OPCell>
-                    <OPCell style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#B5AFA7' }}>
-                      Total
-                    </OPCell>
+                    <OPCell style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#B5AFA7' }}>Prix unit.</OPCell>
+                    <OPCell style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#B5AFA7', textAlign: 'center' }}>Qté</OPCell>
+                    <OPCell style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#B5AFA7' }}>Total</OPCell>
                   </OPRow>
 
-                  {/* Ouvrages */}
                   {op.books.map(({ book, quantity }) => (
                     <OPRow key={book.id} $variant="book">
                       <OPCover>
@@ -1118,7 +1568,6 @@ export function CartPage() {
                     </OPRow>
                   ))}
 
-                  {/* Produit offert */}
                   <OPRow $variant="cadeau">
                     <OPCover>
                       <span style={{ fontSize: 24, lineHeight: 1 }}>{op.cadeau.emoji}</span>
@@ -1133,7 +1582,6 @@ export function CartPage() {
                     <OPCell $bold $color={theme.colors.success}>0,00 €</OPCell>
                   </OPRow>
 
-                  {/* PLV */}
                   <OPRow $variant="plv">
                     <OPCover style={{ color: '#8B6914' }}>
                       <IconTag />
@@ -1149,14 +1597,11 @@ export function CartPage() {
                   </OPRow>
                 </OPTable>
 
-                {/* Pied de bloc */}
                 <OPFooter>
                   <OPFooterStats>
                     <OPFooterStat>
                       <OPFooterLabel>Ouvrages</OPFooterLabel>
-                      <OPFooterValue>
-                        {op.books.reduce((s, { quantity }) => s + quantity, 0)} ex.
-                      </OPFooterValue>
+                      <OPFooterValue>{op.books.reduce((s, { quantity }) => s + quantity, 0)} ex.</OPFooterValue>
                     </OPFooterStat>
                     <OPFooterStat>
                       <OPFooterLabel>Cadeaux</OPFooterLabel>
@@ -1172,7 +1617,6 @@ export function CartPage() {
                     <OPFooterValue $highlight>{fmt(opTotalTTC)}</OPFooterValue>
                   </OPFooterStat>
                 </OPFooter>
-
               </OPBlock>
             )
           })}
@@ -1195,13 +1639,15 @@ export function CartPage() {
               Date spécifique
             </RadioLabel>
             {delivery === 'specific' && (
-              <div style={{ marginLeft: 'calc(1rem + 20px)', marginTop: 4 }}>
-                <label htmlFor="delivery-date" style={{ fontSize: '0.75rem', color: '#6B7280', display: 'block', marginBottom: 4 }}>
-                  Date souhaitée
-                </label>
-                <DateInput id="delivery-date" type="date" min={today} value={specificDate}
-                  onChange={e => setSpecific(e.target.value)} />
-              </div>
+              <DatePickerWrap>
+                <DatePickerLabel htmlFor="delivery-date">Date souhaitée</DatePickerLabel>
+                <DatePicker
+                  value={specificDate}
+                  onChange={setSpecific}
+                  min={today}
+                  placeholder="JJ/MM/AAAA"
+                />
+              </DatePickerWrap>
             )}
           </RadioGroup>
         </DeliveryCard>
@@ -1210,11 +1656,11 @@ export function CartPage() {
       {/* ── Action ── */}
       <Button
         variant="primary" size="lg" fullWidth
-        onClick={() => setStep('confirm')}
+        onClick={() => setPage('recap')}
         disabled={delivery === 'specific' && !specificDate}
       >
-        Valider ma commande
-      </Button>
+          Valider ma commande
+        </Button>
     </Page>
   )
 }
