@@ -21,10 +21,9 @@ const fadeSlideIn = keyframes`
 
 /* ── Couleurs par statut — palette Forêt & Lin ── */
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; dot: string }> = {
-  'en cours':    { bg: '#F7F0DC', text: '#8B6914', dot: '#8B6914' },
-  'réceptionné': { bg: '#EFF4F1', text: '#2D6A52', dot: '#2D6A52' },
-  'expédié':     { bg: '#E6EFE9', text: theme.colors.success, dot: theme.colors.success },
-  'livré':       { bg: '#D4EDDA', text: '#155724', dot: '#155724' },
+  'en préparation': { bg: '#F7F0DC', text: '#8B6914', dot: '#8B6914' },
+  'expédié':        { bg: '#E6EFE9', text: theme.colors.success, dot: theme.colors.success },
+  'livré':          { bg: '#D4EDDA', text: '#155724', dot: '#155724' },
 }
 
 /* ── Styled ── */
@@ -523,7 +522,7 @@ export function HistoriquePage() {
   const [dateTo,   setDateTo]               = useState('')
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(null)
   const [addedMap, setAddedMap]             = useState<Record<string, boolean>>({})
-  const [trackingModal, setTrackingModal]   = useState<Shipment | null>(null)
+  const [trackingModal, setTrackingModal]   = useState<{ shipment: Shipment; requestedDeliveryDate?: string } | null>(null)
   const [newReturnOrderId, setNewReturnOrderId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'commandes' | 'retours'>('commandes')
   const { returns, loading: returnsLoading, stats: returnsStats } = useReturns()
@@ -689,8 +688,14 @@ export function HistoriquePage() {
                   <OrderDate>{formatDate(order.date)}</OrderDate>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {order.shipment && (
-                    <TrackingLink onClick={() => setTrackingModal(order.shipment!)} aria-label="Voir le suivi">
+                  {(order.status === 'expédié' || order.status === 'livré') && order.shipment && (
+                    <TrackingLink
+                      onClick={() => setTrackingModal({
+                        shipment: order.shipment!,
+                        requestedDeliveryDate: order.deliveryMode === 'specific' ? order.deliveryDate : undefined,
+                      })}
+                      aria-label="Voir le suivi"
+                    >
                       📦 {order.shipment.trackingNumber}
                     </TrackingLink>
                   )}
@@ -825,7 +830,11 @@ export function HistoriquePage() {
       )}
     </Page>
     {trackingModal && (
-      <TrackingModal shipment={trackingModal} onClose={() => setTrackingModal(null)} />
+      <TrackingModal
+        shipment={trackingModal.shipment}
+        requestedDeliveryDate={trackingModal.requestedDeliveryDate}
+        onClose={() => setTrackingModal(null)}
+      />
     )}
     {newReturnOrderId !== null && (
       <NewReturnModal

@@ -18,7 +18,7 @@ const storedOrderSchema = z.object({
   id:               z.string(),
   numero:           z.string(),
   date:             z.string(),
-  status:           z.enum(['en cours', 'reçu', 'facturé', 'expédié']),
+  status:           z.enum(['en préparation', 'expédié', 'livré']),
   items:            z.array(z.unknown()),
   subtotalHT:       z.number(),
   remiseAmount:     z.number(),

@@ -170,10 +170,11 @@ function formatDateLong(iso: string): string {
 
 interface TrackingModalProps {
   shipment: Shipment
+  requestedDeliveryDate?: string
   onClose: () => void
 }
 
-export function TrackingModal({ shipment, onClose }: TrackingModalProps) {
+export function TrackingModal({ shipment, requestedDeliveryDate, onClose }: TrackingModalProps) {
   return createPortal(
     <Backdrop onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <Panel>
@@ -219,7 +220,7 @@ export function TrackingModal({ shipment, onClose }: TrackingModalProps) {
             </EstimatedBox>
           ) : (
             <EstimatedBox>
-              🚚 Livraison estimée : {formatDateLong(shipment.estimatedDelivery)}
+              🚚 Livraison prévue le {formatDateLong(requestedDeliveryDate ?? shipment.estimatedDelivery)}
             </EstimatedBox>
           )}
         </PanelBody>

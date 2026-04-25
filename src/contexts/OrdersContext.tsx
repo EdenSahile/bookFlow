@@ -107,7 +107,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       id: `ord-${Date.now()}`,
       numero: generateNumero(),
       date: todayISO(),
-      status: 'en cours',
+      status: 'en préparation',
       codeClient: params.codeClient,
       adresseLivraison: params.adresseLivraison,
       deliveryMode: params.deliveryMode,

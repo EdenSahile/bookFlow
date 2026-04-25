@@ -27,15 +27,14 @@ export interface Shipment {
   events: TrackingEvent[]
 }
 
-export type OrderStatus = 'en cours' | 'réceptionné' | 'expédié' | 'livré'
+export type OrderStatus = 'en préparation' | 'expédié' | 'livré'
 
-export const ORDER_STATUSES: OrderStatus[] = ['en cours', 'réceptionné', 'expédié', 'livré']
+export const ORDER_STATUSES: OrderStatus[] = ['en préparation', 'expédié', 'livré']
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  'en cours':    'En cours',
-  'réceptionné': 'Réceptionné',
-  'expédié':     'Expédié',
-  'livré':       'Livré',
+  'en préparation': 'En préparation',
+  'expédié':        'Expédié',
+  'livré':          'Livré',
 }
 
 export type TypeCommande = 'MONO' | 'AP' | 'SUITE'
@@ -87,7 +86,7 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       id: 'ord-001',
       numero: 'CMD-2025-0312',
       date: '2025-03-18',
-      status: 'en cours',
+      status: 'en préparation',
       codeClient: 'LIB001',
       commandePar: 'Marc Dupont',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
@@ -126,7 +125,7 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       id: 'ord-002',
       numero: 'CMD-2025-0187',
       date: '2025-02-10',
-      status: 'réceptionné',
+      status: 'livré',
       codeClient: 'LIB001',
       commandePar: 'Sophie Martin',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
@@ -219,7 +218,7 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       id: 'ord-004',
       numero: 'CMD-2024-1021',
       date: '2024-12-02',
-      status: 'réceptionné',
+      status: 'livré',
       codeClient: 'LIB001',
       commandePar: 'Marc Dupont',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
@@ -260,7 +259,7 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       id: 'ord-005',
       numero: 'CMD-2024-0892',
       date: '2024-11-05',
-      status: 'réceptionné',
+      status: 'livré',
       codeClient: 'LIB001',
       commandePar: 'Sophie Martin',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
@@ -341,7 +340,7 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       id: 'ord-008',
       numero: 'CMD-2025-0401',
       date: '2025-04-01',
-      status: 'en cours',
+      status: 'expédié',
       codeClient: 'LIB001',
       commandePar: 'Marc Dupont',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
@@ -415,7 +414,7 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       id: 'ord-009',
       numero: 'CMD-2025-0355',
       date: '2025-03-28',
-      status: 'réceptionné',
+      status: 'en préparation',
       codeClient: 'LIB001',
       commandePar: 'Sophie Martin',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
