@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import styled, { keyframes } from 'styled-components'
+import styled from 'styled-components'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/CartContext'
 import { MOCK_BOOKS, UNIVERSES, type Universe } from '@/data/mockBooks'
@@ -7,78 +7,62 @@ import { MOCK_SERIES, type Serie, type OffreCommerciale } from '@/data/mockSerie
 import { BookCover } from '@/components/catalogue/BookCover'
 
 /* ══════════════════════════════════════════════
-   COUVERTURE SÉRIE — Open Library uniquement
-   ?default=false → 404 propre si couverture absente
-   → couverture fictive (gradient navy)
+   COUVERTURE SÉRIE — dégradé générique par univers
+   (évite d'afficher une couverture de titre précis)
 ══════════════════════════════════════════════ */
-type CoverState = 'loading' | 'ok' | 'error'
+const UNIVERSE_COVER_GRADIENTS: Record<string, [string, string]> = {
+  'BD/Mangas':       ['#C08F2A', '#8B6514'],
+  'Littérature':     ['#4E8C70', '#2D6450'],
+  'Jeunesse':        ['#7E6BC4', '#5A4A9A'],
+  'Adulte-pratique': ['#7A8FA0', '#5A6E80'],
+}
+const DEFAULT_COVER_GRADIENT: [string, string] = ['#5B7EA6', '#3D6391']
 
-function SerieCover({
-  serie,
-  width,
-  height,
-}: {
-  serie: Serie
-  width: number
-  height: number
-}) {
-  const [state, setState] = useState<CoverState>('loading')
+function SerieCover({ serie }: { serie: Serie; width?: number; height?: number }) {
+  const [g0, g1] = UNIVERSE_COVER_GRADIENTS[serie.univers] ?? DEFAULT_COVER_GRADIENT
+  const initials = serie.nom
+    .split(/\s+/)
+    .filter(w => w.length > 1)
+    .slice(0, 2)
+    .map(w => w[0].toUpperCase())
+    .join('') || serie.nom[0].toUpperCase()
 
   return (
-    <CoverWrapper style={{ width, height }}>
-      {state === 'loading' && <CoverSkeleton />}
-      {state === 'error'   && (
-        <CoverFallback>
-          <CoverFallbackSpine />
-          <CoverFallbackText>{serie.nom}</CoverFallbackText>
-          <CoverFallbackLabel>couv. fictive</CoverFallbackLabel>
-        </CoverFallback>
-      )}
-      <img
-        src={serie.coverUrl}
-        alt={serie.nom}
-        onLoad={() => setState('ok')}
-        onError={() => setState('error')}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: state === 'ok' ? 'block' : 'none',
-        }}
-      />
+    <CoverWrapper>
+      <CoverFallback style={{ background: `linear-gradient(160deg, ${g0} 0%, ${g1} 100%)` }}>
+        <CoverFallbackSpine />
+        <CoverFallbackInitials>{initials}</CoverFallbackInitials>
+        <CoverFallbackText>{serie.nom}</CoverFallbackText>
+        <CoverFallbackLabel>couv. fictive</CoverFallbackLabel>
+      </CoverFallback>
     </CoverWrapper>
   )
 }
 
-const pulse = keyframes`
-  0%, 100% { opacity: 0.4; }
-  50%       { opacity: 0.8; }
-`
-
 const CoverWrapper = styled.div`
   position: absolute;
   inset: 0;
-  background: ${({ theme }) => theme.colors.navyLight};
   overflow: hidden;
-`
-
-const CoverSkeleton = styled.div`
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #226241 0%, #2D6A52 100%);
-  animation: ${pulse} 1.6s ease-in-out infinite;
 `
 
 const CoverFallback = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, #226241 0%, #2D6A52 50%, #1A4D32 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 10px 8px 6px;
-  gap: 6px;
+  gap: 4px;
+`
+
+const CoverFallbackInitials = styled.div`
+  font-size: 30px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  flex-shrink: 0;
 `
 
 const CoverFallbackSpine = styled.div`
@@ -351,10 +335,11 @@ const TileLabel = styled.div`
   right: 0;
   padding: 10px 10px 14px;
   z-index: 2;
+  text-align: center;
 `
 
 const TileName = styled.div`
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #fff;
   line-height: 1.25;
@@ -363,21 +348,23 @@ const TileName = styled.div`
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-align: center;
 `
 
 const TileAuthor = styled.div`
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255,255,255,0.70);
   margin-top: 3px;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 `
 
 const TileCount = styled.div`
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255,255,255,0.50);
   margin-top: 2px;
+  text-align: center;
 `
 
 /* Badge Offre spéciale */
@@ -398,8 +385,7 @@ const PrixBadge = styled.div`
   position: absolute;
   top: 8px;
   left: 8px;
-  background: rgba(103, 25, 140, 0.92);
-  backdrop-filter: blur(6px);
+  background: rgba(103, 25, 140, 0.90);
   color: #fff;
   font-size: 9px;
   font-weight: 800;
@@ -408,7 +394,9 @@ const PrixBadge = styled.div`
   z-index: 3;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  gap: 3px;
 `
 
 /* ══════════════════════════════════════════════
@@ -1005,6 +993,27 @@ const ResultCount = styled.div`
 `
 
 /* ── Icônes ── */
+function IconTrophy({ size = 11 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+      <path d="M4 22h16"/>
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+    </svg>
+  )
+}
+
+function IconDot({ size = 7 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 8 8" fill="currentColor">
+      <circle cx="4" cy="4" r="4"/>
+    </svg>
+  )
+}
+
 function IconBack() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
 }
@@ -1064,7 +1073,7 @@ function HeroTile({ serie, onClick }: { serie: Serie; onClick: () => void }) {
       <SerieCover serie={serie} width={148} height={222} />
       <TileGradient />
       {serie.isOffreSpeciale && <OffreBadge />}
-      {serie.isPrixLitteraire && <PrixBadge>Prix</PrixBadge>}
+      {serie.isPrixLitteraire && <PrixBadge><IconTrophy size={8} /> Prix</PrixBadge>}
       <TileLabel>
         <TileName>{serie.nom}</TileName>
         <TileAuthor>{serie.auteur}</TileAuthor>
@@ -1263,10 +1272,10 @@ export function SelectionsPage() {
             <SerieHeaderTitle>
               {selectedSerie.nom}
               {selectedSerie.isOffreSpeciale && (
-                <Badge $color="#1B5E20" $bg="#E8F5E9">● OP commerciale</Badge>
+                <Badge $color="#1B5E20" $bg="#E8F5E9"><IconDot /> OP commerciale</Badge>
               )}
               {selectedSerie.isPrixLitteraire && (
-                <Badge $color="#4A148C" $bg="#F3E5F5">🏆 Prix littéraire</Badge>
+                <Badge $color="#4A148C" $bg="#F3E5F5"><IconTrophy size={11} /> Prix littéraire</Badge>
               )}
             </SerieHeaderTitle>
             <SerieHeaderMeta>
@@ -1473,7 +1482,7 @@ export function SelectionsPage() {
   const FILTERS: Array<{ label: string; value: FilterType; variant?: 'prix' | 'offre' }> = [
     { label: 'Tous', value: 'Tous' },
     ...UNIVERSES.map(u => ({ label: u, value: u as FilterType })),
-    { label: '🏆 Prix littéraire', value: 'Prix littéraire', variant: 'prix' as const },
+    { label: 'Prix littéraire', value: 'Prix littéraire', variant: 'prix' as const },
   ]
 
   return (
@@ -1508,6 +1517,7 @@ export function SelectionsPage() {
               $variant={f.variant}
               onClick={() => setFilter(f.value)}
             >
+              {f.variant === 'prix' && <IconTrophy size={11} />}
               {f.label}
             </FilterPill>
           ))}
