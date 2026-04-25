@@ -132,6 +132,20 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       deliveryMode: 'standard',
       dateFacturation: '2025-02-14',
       numFacture: 'FACT-2025-0187',
+      shipment: {
+        carrier: 'chronopost',
+        trackingNumber: 'CP246813579FR',
+        estimatedDelivery: '2025-02-14',
+        shippedAt: '2025-02-12T09:00:00',
+        deliveredAt: '2025-02-14T10:30:00',
+        events: [
+          { status: 'delivered', label: 'Livré', location: 'Librairie du Parc', occurredAt: '2025-02-14T10:30:00' },
+          { status: 'out_for_delivery', label: 'En cours de livraison', location: 'Agence Paris 1er', occurredAt: '2025-02-14T07:45:00' },
+          { status: 'in_transit', label: "Pris en charge à l'agence", location: 'Tri Postal Paris Nord', occurredAt: '2025-02-13T22:15:00' },
+          { status: 'shipped', label: 'Expédié par FlowDiff', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2025-02-12T09:00:00' },
+          { status: 'prepared', label: 'Commande préparée', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2025-02-12T07:30:00' },
+        ],
+      },
       items: [
         {
           bookId: 'f-lit-01',
@@ -225,6 +239,20 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       deliveryMode: 'standard',
       dateFacturation: '2024-12-09',
       numFacture: 'FACT-2024-1021',
+      shipment: {
+        carrier: 'dpd',
+        trackingNumber: 'DPD135792468FR',
+        estimatedDelivery: '2024-12-06',
+        shippedAt: '2024-12-04T10:00:00',
+        deliveredAt: '2024-12-06T11:00:00',
+        events: [
+          { status: 'delivered', label: 'Livré', location: 'Librairie du Parc', occurredAt: '2024-12-06T11:00:00' },
+          { status: 'out_for_delivery', label: 'En cours de livraison', location: 'Agence Paris 1er', occurredAt: '2024-12-06T08:20:00' },
+          { status: 'in_transit', label: "Pris en charge à l'agence", location: 'Tri Postal Paris Nord', occurredAt: '2024-12-05T21:50:00' },
+          { status: 'shipped', label: 'Expédié par FlowDiff', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-12-04T10:00:00' },
+          { status: 'prepared', label: 'Commande préparée', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-12-04T08:15:00' },
+        ],
+      },
       items: [
         {
           bookId: 'f-lit-01',
@@ -266,6 +294,20 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       deliveryMode: 'standard',
       dateFacturation: '2024-11-12',
       numFacture: 'FACT-2024-0892',
+      shipment: {
+        carrier: 'ups',
+        trackingNumber: '1Z999AA10123456784',
+        estimatedDelivery: '2024-11-12',
+        shippedAt: '2024-11-07T14:00:00',
+        deliveredAt: '2024-11-12T09:45:00',
+        events: [
+          { status: 'delivered', label: 'Livré', location: 'Librairie du Parc', occurredAt: '2024-11-12T09:45:00' },
+          { status: 'out_for_delivery', label: 'En cours de livraison', location: 'Agence Paris 15', occurredAt: '2024-11-12T07:30:00' },
+          { status: 'in_transit', label: "Pris en charge à l'agence", location: 'Tri Postal Paris Sud', occurredAt: '2024-11-11T23:10:00' },
+          { status: 'shipped', label: 'Expédié par FlowDiff', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-11-07T14:00:00' },
+          { status: 'prepared', label: 'Commande préparée', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-11-07T12:00:00' },
+        ],
+      },
       items: [
         {
           bookId: 'f-bd-02',
@@ -306,6 +348,19 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       adresseLivraison: '12 rue du Parc, 75001 Paris',
       deliveryMode: 'specific',
       deliveryDate: '2024-10-18',
+      shipment: {
+        carrier: 'laposte',
+        trackingNumber: 'LA555666777FR',
+        estimatedDelivery: '2024-10-18',
+        shippedAt: '2024-10-16T11:00:00',
+        deliveredAt: null,
+        events: [
+          { status: 'out_for_delivery', label: 'En cours de livraison', location: 'Agence Paris 15', occurredAt: '2024-10-18T08:00:00' },
+          { status: 'in_transit', label: "Pris en charge à l'agence", location: 'Tri Postal Paris Sud', occurredAt: '2024-10-17T22:30:00' },
+          { status: 'shipped', label: 'Expédié par FlowDiff', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-10-16T11:00:00' },
+          { status: 'prepared', label: 'Commande préparée', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-10-16T09:00:00' },
+        ],
+      },
       items: [
         {
           bookId: 'f-jes-01',
@@ -460,6 +515,19 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       commandePar: 'Claire Rousseau',
       adresseLivraison: '8 place Bellecour, 69002 Lyon',
       deliveryMode: 'standard',
+      shipment: {
+        carrier: 'chronopost',
+        trackingNumber: 'CP111222333FR',
+        estimatedDelivery: '2024-11-19',
+        shippedAt: '2024-11-16T09:00:00',
+        deliveredAt: null,
+        events: [
+          { status: 'out_for_delivery', label: 'En cours de livraison', location: 'Agence Lyon Bellecour', occurredAt: '2024-11-19T09:30:00' },
+          { status: 'in_transit', label: "Pris en charge à l'agence", location: 'Tri Postal Lyon', occurredAt: '2024-11-18T20:00:00' },
+          { status: 'shipped', label: 'Expédié par FlowDiff', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-11-16T09:00:00' },
+          { status: 'prepared', label: 'Commande préparée', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2024-11-16T07:30:00' },
+        ],
+      },
       items: [
         {
           bookId: 'f-lit-01',
