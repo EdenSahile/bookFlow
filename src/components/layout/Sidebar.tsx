@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
-import styled, { keyframes } from 'styled-components'
+import styled from 'styled-components'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { Wordmark } from '@/components/brand/Wordmark'
 import { theme } from '@/lib/theme'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { IconLogout } from '@/components/ui/icons'
 
 const GOLD = theme.colors.accent
 
@@ -168,43 +169,6 @@ const LogoutBtn = styled.button`
   }
 `
 
-/* ── Modale confirmation ── */
-const fadeIn = keyframes`from { opacity: 0; } to { opacity: 1; }`
-
-const ConfirmOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 500;
-  padding: 24px;
-  animation: ${fadeIn} 0.15s ease;
-`
-const ConfirmBox = styled.div`
-  background: #fff;
-  border-radius: ${({ theme }) => theme.radii.xl};
-  padding: 28px 24px 20px;
-  max-width: 320px;
-  width: 100%;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  text-align: center;
-`
-const ConfirmIconWrap = styled.div`
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: #FFF0F0;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 14px;
-  color: #E53935;
-`
-const ConfirmTitle = styled.p`font-size:1rem;font-weight:700;color:#111;margin-bottom:6px;`
-const ConfirmBody  = styled.p`font-size:.875rem;color:#666;line-height:1.5;margin-bottom:20px;`
-const ConfirmBtns  = styled.div`display:flex;gap:10px;`
-const BtnCancel    = styled.button`flex:1;padding:11px;border:1.5px solid #E0E0E0;border-radius: ${({ theme }) => theme.radii.md};background:#fff;color:#333;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;&:hover{background:#F5F5F5;}`
-const BtnConfirm   = styled.button`flex:1;padding:11px;border:none;border-radius: ${({ theme }) => theme.radii.md};background:#E53935;color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;&:hover{background:#C62828;}`
-
 const UserBlock = styled.div`
   display: flex;
   align-items: center;
@@ -251,18 +215,6 @@ const UserCode = styled.div`
   margin-top: 1px;
 `
 
-
-/* ── Icône logout ── */
-function IconLogout() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>
-  )
-}
 
 /* ── Nav data ── */
 const navItems = [
@@ -355,20 +307,15 @@ export function Sidebar() {
 
     </SidebarContainer>
 
-    {confirmLogout && createPortal(
-      <ConfirmOverlay onClick={() => setConfirmLogout(false)}>
-        <ConfirmBox onClick={e => e.stopPropagation()}>
-          <ConfirmIconWrap><IconLogout /></ConfirmIconWrap>
-          <ConfirmTitle>Se déconnecter ?</ConfirmTitle>
-          <ConfirmBody>Vous serez redirigé vers la page de connexion.</ConfirmBody>
-          <ConfirmBtns>
-            <BtnCancel onClick={() => setConfirmLogout(false)}>Annuler</BtnCancel>
-            <BtnConfirm onClick={handleLogout}>Se déconnecter</BtnConfirm>
-          </ConfirmBtns>
-        </ConfirmBox>
-      </ConfirmOverlay>,
-      document.body
-    )}
+    <ConfirmDialog
+      open={confirmLogout}
+      title="Se déconnecter ?"
+      message="Vous serez redirigé vers la page de connexion."
+      confirmLabel="Se déconnecter"
+      destructive
+      onConfirm={handleLogout}
+      onCancel={() => setConfirmLogout(false)}
+    />
     </>
   )
 }
