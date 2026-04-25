@@ -72,6 +72,23 @@ const ExternalLink = styled.a`
   &:hover { text-decoration: underline; }
 `
 
+const FieldLabel = styled.div`
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-bottom: 2px;
+`
+
+const FieldValue = styled.div`
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  color: ${({ theme }) => theme.colors.navy};
+`
+
+const FieldGroup = styled.div``
+
+const FieldGroupFlex = styled.div`
+  flex: 1;
+`
+
 const Timeline = styled.ol`
   list-style: none; margin: 0; padding: 0;
   display: flex; flex-direction: column; gap: 0;
@@ -167,14 +184,14 @@ export function TrackingModal({ shipment, onClose }: TrackingModalProps) {
 
         <PanelBody>
           <CarrierRow>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: '#6B6B68', marginBottom: 2 }}>Transporteur</div>
-              <div style={{ fontWeight: 600, color: '#232f3e' }}>{CARRIER_LABELS[shipment.carrier] ?? shipment.carrier}</div>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.75rem', color: '#6B6B68', marginBottom: 2 }}>N° de suivi</div>
+            <FieldGroup>
+              <FieldLabel>Transporteur</FieldLabel>
+              <FieldValue>{CARRIER_LABELS[shipment.carrier] ?? shipment.carrier}</FieldValue>
+            </FieldGroup>
+            <FieldGroupFlex>
+              <FieldLabel>N° de suivi</FieldLabel>
               <TrackingNum>{shipment.trackingNumber}</TrackingNum>
-            </div>
+            </FieldGroupFlex>
             <ExternalLink
               href={trackingUrl(shipment.carrier, shipment.trackingNumber)}
               target="_blank"
