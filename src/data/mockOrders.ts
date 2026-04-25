@@ -2,6 +2,31 @@
 
 import type { StockStatut } from './mockBooks'
 
+export type TrackingEventStatus =
+  | 'prepared'
+  | 'shipped'
+  | 'in_transit'
+  | 'out_for_delivery'
+  | 'delivered'
+
+export interface TrackingEvent {
+  status: TrackingEventStatus
+  label: string
+  location: string
+  occurredAt: string
+}
+
+export type Carrier = 'laposte' | 'chronopost' | 'ups' | 'dpd'
+
+export interface Shipment {
+  carrier: Carrier
+  trackingNumber: string
+  estimatedDelivery: string
+  shippedAt: string
+  deliveredAt: string | null
+  events: TrackingEvent[]
+}
+
 export type OrderStatus = 'en cours' | 'reçu' | 'facturé' | 'expédié'
 
 export const ORDER_STATUSES: OrderStatus[] = ['en cours', 'reçu', 'facturé', 'expédié']
@@ -47,6 +72,7 @@ export interface Order {
   deliveryDate?: string      // ISO date
   dateFacturation?: string   // ISO date — si facturé
   numFacture?: string        // ex. FACT-2024-0892
+  shipment?: Shipment
 }
 
 export const MOCK_CLIENT_NAMES: Record<string, string> = {
@@ -146,6 +172,19 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       commandePar: 'Julien Lefebvre',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
       deliveryMode: 'standard',
+      shipment: {
+        carrier: 'laposte',
+        trackingNumber: 'LA987654321FR',
+        estimatedDelivery: '2025-01-27',
+        shippedAt: '2025-01-24T10:00:00',
+        deliveredAt: '2025-01-27T11:20:00',
+        events: [
+          { status: 'delivered', label: 'Livré', location: 'Librairie du Parc', occurredAt: '2025-01-27T11:20:00' },
+          { status: 'out_for_delivery', label: 'En cours de livraison', location: 'Agence Paris 15', occurredAt: '2025-01-27T08:00:00' },
+          { status: 'shipped', label: 'Expédié par FlowDiff', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2025-01-24T10:00:00' },
+          { status: 'prepared', label: 'Commande préparée', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2025-01-24T08:30:00' },
+        ],
+      },
       items: [
         {
           bookId: 'f-lit-01',
@@ -307,6 +346,19 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
       commandePar: 'Marc Dupont',
       adresseLivraison: '12 rue du Parc, 75001 Paris',
       deliveryMode: 'standard',
+      shipment: {
+        carrier: 'laposte',
+        trackingNumber: 'LA123456789FR',
+        estimatedDelivery: '2025-04-07',
+        shippedAt: '2025-04-03T16:30:00',
+        deliveredAt: null,
+        events: [
+          { status: 'out_for_delivery', label: 'En cours de livraison', location: 'Agence Paris 15', occurredAt: '2025-04-04T08:14:00' },
+          { status: 'in_transit', label: "Pris en charge à l'agence", location: 'Tri Postal Paris Sud', occurredAt: '2025-04-03T23:02:00' },
+          { status: 'shipped', label: 'Expédié par FlowDiff', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2025-04-03T16:30:00' },
+          { status: 'prepared', label: 'Commande préparée', location: 'Entrepôt Villeneuve-la-Garenne', occurredAt: '2025-04-03T11:45:00' },
+        ],
+      },
       items: [
         {
           bookId: 'f-bd-01',
