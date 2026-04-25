@@ -556,7 +556,7 @@ const ListsBtn = styled.button<{ $hasLists: boolean }>`
 
 const ListsBadge = styled.span`
   background: ${GOLD};
-  color: \${({ theme }) => theme.colors.navy};
+  color: ${({ theme }) => theme.colors.navy};
   font-family: ${({ theme }) => theme.typography.fontFamilyMono};
   font-size: 10px;
   font-weight: 700;

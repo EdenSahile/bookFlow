@@ -96,8 +96,8 @@ export function ConfirmDialog({
   if (!open) return null
 
   return createPortal(
-    <Overlay onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
-      <Dialog onClick={e => e.stopPropagation()}>
+    <Overlay onClick={onCancel}>
+      <Dialog onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
         <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
         <DialogText>{message}</DialogText>
         <DialogActions>
