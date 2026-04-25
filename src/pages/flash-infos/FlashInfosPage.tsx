@@ -81,15 +81,15 @@ const EmptyState = styled.div`
 `
 
 /* ── Card Flash Info ── */
-const Card = styled.article`
+const Card = styled.article<{ $clickable: boolean }>`
   background: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.radii.lg};
   overflow: hidden;
-  transition: box-shadow 0.18s ease, transform 0.18s ease;
-  cursor: pointer;
+  transition: transform 0.18s ease;
+  cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
 
   &:hover {
-    transform: translateY(-2px);
+    transform: ${({ $clickable }) => ($clickable ? 'translateY(-2px)' : 'none')};
   }
 `
 
@@ -464,7 +464,11 @@ export function FlashInfosPage() {
       ) : (
         <List>
           {filtered.map(fi => (
-            <Card key={fi.id}>
+            <Card
+              key={fi.id}
+              $clickable={!!fi.link}
+              onClick={() => fi.link && window.open(fi.link, '_blank', 'noopener,noreferrer')}
+            >
               <CardInner>
                 {/* Média : vidéo, image, ou placeholder */}
                 {fi.videoUrl ? (
@@ -514,25 +518,30 @@ export function FlashInfosPage() {
 
                   <CardActions>
                     {fi.link && (
-                      <LinkBtn href={fi.link} target="_blank" rel="noopener noreferrer">
+                      <LinkBtn
+                        href={fi.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {fi.linkLabel ?? 'En savoir plus'} <IconArrow />
                       </LinkBtn>
                     )}
                     {fi.bookId && (
                       <>
-                        <QtyControl>
+                        <QtyControl onClick={(e) => e.stopPropagation()}>
                           <QtyBtn
-                            onClick={() => changeQty(fi.id, -1)}
+                            onClick={(e) => { e.stopPropagation(); changeQty(fi.id, -1) }}
                             disabled={getQty(fi.id) <= 1}
                             aria-label="Diminuer la quantité"
                           >−</QtyBtn>
                           <QtyValue>{getQty(fi.id)}</QtyValue>
                           <QtyBtn
-                            onClick={() => changeQty(fi.id, +1)}
+                            onClick={(e) => { e.stopPropagation(); changeQty(fi.id, +1) }}
                             aria-label="Augmenter la quantité"
                           >+</QtyBtn>
                         </QtyControl>
-                        <AddBtn onClick={() => handleAdd(fi.id, fi.bookId!)}>
+                        <AddBtn onClick={(e) => { e.stopPropagation(); handleAdd(fi.id, fi.bookId!) }}>
                           <IconCartFI /> Ajouter au panier
                         </AddBtn>
                       </>
