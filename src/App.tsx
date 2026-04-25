@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { CartProvider } from '@/contexts/CartContext'
 import { OrdersProvider } from '@/contexts/OrdersContext'
+import { ReturnsProvider } from '@/contexts/ReturnsContext'
 import { WishlistProvider } from '@/contexts/WishlistContext'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
@@ -50,6 +51,7 @@ export default function App() {
             <CartProvider>
               <WishlistProvider>
               <OrdersProvider>
+              <ReturnsProvider>
               <Suspense fallback={null}>
               <Routes>
                 {/* Routes publiques */}
@@ -82,6 +84,7 @@ export default function App() {
                 </Route>
               </Routes>
               </Suspense>
+              </ReturnsProvider>
               </OrdersProvider>
               </WishlistProvider>
             </CartProvider>
