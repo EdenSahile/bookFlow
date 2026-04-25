@@ -295,7 +295,7 @@ const EbookFormatBadge = styled.span`
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   padding: 2px 8px;
   margin-bottom: 3px;
 `
@@ -309,7 +309,7 @@ const EbookPlatformTag = styled.span<{ $color: string }>`
   color: ${({ $color }) => $color};
   background: ${({ $color }) => $color}18;
   border: 1px solid ${({ $color }) => $color}35;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 2px 8px;
   margin-left: 6px;
 `
@@ -362,7 +362,7 @@ const PriceStrip = styled.div`
   align-items: stretch;
   background: rgba(28, 58, 95, 0.03);
   border: 1px solid rgba(28, 58, 95, 0.10);
-  border-radius: 7px;
+  border-radius: ${({ theme }) => theme.radii.md};
   overflow: hidden;
   margin-top: 6px;
 `
@@ -474,7 +474,7 @@ const OPTag = styled.span`
   letter-spacing: 0.10em;
   text-transform: uppercase;
   padding: 2px 7px;
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   align-self: flex-start;
   margin-bottom: 2px;
 `
@@ -502,7 +502,7 @@ const OPValidity = styled.div`
 const OPDeleteBtn = styled.button`
   background: rgba(255,255,255,0.12);
   border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
   color: rgba(255,255,255,0.75);
   padding: 0 14px;
   min-height: 44px;

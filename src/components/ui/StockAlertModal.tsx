@@ -47,7 +47,7 @@ const Overlay = styled.div`
 
 const Panel = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   width: 100%;
   max-width: 440px;
   padding: 24px;
@@ -95,7 +95,7 @@ const ConfirmBtn = styled.button`
   background: ${({ theme }) => theme.colors.navy};
   color: ${({ theme }) => theme.colors.white};
   border: none;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: 600;
@@ -113,7 +113,7 @@ const CancelBtn = styled.button`
   background: transparent;
   color: ${({ theme }) => theme.colors.gray[600]};
   border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: 500;

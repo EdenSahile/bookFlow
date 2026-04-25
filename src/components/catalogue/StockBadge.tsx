@@ -31,7 +31,7 @@ const BadgeBox = styled.span<{ $bg: string; $fg: string; $border: string; $size:
   background: ${({ $bg }) => $bg};
   color: ${({ $fg }) => $fg};
   border: 1px solid ${({ $border }) => $border};
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ $size }) => $size === 'md' ? '12px' : '11px'};
   font-weight: 500;

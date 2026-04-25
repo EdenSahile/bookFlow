@@ -193,7 +193,7 @@ const ConfirmOverlay = styled.div`
 
 const ConfirmBox = styled.div`
   background: #fff;
-  border-radius: 16px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 28px 24px 20px;
   max-width: 320px;
   width: 100%;
@@ -236,7 +236,7 @@ const BtnCancel = styled.button`
   flex: 1;
   padding: 11px;
   border: 1.5px solid #E0E0E0;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: #fff;
   color: #333;
   font-size: 0.9rem;
@@ -251,7 +251,7 @@ const BtnConfirm = styled.button`
   flex: 1;
   padding: 11px;
   border: none;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: #E53935;
   color: #fff;
   font-size: 0.9rem;

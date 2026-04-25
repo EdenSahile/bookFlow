@@ -66,7 +66,7 @@ const Tooltip = styled.div<{ $top: number; $left: number }>`
   font-size: 11px;
   line-height: 1.45;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
   max-width: 240px;
   white-space: normal;
   pointer-events: none;

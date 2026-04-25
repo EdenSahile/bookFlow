@@ -99,7 +99,7 @@ function Deco({ universe, accent, w, h }: { universe: Universe; accent: string; 
 const Wrapper = styled.div<{ $w: number; $h: number }>`
   width: ${({ $w }) => $w}px;
   height: ${({ $h }) => $h}px;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   overflow: hidden;
   box-shadow: 3px 4px 14px rgba(0,0,0,0.28);
   flex-shrink: 0;
@@ -130,7 +130,7 @@ const PubBadge = styled.div`
   font-family: 'DM Mono', 'Courier New', monospace;
   font-size: 9px;
   padding: 2px 7px;
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   letter-spacing: 0.05em;
   white-space: nowrap;
   overflow: hidden;

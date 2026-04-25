@@ -129,7 +129,7 @@ const FilterRow = styled.div`
 
 const FilterChip = styled.button<{ $active: boolean }>`
   padding: 5px 14px;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
   background: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.white};
   color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.navy};
@@ -301,7 +301,7 @@ const ContactRepBtn = styled.button`
   gap: 8px;
   padding: 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   background: ${({ theme }) => theme.colors.navy};
   color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -319,7 +319,7 @@ const SearchCatalogBtn = styled.button`
   gap: 8px;
   padding: 10px;
   border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   background: #fff;
   color: ${({ theme }) => theme.colors.navy};
   font-family: ${({ theme }) => theme.typography.fontFamily};

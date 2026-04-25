@@ -88,7 +88,7 @@ const Page = styled.div`
 
 const Content = styled.div`
   width: 100%;
-  max-width: 720px;
+  max-width: 1100px;
   display: flex;
   flex-direction: column;
   gap: 3.5rem;
@@ -131,8 +131,15 @@ const StatsGrid = styled.div`
 
 const StatCard = styled.div`
   background: ${({ theme }) => theme.colors.gray[100]};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  border: 0.5px solid ${({ theme }) => theme.colors.gray[200]};
   padding: 12px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.success};
+  }
 `
 
 const StatValue = styled.div`
@@ -174,7 +181,7 @@ const ShortcutsGrid = styled.div`
 const ShortcutCard = styled(Link)`
   background: ${({ theme }) => theme.colors.gray[100]};
   border: 0.5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   padding: 12px;
   text-align: center;
   text-decoration: none;
@@ -224,24 +231,24 @@ const SeeAllLink = styled(Link)`
   &:hover { text-decoration: underline; }
 `
 
-/* max-width = 3 cards × 200px + 2 gaps × 16px = 632px — no partial card at rest */
+/* max-width = 4 cards × 230px + 3 gaps × 20px = 980px */
 const CarouselWrapper = styled.div`
   position: relative;
-  max-width: calc(3 * 200px + 2 * ${({ theme }) => theme.spacing.md});
+  max-width: calc(4 * 230px + 3 * 20px);
 `
 
 const CardScroll = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.spacing.md};
+  gap: 20px;
   overflow-x: auto;
-  padding-bottom: ${({ theme }) => theme.spacing.sm};
+  padding: 8px 4px 16px;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 `
 
 const CardSlot = styled.div`
   flex-shrink: 0;
-  width: 200px;
+  width: 230px;
 `
 
 const ArrowBtn = styled.button<{ $side: 'left' | 'right'; $visible: boolean }>`
@@ -332,15 +339,15 @@ export function HomePage() {
 
         {/* 2 — Stats */}
         <StatsGrid aria-label="Résumé du compte">
-          <StatCard onClick={() => navigate('/panier')} style={{ cursor: 'pointer' }}>
+          <StatCard onClick={() => navigate('/panier')}>
             <StatValue>{totalItems}</StatValue>
             <StatLabel>Articles au panier</StatLabel>
           </StatCard>
-          <StatCard onClick={() => navigate('/nouveautes')} style={{ cursor: 'pointer' }}>
+          <StatCard onClick={() => navigate('/nouveautes')}>
             <StatValue>{nouveautesCount}</StatValue>
             <StatLabel>Nouveautés ce mois</StatLabel>
           </StatCard>
-          <StatCard onClick={() => navigate('/flash-infos')} style={{ cursor: 'pointer' }}>
+          <StatCard onClick={() => navigate('/flash-infos')}>
             <StatValue>
               {flashInfosCount}
               {flashInfosCount > 0 && <RedDot aria-hidden="true" />}
@@ -380,7 +387,7 @@ export function HomePage() {
             <ArrowBtn
               $side="left"
               $visible={canScrollLeft}
-              onClick={() => scrollBy(-220)}
+              onClick={() => scrollBy(-250)}
               aria-label="Défiler vers la gauche"
             >
               <IconChevron dir="left" />
@@ -397,7 +404,7 @@ export function HomePage() {
             <ArrowBtn
               $side="right"
               $visible={canScrollRight}
-              onClick={() => scrollBy(220)}
+              onClick={() => scrollBy(250)}
               aria-label="Défiler vers la droite"
             >
               <IconChevron dir="right" />

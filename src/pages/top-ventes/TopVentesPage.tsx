@@ -111,7 +111,7 @@ const HeaderRight = styled.div`
 const PeriodSelector = styled.div`
   display: flex;
   background: rgba(255,255,255,0.12);
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 3px;
   gap: 2px;
 `
@@ -119,7 +119,7 @@ const PeriodSelector = styled.div`
 const PeriodBtn = styled.button<{ $active: boolean }>`
   padding: 5px 14px;
   border: none;
-  border-radius: 17px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
   font-weight: 600;
@@ -150,7 +150,7 @@ const Tab = styled.button<{ $active: boolean }>`
   flex-shrink: 0;
   padding: 7px 16px;
   border: none;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: 600;
@@ -349,7 +349,7 @@ const RowSales = styled.span`
 const RowAddBtn = styled.button`
   width: 32px; height: 32px;
   border: none;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.colors.primary};
   color: #fdfdfd;
   cursor: pointer;
@@ -366,7 +366,7 @@ const UnivBadge = styled.span<{ $bg: string; $text: string }>`
   align-items: center;
   gap: 3px;
   padding: 2px 7px;
-  border-radius: 999px;
+  border-radius: ${({ theme }) => theme.radii.full};
   background: ${({ $bg }) => $bg};
   font-size: 10px;
   font-weight: 700;

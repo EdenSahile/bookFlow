@@ -68,7 +68,7 @@ const BurgerBtn = styled.button`
   height: 36px;
   background: rgba(255,255,255,0.10);
   border: none;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
   padding: 8px;
   flex-shrink: 0;
@@ -79,7 +79,7 @@ const BurgerBtn = styled.button`
     width: 100%;
     height: 2px;
     background: #fff;
-    border-radius: 2px;
+    border-radius: ${({ theme }) => theme.radii.sm};
   }
 
   &:hover { background: rgba(255,255,255,0.18); }
@@ -150,134 +150,171 @@ const SearchIconWrap = styled.span`
 `
 
 const SearchInput = styled.input`
-  width: 380px;
-  padding: 9px 14px 9px 34px;
-  background: #dcdcdc;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px 9px 34px;
+  background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   color: #111;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   outline: none;
-  transition: width 0.2s ease, background 0.15s ease, box-shadow 0.15s ease;
   appearance: none;
 
-  &::placeholder {
-    color: #555;
-    font-size: 13px;
-  }
-
+  &::placeholder { color: #555; font-size: 13px; }
   &::-webkit-search-cancel-button { display: none; }
 
-  &:focus {
-    width: 480px;
-    background: #ebebeb;
-    box-shadow: 0 0 0 2px rgba(34,98,65,0.25);
-    outline: none;
-  }
-
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    width: 100%;
-    background: rgba(255,255,255,0.18);
     color: #fff;
-    &::placeholder { color: rgba(255,255,255,0.6); }
-    &:focus {
-      width: 100%;
-      background: rgba(255,255,255,0.24);
-      box-shadow: none;
-    }
     font-size: 14px;
-    padding: 9px 12px 9px 36px;
+    padding: 9px 10px 9px 36px;
+    &::placeholder { color: rgba(255,255,255,0.6); }
   }
 `
 
-const AdvancedBtn = styled.button<{ $active: boolean }>`
+/* ── Input Group (search + filter bouton intégré) ── */
+const SearchGroup = styled.div`
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
-  align-self: stretch;
-  background: ${({ $active, theme }) => $active ? theme.colors.navy : '#c8c8c8'};
-  border: none;
-  border-radius: 8px;
-  padding: 0 16px;
-  color: ${({ $active }) => $active ? '#fff' : '#111'};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
+  background: #dcdcdc;
+  border-radius: ${({ theme }) => theme.radii.md};
+  overflow: hidden;
+  flex: 1;
+  max-width: 520px;
+  transition: background 0.15s;
 
-  &:hover {
-    background: ${({ $active }) => $active ? '#25477A' : '#b8b8b8'};
-  }
+  &:focus-within { background: #e8e8e8; }
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    padding: 0 14px;
-    font-size: 13px;
-    background: ${({ $active }) => $active ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.15)'};
-    color: #fff;
-    border-radius: 8px;
-    &:hover { background: rgba(255,255,255,0.22); }
+    background: rgba(255,255,255,0.18);
+    max-width: none;
+    width: 100%;
+    &:focus-within { background: rgba(255,255,255,0.24); }
   }
 `
 
-const AdvBtnLabel = styled.span``
+const SearchGroupDivider = styled.span`
+  width: 1px;
+  height: 18px;
+  background: rgba(0,0,0,0.14);
+  flex-shrink: 0;
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    background: rgba(255,255,255,0.22);
+  }
+`
+
+const FilterIconBtn = styled.button<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 12px;
+  height: 100%;
+  min-height: 38px;
+  background: ${({ $active }) => $active ? 'rgba(35,47,62,0.10)' : 'transparent'};
+  border: none;
+  cursor: pointer;
+  color: ${({ $active }) => $active ? '#232f3e' : '#555'};
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover { background: rgba(35,47,62,0.08); }
+
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    color: ${({ $active }) => $active ? '#fff' : 'rgba(255,255,255,0.75)'};
+    min-height: 40px;
+    &:hover { background: rgba(255,255,255,0.08); }
+  }
+`
 
 const ActiveBadge = styled.span`
   background: ${GOLD};
   color: #3d2f00;
   font-size: 9px;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 0 5px;
   line-height: 1.8;
-  margin-left: 1px;
 `
 
-/* ── Advanced panel ── */
-const AdvancedPanel = styled.div`
+/* ── Modale filtres ── */
+const FilterBackdrop = styled.div`
   position: fixed;
-  top: ${({ theme }) => theme.layout.headerHeight};
-  right: 0;
-  z-index: 200;
+  inset: 0;
+  background: rgba(0,0,0,0.40);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 16px;
+`
+
+const FilterModal = styled.div`
   background: #fff;
-  border-radius: 0 0 14px 14px;
-  box-shadow: 0 12px 40px rgba(28,58,95,0.20), 0 2px 8px rgba(28,58,95,0.08);
-  border: 1px solid rgba(28,58,95,0.08);
-  width: 480px;
-  max-width: 100vw;
+  border-radius: ${({ theme }) => theme.radii.xl};
+  width: 520px;
+  max-width: 100%;
+  max-height: calc(100dvh - 64px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+`
+
+const FilterModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  flex-shrink: 0;
+`
+
+const FilterModalTitle = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 15px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+`
+
+const FilterModalClose = styled.button`
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  transition: background 0.15s;
+  &:hover { background: ${({ theme }) => theme.colors.gray[200]}; }
+`
+
+const FilterModalBody = styled.div`
+  flex: 1;
+  overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    top: ${({ theme }) => theme.layout.mobileHeaderHeight};
-    width: 100vw;
-    left: 0;
-    border-radius: 0 0 16px 16px;
-    padding: 0;
-    gap: 0;
-    max-height: calc(100dvh - ${({ theme }) => theme.layout.mobileHeaderHeight});
-    overflow: hidden;
-  }
+  -webkit-overflow-scrolling: touch;
 `
 
-const PanelScrollBody = styled.div`
-  display: contents;
-
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 14px 16px 8px;
-    -webkit-overflow-scrolling: touch;
-  }
+const FilterModalFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 16px;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  flex-shrink: 0;
 `
 
 const PanelSection = styled.div`
@@ -303,7 +340,7 @@ const ChipGroup = styled.div`
 
 const Chip = styled.button<{ $active: boolean }>`
   padding: 5px 12px;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
   background: ${({ $active, theme }) => $active ? theme.colors.navy : '#fff'};
   color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.gray[800]};
@@ -332,19 +369,6 @@ const PanelDivider = styled.div`
   background: ${({ theme }) => theme.colors.gray[100]};
 `
 
-const PanelFooter = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 2px;
-
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    flex-shrink: 0;
-    padding: 12px 16px 16px;
-    border-top: 1px solid ${({ theme }) => theme.colors.gray[100]};
-    background: #fff;
-  }
-`
 
 const ResultCount = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -375,7 +399,7 @@ const ResetLink = styled.button`
 const ApplyBtn = styled.button`
   padding: 9px 22px;
   border: none;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.colors.navy};
   color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -386,55 +410,6 @@ const ApplyBtn = styled.button`
   &:hover { background: #25477A; }
 `
 
-/* ── Mobile backdrop ── */
-const MobileBackdrop = styled.div`
-  display: none;
-
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    display: block;
-    position: fixed;
-    inset: 0;
-    top: ${({ theme }) => theme.layout.mobileHeaderHeight};
-    background: rgba(0,0,0,0.45);
-    z-index: 99;
-  }
-`
-
-/* ── Panel mobile header (titre + fermer) ── */
-const MobilePanelTop = styled.div`
-  display: none;
-
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px 10px;
-    flex-shrink: 0;
-    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
-  }
-`
-
-const MobilePanelTitle = styled.span`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 16px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.navy};
-`
-
-const ClosePanelBtn = styled.button`
-  width: 32px; height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${({ theme }) => theme.colors.gray[100]};
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 16px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  transition: background 0.15s;
-  &:hover { background: ${({ theme }) => theme.colors.gray[200]}; }
-`
 
 /* ── Notifications ── */
 const NotifBtn = styled.button`
@@ -466,6 +441,25 @@ const NotifDot = styled.span`
   pointer-events: none;
 `
 
+const HelpBtn = styled.button`
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  &:hover { background: rgba(255,255,255,0.14); }
+
+  @media (max-width: 479px) {
+    width: 28px; height: 28px;
+  }
+`
+
 /* ── Panier ── */
 const CartLabel = styled.span`
   @media (max-width: 479px) {
@@ -479,7 +473,7 @@ const CartBtn = styled.button<{ $hasItems: boolean }>`
   gap: 6px;
   min-height: 40px;
   padding: 0 14px;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
@@ -516,7 +510,7 @@ const CartBadge = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamilyMono};
   font-size: 10px;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 1px 7px;
   line-height: 1.6;
 `
@@ -528,7 +522,7 @@ const ListsBtn = styled.button<{ $hasLists: boolean }>`
   gap: 6px;
   min-height: 40px;
   padding: 0 14px;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
@@ -563,7 +557,7 @@ const ListsBadge = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamilyMono};
   font-size: 10px;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 1px 7px;
   line-height: 1.6;
 `
@@ -581,7 +575,7 @@ const ListsPanel = styled.div<{ $top: number; $right: number }>`
   right: ${({ $right }) => $right}px;
   z-index: 9999;
   background: #fff;
-  border-radius: 0 0 14px 14px;
+  border-radius: 0 0 ${({ theme }) => theme.radii.lg} ${({ theme }) => theme.radii.lg};
   box-shadow: 0 12px 40px rgba(28,58,95,0.20), 0 2px 8px rgba(28,58,95,0.08);
   border: 1px solid rgba(28,58,95,0.08);
   width: 320px;
@@ -647,7 +641,7 @@ const ListRow = styled.div`
 
 const ListRowIcon = styled.div`
   width: 34px; height: 34px;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: rgba(201,168,76,0.12);
   border: 1px solid rgba(201,168,76,0.3);
   display: flex; align-items: center; justify-content: center;
@@ -683,7 +677,7 @@ const ListRowDelete = styled.button`
   border: none;
   cursor: pointer;
   color: ${({ theme }) => theme.colors.gray[400]};
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
   flex-shrink: 0;
   font-size: 14px;
   transition: color 0.12s, background 0.12s;
@@ -737,7 +731,7 @@ const ConfirmCancel = styled.button`
   flex: 1;
   padding: 9px;
   border: 1.5px solid rgba(28,58,95,0.18);
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: transparent;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
@@ -753,7 +747,7 @@ const ConfirmDelete = styled.button`
   flex: 1;
   padding: 9px;
   border: none;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: #e24b4a;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
@@ -812,7 +806,7 @@ const BookRow = styled.div`
 
 const BookRowCover = styled.div`
   width: 32px; height: 44px;
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   background: ${({ theme }) => theme.colors.gray[100]};
   flex-shrink: 0;
   overflow: hidden;
@@ -858,7 +852,7 @@ const BookRowRemove = styled.button`
   border: none;
   cursor: pointer;
   color: ${({ theme }) => theme.colors.gray[400]};
-  border-radius: 5px;
+  border-radius: ${({ theme }) => theme.radii.md};
   flex-shrink: 0;
   font-size: 14px;
   transition: color 0.12s, background 0.12s;
@@ -882,7 +876,7 @@ const BookRowAddedBy = styled.span`
   font-size: 10px;
   color: #3d2f00;
   background: rgba(201,168,76,0.20);
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 1px 7px;
   margin-top: 2px;
 `
@@ -899,7 +893,7 @@ const PrenomsBar = styled.div`
 
 const PrenomChip = styled.button<{ $active: boolean }>`
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
   background: ${({ $active, theme }) => $active ? theme.colors.navy : '#fff'};
   color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.gray[600]};
@@ -923,7 +917,7 @@ const BookRowCartBtn = styled.button`
   border: none;
   cursor: pointer;
   color: #fff;
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
   flex-shrink: 0;
   transition: background 0.12s;
 
@@ -940,7 +934,7 @@ const AddAllBtn = styled.button`
   width: 100%;
   padding: 9px;
   border: none;
-  border-radius: 7px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.colors.navy};
   color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -961,7 +955,7 @@ const ExportCsvBtn = styled.button`
   margin-top: 7px;
   padding: 8px;
   border: 1.5px solid rgba(28,58,95,0.18);
-  border-radius: 7px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: transparent;
   color: ${({ theme }) => theme.colors.navy};
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -1012,6 +1006,17 @@ function IconBell() {
       stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
       <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+  )
+}
+
+function IconHelp() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
   )
 }
@@ -1253,15 +1258,14 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBooks, selUniverse, selGenre, selLangue, selPrix, selFormat])
 
-  /* close panel on outside click */
+  /* close panel on Escape (backdrop onClick gère le clic extérieur) */
   useEffect(() => {
     if (!showPanel) return
-    function handler(e: MouseEvent) {
-      if (containerRef.current?.contains(e.target as Node)) return
-      setShowPanel(false)
+    function handler(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowPanel(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
   }, [showPanel])
 
   function handleReset() {
@@ -1297,8 +1301,6 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
 
   return (
     <>
-      {showPanel && <MobileBackdrop onClick={() => setShowPanel(false)} aria-hidden="true" />}
-
       <HeaderBar>
         <LogoWrap>
           <BurgerBtn onClick={onBurgerClick} aria-label="Ouvrir le menu">
@@ -1308,7 +1310,7 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
         </LogoWrap>
 
         <SearchContainer ref={containerRef}>
-          <SearchWrap>
+          <SearchGroup>
             <SearchIconWrap><IconSearch /></SearchIconWrap>
             <SearchInput
               id="header-search-input"
@@ -1319,132 +1321,18 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
               onKeyDown={handleSearchKey}
               aria-label="Recherche globale"
             />
-          </SearchWrap>
-
-          <AdvancedBtn
-            $active={showPanel || activeCount > 0}
-            onClick={() => setShowPanel(v => !v)}
-            aria-label="Filtres avancés"
-            aria-expanded={showPanel}
-          >
-            <IconSliders />
-            <AdvBtnLabel>Filtres</AdvBtnLabel>
-            {activeCount > 0 && <ActiveBadge>{activeCount}</ActiveBadge>}
-          </AdvancedBtn>
-
-          {showPanel && (
-            <AdvancedPanel role="dialog" aria-label="Filtres de recherche avancée">
-
-              <MobilePanelTop>
-                <MobilePanelTitle>Filtres</MobilePanelTitle>
-                <ClosePanelBtn onClick={() => setShowPanel(false)} aria-label="Fermer les filtres">✕</ClosePanelBtn>
-              </MobilePanelTop>
-
-              <PanelScrollBody>
-                <PanelSection>
-                  <PanelLabel>Thématique</PanelLabel>
-                  <ChipGroup>
-                    {UNIVERSES.map(u => (
-                      <Chip
-                        key={u}
-                        $active={selUniverse.includes(u)}
-                        disabled={!availableUniverses.has(u)}
-                        onClick={() => {
-                          const next = toggle(selUniverse, u)
-                          setSelUniverse(next)
-                          if (!next.includes(u)) setSelGenre(prev => prev.filter(g => next.flatMap(nu => GENRE_BY_UNIVERSE[nu]).includes(g)))
-                        }}
-                      >
-                        {u}
-                      </Chip>
-                    ))}
-                  </ChipGroup>
-                </PanelSection>
-
-                {selUniverse.length > 0 && (
-                  <PanelSection>
-                    <PanelLabel>Genre</PanelLabel>
-                    <ChipGroup>
-                      {[...new Set(selUniverse.flatMap(u => GENRE_BY_UNIVERSE[u]))].map(g => (
-                        <Chip
-                          key={g}
-                          $active={selGenre.includes(g)}
-                          disabled={!availableGenres.has(g)}
-                          onClick={() => setSelGenre(toggle(selGenre, g))}
-                        >
-                          {g}
-                        </Chip>
-                      ))}
-                    </ChipGroup>
-                  </PanelSection>
-                )}
-
-                <PanelDivider />
-
-                <PanelSection>
-                  <PanelLabel>Langue</PanelLabel>
-                  <ChipGroup>
-                    {LANGUAGES.map(l => (
-                      <Chip
-                        key={l}
-                        $active={selLangue.includes(l)}
-                        disabled={!availableLangues.has(l)}
-                        onClick={() => setSelLangue(toggle(selLangue, l))}
-                      >
-                        {l}
-                      </Chip>
-                    ))}
-                  </ChipGroup>
-                </PanelSection>
-
-                <PanelSection>
-                  <PanelLabel>Prix</PanelLabel>
-                  <ChipGroup>
-                    {PRICE_RANGES.map(r => (
-                      <Chip
-                        key={r.label}
-                        $active={selPrix.includes(r.label)}
-                        disabled={!availablePrix.has(r.label)}
-                        onClick={() => setSelPrix(toggle(selPrix, r.label))}
-                      >
-                        {r.label}
-                      </Chip>
-                    ))}
-                  </ChipGroup>
-                </PanelSection>
-
-                <PanelSection>
-                  <PanelLabel>Format</PanelLabel>
-                  <ChipGroup>
-                    {FORMATS.map(f => (
-                      <Chip
-                        key={f}
-                        $active={selFormat.includes(f)}
-                        disabled={!availableFormats.has(f)}
-                        onClick={() => setSelFormat(toggle(selFormat, f))}
-                      >
-                        {f}
-                      </Chip>
-                    ))}
-                  </ChipGroup>
-                </PanelSection>
-
-                <PanelDivider />
-              </PanelScrollBody>
-
-              <PanelFooter>
-                <ResetLink onClick={handleReset}>Réinitialiser les filtres</ResetLink>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <ResultCount>
-                    {filteredCount}{' '}
-                    <ResultCountSub>ouvrage{filteredCount !== 1 ? 's' : ''}</ResultCountSub>
-                  </ResultCount>
-                  <ApplyBtn onClick={handleApply}>Voir les résultats</ApplyBtn>
-                </div>
-              </PanelFooter>
-
-            </AdvancedPanel>
-          )}
+            <SearchGroupDivider />
+            <FilterIconBtn
+              $active={showPanel || activeCount > 0}
+              onClick={() => setShowPanel(v => !v)}
+              aria-label="Filtres avancés"
+              aria-expanded={showPanel}
+            >
+              <IconSliders />
+              Filtres
+              {activeCount > 0 && <ActiveBadge>{activeCount}</ActiveBadge>}
+            </FilterIconBtn>
+          </SearchGroup>
         </SearchContainer>
 
         <RightSection>
@@ -1452,6 +1340,14 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
             <IconBell />
             {hasNotif && <NotifDot />}
           </NotifBtn>
+
+          <HelpBtn
+            onClick={() => navigate('/aide')}
+            aria-label="Aide"
+            title="Aide"
+          >
+            <IconHelp />
+          </HelpBtn>
 
           {/* ─ Bouton Listes ─ */}
           <ListsBtn
@@ -1480,6 +1376,125 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
           </CartBtn>
         </RightSection>
       </HeaderBar>
+
+      {showPanel && createPortal(
+        <FilterBackdrop onClick={() => setShowPanel(false)}>
+          <FilterModal
+            onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-label="Filtres de recherche avancée"
+          >
+            <FilterModalHeader>
+              <FilterModalTitle>Filtres de recherche</FilterModalTitle>
+              <FilterModalClose onClick={() => setShowPanel(false)} aria-label="Fermer les filtres">✕</FilterModalClose>
+            </FilterModalHeader>
+
+            <FilterModalBody>
+              <PanelSection>
+                <PanelLabel>Thématique</PanelLabel>
+                <ChipGroup>
+                  {UNIVERSES.map(u => (
+                    <Chip
+                      key={u}
+                      $active={selUniverse.includes(u)}
+                      disabled={!availableUniverses.has(u)}
+                      onClick={() => {
+                        const next = toggle(selUniverse, u)
+                        setSelUniverse(next)
+                        if (!next.includes(u)) setSelGenre(prev => prev.filter(g => next.flatMap(nu => GENRE_BY_UNIVERSE[nu]).includes(g)))
+                      }}
+                    >
+                      {u}
+                    </Chip>
+                  ))}
+                </ChipGroup>
+              </PanelSection>
+
+              {selUniverse.length > 0 && (
+                <PanelSection>
+                  <PanelLabel>Genre</PanelLabel>
+                  <ChipGroup>
+                    {[...new Set(selUniverse.flatMap(u => GENRE_BY_UNIVERSE[u]))].map(g => (
+                      <Chip
+                        key={g}
+                        $active={selGenre.includes(g)}
+                        disabled={!availableGenres.has(g)}
+                        onClick={() => setSelGenre(toggle(selGenre, g))}
+                      >
+                        {g}
+                      </Chip>
+                    ))}
+                  </ChipGroup>
+                </PanelSection>
+              )}
+
+              <PanelDivider />
+
+              <PanelSection>
+                <PanelLabel>Langue</PanelLabel>
+                <ChipGroup>
+                  {LANGUAGES.map(l => (
+                    <Chip
+                      key={l}
+                      $active={selLangue.includes(l)}
+                      disabled={!availableLangues.has(l)}
+                      onClick={() => setSelLangue(toggle(selLangue, l))}
+                    >
+                      {l}
+                    </Chip>
+                  ))}
+                </ChipGroup>
+              </PanelSection>
+
+              <PanelSection>
+                <PanelLabel>Prix</PanelLabel>
+                <ChipGroup>
+                  {PRICE_RANGES.map(r => (
+                    <Chip
+                      key={r.label}
+                      $active={selPrix.includes(r.label)}
+                      disabled={!availablePrix.has(r.label)}
+                      onClick={() => setSelPrix(toggle(selPrix, r.label))}
+                    >
+                      {r.label}
+                    </Chip>
+                  ))}
+                </ChipGroup>
+              </PanelSection>
+
+              <PanelSection>
+                <PanelLabel>Format</PanelLabel>
+                <ChipGroup>
+                  {FORMATS.map(f => (
+                    <Chip
+                      key={f}
+                      $active={selFormat.includes(f)}
+                      disabled={!availableFormats.has(f)}
+                      onClick={() => setSelFormat(toggle(selFormat, f))}
+                    >
+                      {f}
+                    </Chip>
+                  ))}
+                </ChipGroup>
+              </PanelSection>
+
+              <PanelDivider />
+            </FilterModalBody>
+
+            <FilterModalFooter>
+              <ResetLink onClick={handleReset}>Réinitialiser les filtres</ResetLink>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <ResultCount>
+                  {filteredCount}{' '}
+                  <ResultCountSub>ouvrage{filteredCount !== 1 ? 's' : ''}</ResultCountSub>
+                </ResultCount>
+                <ApplyBtn onClick={handleApply}>Voir les résultats</ApplyBtn>
+              </div>
+            </FilterModalFooter>
+          </FilterModal>
+        </FilterBackdrop>,
+        document.body
+      )}
 
       {showListsPanel && createPortal(
         <ListsPanel

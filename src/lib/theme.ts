@@ -60,14 +60,12 @@ export const theme = {
     '2xl':'48px',
     '3xl':'64px',
   },
-  /* Design plat assumé : radii sm/md/lg/xl = '0px', full = pill.
-     box-shadow: none !important dans index.css annule toute ombre globalement. */
   radii: {
-    sm:   '0px',
-    md:   '0px',
-    lg:   '0px',
-    xl:   '0px',
-    full: '9999px',
+    sm:   '4px',     // badges, tags, indicateurs
+    md:   '6px',     // boutons, inputs
+    lg:   '10px',    // cards
+    xl:   '14px',    // modals, grands panneaux
+    full: '9999px',  // pills, avatars
   },
   breakpoints: {
     mobile: '768px',
@@ -77,6 +75,8 @@ export const theme = {
     headerHeight:        '68px',
     mobileHeaderHeight:  '112px',
     bottomNavHeight:     '64px',
+    demoBannerHeight:    '34px',
+    footerHeight:        '48px',
   },
 } as const
 

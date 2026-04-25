@@ -1,17 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { MOCK_FACTURES, type Facture } from '@/data/mockFactures'
 import { openInvoicePDF } from '@/lib/invoicePdf'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 /* ── Helpers ── */
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-
-const fmtMois = (iso: string) =>
-  new Date(iso).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-
-const fmtMoisKey = (iso: string) => iso.slice(0, 7) // YYYY-MM
 
 /* ── Styled ── */
 const Page = styled.div`
@@ -46,21 +42,18 @@ const FiltersRow = styled.div`
   align-items: center;
 `
 
-const Select = styled.select`
-  height: 38px;
-  padding: 0 10px;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.gray[800]};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 0.875rem;
-  cursor: pointer;
-  min-width: 180px;
+/* ── Filtre date ── */
+const DateGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`
 
-  &:focus {
-    outline: 2px solid ${({ theme }) => theme.colors.navy};
-    outline-offset: -1px;
-  }
+const DateLabel = styled.span`
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  white-space: nowrap;
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
 `
 
 const SearchInput = styled.input`
@@ -71,7 +64,7 @@ const SearchInput = styled.input`
   color: ${({ theme }) => theme.colors.gray[800]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 0.875rem;
-  min-width: 220px;
+  min-width: 200px;
   flex: 1;
 
   &::placeholder { color: ${({ theme }) => theme.colors.gray[400]}; }
@@ -138,10 +131,16 @@ const Th = styled.th<ThProps>`
   user-select: none;
   cursor: ${({ $sortable }) => ($sortable ? 'pointer' : 'default')};
 
-  ${({ $sortable, $active, theme }) =>
+  ${({ $sortable, $active }) =>
     $sortable &&
     `&:hover { background: rgba(255,255,255,0.08); }
-     ${$active ? `background: rgba(255,255,255,0.12);` : ''}`}
+     ${$active ? 'background: rgba(255,255,255,0.12);' : ''}`}
+`
+
+const ThCheck = styled.th`
+  padding: 11px 14px;
+  width: 36px;
+  text-align: center;
 `
 
 const SortIcon = styled.span<{ $dir: 'asc' | 'desc' | null }>`
@@ -153,11 +152,12 @@ const SortIcon = styled.span<{ $dir: 'asc' | 'desc' | null }>`
 
 const Tbody = styled.tbody``
 
-const Tr = styled.tr`
+const Tr = styled.tr<{ $selected?: boolean }>`
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  background: ${({ $selected, theme }) => $selected ? theme.colors.accentLight : 'transparent'};
 
   &:last-child { border-bottom: none; }
-  &:hover { background: ${({ theme }) => theme.colors.gray[50]}; }
+  &:hover { background: ${({ $selected, theme }) => $selected ? theme.colors.accentLight : theme.colors.gray[50]}; }
 `
 
 const Td = styled.td`
@@ -166,11 +166,75 @@ const Td = styled.td`
   vertical-align: middle;
 `
 
+const TdCheck = styled.td`
+  padding: 11px 14px;
+  text-align: center;
+  vertical-align: middle;
+  width: 36px;
+`
+
 const TdMono = styled(Td)`
   font-family: ${({ theme }) => theme.typography.fontFamilyMono};
   font-size: 0.8125rem;
   color: ${({ theme }) => theme.colors.gray[600]};
   letter-spacing: 0.01em;
+`
+
+const Checkbox = styled.input.attrs({ type: 'checkbox' })`
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: ${({ theme }) => theme.colors.navy};
+`
+
+/* Checkbox visible sur fond navy (header) */
+const HeaderCheckbox = styled.input.attrs({ type: 'checkbox' })`
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  display: block;
+
+  &:checked {
+    background: ${({ theme }) => theme.colors.accent};
+    border-color: ${({ theme }) => theme.colors.accent};
+    &::after {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: -1px;
+      width: 5px;
+      height: 9px;
+      border: 2px solid #232f3e;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+  }
+
+  &:indeterminate {
+    background: ${({ theme }) => theme.colors.accent};
+    border-color: ${({ theme }) => theme.colors.accent};
+    &::after {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 5px;
+      width: 7px;
+      height: 2px;
+      background: #232f3e;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.accent};
+    outline-offset: 2px;
+  }
 `
 
 const EmptyRow = styled.tr``
@@ -197,10 +261,7 @@ const PdfBtn = styled.button`
   letter-spacing: 0.3px;
   white-space: nowrap;
 
-  &:hover {
-    background: #fdf2f2;
-    border-color: ${({ theme }) => theme.colors.error};
-  }
+  &:hover { background: #fdf2f2; border-color: ${({ theme }) => theme.colors.error}; }
   &:active { opacity: 0.85; }
 `
 
@@ -241,9 +302,7 @@ const PageBtn = styled.button<PageBtnProps>`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 0.8125rem;
   font-weight: ${({ $active, theme }) =>
-    $active
-      ? theme.typography.weights.semibold
-      : theme.typography.weights.normal};
+    $active ? theme.typography.weights.semibold : theme.typography.weights.normal};
   cursor: ${({ $disabled }) => ($disabled ? 'not-allowed' : 'pointer')};
   opacity: ${({ $disabled }) => ($disabled ? 0.35 : 1)};
 
@@ -253,7 +312,7 @@ const PageBtn = styled.button<PageBtnProps>`
   }
 `
 
-/* ── Icône PDF ── */
+/* ── Icônes ── */
 function IconPDF() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -266,11 +325,12 @@ function IconPDF() {
   )
 }
 
-/* ── Constante ── */
+
+/* ── Constantes ── */
 const PAGE_SIZE = 10
 
-type SortKey    = 'date' | 'numero'
-type SortDir    = 'asc'  | 'desc'
+type SortKey = 'date' | 'numero'
+type SortDir = 'asc' | 'desc'
 
 /* ════════════════════════════════════════════════════════
    Composant principal
@@ -283,19 +343,19 @@ export function FacturationPage() {
     [user?.codeClient],
   )
 
-  /* ── Dérivation des options mois (ordre antechronologique) ── */
-  const moisOptions = useMemo(() => {
-    const keys = Array.from(new Set(allFactures.map(f => fmtMoisKey(f.date))))
-      .sort((a, b) => b.localeCompare(a))
-    return keys.map(k => ({ key: k, label: fmtMois(k + '-01') }))
-  }, [allFactures])
+  /* ── Ref pour le checkbox "tout sélectionner" ── */
+  const refSelectAll = useRef<HTMLInputElement>(null)
 
   /* ── État filtres / tri / pagination ── */
-  const [moisFilter, setMoisFilter] = useState('')
-  const [search,     setSearch]     = useState('')
-  const [sortKey,    setSortKey]    = useState<SortKey>('date')
-  const [sortDir,    setSortDir]    = useState<SortDir>('desc')
-  const [page,       setPage]       = useState(1)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo,   setDateTo]   = useState('')
+  const [search,   setSearch]   = useState('')
+  const [sortKey,  setSortKey]  = useState<SortKey>('date')
+  const [sortDir,  setSortDir]  = useState<SortDir>('desc')
+  const [page,     setPage]     = useState(1)
+
+  /* ── Sélection pour export ── */
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   /* ── Tri toggle ── */
   function handleSort(key: SortKey) {
@@ -312,9 +372,8 @@ export function FacturationPage() {
   const filtered = useMemo(() => {
     let list = [...allFactures]
 
-    if (moisFilter) {
-      list = list.filter(f => fmtMoisKey(f.date) === moisFilter)
-    }
+    if (dateFrom) list = list.filter(f => f.date >= dateFrom)
+    if (dateTo)   list = list.filter(f => f.date <= dateTo)
     if (search.trim()) {
       const q = search.trim().toLowerCase()
       list = list.filter(f => f.numero.toLowerCase().includes(q))
@@ -328,25 +387,70 @@ export function FacturationPage() {
     })
 
     return list
-  }, [allFactures, moisFilter, search, sortKey, sortDir])
+  }, [allFactures, dateFrom, dateTo, search, sortKey, sortDir])
+
+  /* ── Ref pour lire filtered dans les effects sans dépendance ── */
+  const filteredRef = useRef(filtered)
+  filteredRef.current = filtered
+
+  /* ── Auto-sélection quand le filtre date change ── */
+  useEffect(() => {
+    setPage(1)
+    if (dateFrom || dateTo) {
+      setSelectedIds(new Set(filteredRef.current.map(f => f.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }, [dateFrom, dateTo])
+
+  /* ── Reset sélection quand la recherche change ── */
+  useEffect(() => { setSelectedIds(new Set()); setPage(1) }, [search])
+
+  /* ── État du checkbox "tout sélectionner" ── */
+  const allFilteredSelected = filtered.length > 0 && filtered.every(f => selectedIds.has(f.id))
+  const someSelected        = filtered.some(f => selectedIds.has(f.id))
+
+  useEffect(() => {
+    if (!refSelectAll.current) return
+    refSelectAll.current.indeterminate = someSelected && !allFilteredSelected
+  }, [someSelected, allFilteredSelected])
+
+  function toggleSelectAll() {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filtered.map(f => f.id)))
+    }
+  }
+
+  function toggleRow(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
 
   /* ── Pagination ── */
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
   const pageItems   = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
-  function goToPage(p: number) {
-    setPage(Math.max(1, Math.min(p, totalPages)))
-  }
+  function goToPage(p: number) { setPage(Math.max(1, Math.min(p, totalPages))) }
 
-  /* ── Reset page quand les filtres changent ── */
-  function handleMoisChange(v: string) { setMoisFilter(v); setPage(1) }
-  function handleSearchChange(v: string) { setSearch(v); setPage(1) }
+  /* ── Handlers filtres ── */
+  function handleDateFrom(v: string) { setDateFrom(v) }
+  function handleDateTo(v: string)   { setDateTo(v) }
+  function handleSearch(v: string)   { setSearch(v) }
 
   /* ── Export CSV ── */
   function exportCSV() {
+    const source = selectedIds.size > 0
+      ? filtered.filter(f => selectedIds.has(f.id))
+      : filtered
+
     const headers = ['Numéro', 'Date émission', 'Date échéance', 'Date livraison', 'Réf. commande', 'Net HT (€)', 'TVA (€)', 'Total TTC (€)', 'Mode paiement', 'Conditions']
-    const rows = filtered.map(f => [
+    const rows = source.map(f => [
       f.numero,
       fmtDate(f.date),
       fmtDate(f.dateEcheance),
@@ -358,12 +462,16 @@ export function FacturationPage() {
       f.modePaiement,
       f.conditionsPaiement,
     ])
+
     const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(';')).join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
     a.href     = url
-    a.download = moisFilter ? `factures_${moisFilter}.csv` : 'factures.csv'
+
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '_')
+    a.download = `Facture_${today}.csv`
+
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -391,6 +499,10 @@ export function FacturationPage() {
     return range
   }, [currentPage, totalPages])
 
+  const exportLabel = selectedIds.size > 0
+    ? `Export CSV (${selectedIds.size} sélectionnée${selectedIds.size > 1 ? 's' : ''})`
+    : 'Export CSV'
+
   /* ── Rendu ── */
   return (
     <Page>
@@ -401,22 +513,31 @@ export function FacturationPage() {
 
       {/* Filtres */}
       <FiltersRow>
-        <Select
-          value={moisFilter}
-          onChange={e => handleMoisChange(e.target.value)}
-          aria-label="Filtrer par mois"
-        >
-          <option value="">Tous les mois</option>
-          {moisOptions.map(({ key, label }) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </Select>
+        {/* Du */}
+        <DateGroup>
+          <DateLabel>Du</DateLabel>
+          <DatePicker
+            value={dateFrom}
+            onChange={handleDateFrom}
+            max={dateTo || undefined}
+          />
+        </DateGroup>
+
+        {/* Au */}
+        <DateGroup>
+          <DateLabel>Au</DateLabel>
+          <DatePicker
+            value={dateTo}
+            onChange={handleDateTo}
+            min={dateFrom || undefined}
+          />
+        </DateGroup>
 
         <SearchInput
           type="search"
           placeholder="Rechercher un numéro de facture…"
           value={search}
-          onChange={e => handleSearchChange(e.target.value)}
+          onChange={e => handleSearch(e.target.value)}
           aria-label="Rechercher par numéro de facture"
         />
 
@@ -424,11 +545,13 @@ export function FacturationPage() {
           {filtered.length} facture{filtered.length !== 1 ? 's' : ''}
         </ResultCount>
 
-        <ExportBtn type="button" onClick={exportCSV} title="Exporter en CSV" aria-label="Exporter les factures en CSV">
+        <ExportBtn type="button" onClick={exportCSV} aria-label="Exporter les factures en CSV">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          Export CSV
+          {exportLabel}
         </ExportBtn>
       </FiltersRow>
 
@@ -437,6 +560,14 @@ export function FacturationPage() {
         <Table>
           <Thead>
             <tr>
+              <ThCheck>
+                <HeaderCheckbox
+                  ref={refSelectAll}
+                  checked={allFilteredSelected}
+                  onChange={toggleSelectAll}
+                  aria-label="Sélectionner toutes les factures"
+                />
+              </ThCheck>
               <Th
                 $sortable
                 $active={sortKey === 'date'}
@@ -460,34 +591,44 @@ export function FacturationPage() {
           <Tbody>
             {pageItems.length === 0 ? (
               <EmptyRow>
-                <EmptyTd colSpan={4}>
+                <EmptyTd colSpan={5}>
                   Aucune facture ne correspond à votre recherche.
                 </EmptyTd>
               </EmptyRow>
             ) : (
-              pageItems.map(f => (
-                <Tr key={f.id}>
-                  <Td>{fmtDate(f.date)}</Td>
-                  <TdMono>{f.numero}</TdMono>
-                  <Td>
-                    {f.totalTTC.toLocaleString('fr-FR', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })} €
-                  </Td>
-                  <Td>
-                    <PdfBtn
-                      type="button"
-                      onClick={() => openInvoicePDF(f)}
-                      aria-label={`Ouvrir la facture ${f.numero} en PDF`}
-                      title={`Ouvrir la facture ${f.numero}`}
-                    >
-                      <IconPDF />
-                      PDF
-                    </PdfBtn>
-                  </Td>
-                </Tr>
-              ))
+              pageItems.map(f => {
+                const isSelected = selectedIds.has(f.id)
+                return (
+                  <Tr key={f.id} $selected={isSelected}>
+                    <TdCheck>
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => toggleRow(f.id)}
+                        aria-label={`Sélectionner la facture ${f.numero}`}
+                      />
+                    </TdCheck>
+                    <Td>{fmtDate(f.date)}</Td>
+                    <TdMono>{f.numero}</TdMono>
+                    <Td>
+                      {f.totalTTC.toLocaleString('fr-FR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })} €
+                    </Td>
+                    <Td>
+                      <PdfBtn
+                        type="button"
+                        onClick={() => openInvoicePDF(f)}
+                        aria-label={`Ouvrir la facture ${f.numero} en PDF`}
+                        title={`Ouvrir la facture ${f.numero}`}
+                      >
+                        <IconPDF />
+                        PDF
+                      </PdfBtn>
+                    </Td>
+                  </Tr>
+                )
+              })
             )}
           </Tbody>
         </Table>
@@ -497,10 +638,10 @@ export function FacturationPage() {
           <PaginationBar>
             <PaginationInfo>
               Page {currentPage} / {totalPages} — {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
+              {selectedIds.size > 0 && ` — ${selectedIds.size} sélectionnée${selectedIds.size > 1 ? 's' : ''}`}
             </PaginationInfo>
 
             <PaginationBtns>
-              {/* Première page */}
               <PageBtn
                 type="button"
                 onClick={() => goToPage(1)}
@@ -508,10 +649,7 @@ export function FacturationPage() {
                 disabled={currentPage === 1}
                 title="Première page"
                 aria-label="Aller à la première page"
-              >
-                «
-              </PageBtn>
-              {/* Page précédente */}
+              >«</PageBtn>
               <PageBtn
                 type="button"
                 onClick={() => goToPage(currentPage - 1)}
@@ -519,16 +657,11 @@ export function FacturationPage() {
                 disabled={currentPage === 1}
                 title="Page précédente"
                 aria-label="Page précédente"
-              >
-                ‹
-              </PageBtn>
+              >‹</PageBtn>
 
-              {/* Numéros de pages */}
               {pageNumbers.map((p, i) =>
                 p === '…' ? (
-                  <PageBtn key={`ellipsis-${i}`} $disabled disabled style={{ cursor: 'default' }}>
-                    …
-                  </PageBtn>
+                  <PageBtn key={`ellipsis-${i}`} $disabled disabled style={{ cursor: 'default' }}>…</PageBtn>
                 ) : (
                   <PageBtn
                     key={p}
@@ -537,13 +670,10 @@ export function FacturationPage() {
                     onClick={() => goToPage(p as number)}
                     aria-label={`Page ${p}`}
                     aria-current={p === currentPage ? 'page' : undefined}
-                  >
-                    {p}
-                  </PageBtn>
+                  >{p}</PageBtn>
                 ),
               )}
 
-              {/* Page suivante */}
               <PageBtn
                 type="button"
                 onClick={() => goToPage(currentPage + 1)}
@@ -551,10 +681,7 @@ export function FacturationPage() {
                 disabled={currentPage === totalPages}
                 title="Page suivante"
                 aria-label="Page suivante"
-              >
-                ›
-              </PageBtn>
-              {/* Dernière page */}
+              >›</PageBtn>
               <PageBtn
                 type="button"
                 onClick={() => goToPage(totalPages)}
@@ -562,9 +689,7 @@ export function FacturationPage() {
                 disabled={currentPage === totalPages}
                 title="Dernière page"
                 aria-label="Aller à la dernière page"
-              >
-                »
-              </PageBtn>
+              >»</PageBtn>
             </PaginationBtns>
           </PaginationBar>
         )}

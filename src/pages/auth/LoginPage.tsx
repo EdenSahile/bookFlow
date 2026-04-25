@@ -35,7 +35,7 @@ const Overlay = styled.div`
 
 const Modal = styled.div`
   background: #fff;
-  border-radius: 16px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 32px 28px 24px;
   max-width: 360px;
   width: 100%;
@@ -73,7 +73,7 @@ const ModalClose = styled.button`
   background: ${({ theme }) => theme.colors.navy};
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   padding: 11px 32px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -154,7 +154,7 @@ export function LoginPage() {
         <div style={{
           background: '#FFF8E1',
           border: '1px solid #FFD54F',
-          borderRadius: '8px',
+          borderRadius: '6px',
           padding: '10px 14px',
           fontSize: '0.8125rem',
           color: '#5D4037',

@@ -17,7 +17,7 @@ const Panel = styled.div<{ $top: number; $left: number }>`
   width: 268px;
   background: #fff;
   border: 1.5px solid rgba(28, 58, 95, 0.14);
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: 0 8px 32px rgba(28, 58, 95, 0.18), 0 2px 8px rgba(28, 58, 95, 0.08);
   z-index: 9999;
   overflow: hidden;
@@ -43,7 +43,7 @@ const NameInput = styled.input`
   width: 100%;
   padding: 7px 10px;
   border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 7px;
+  border-radius: ${({ theme }) => theme.radii.md};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
   color: ${({ theme }) => theme.colors.navy};
@@ -154,7 +154,7 @@ const CreateInput = styled.input`
   flex: 1;
   padding: 7px 10px;
   border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 7px;
+  border-radius: ${({ theme }) => theme.radii.md};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
   color: ${({ theme }) => theme.colors.navy};
@@ -169,7 +169,7 @@ const CreateInput = styled.input`
 const CreateBtn = styled.button`
   padding: 7px 12px;
   border: none;
-  border-radius: 7px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.colors.navy};
   color: #fff;
   font-family: ${({ theme }) => theme.typography.fontFamily};

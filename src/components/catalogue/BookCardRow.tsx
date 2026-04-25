@@ -80,7 +80,7 @@ function fictiveId(isbn: string) {
 const Card = styled.article<{ $mode: Mode }>`
   background: ${({ $mode }) => $mode === 'ebook' ? '#EDF4FF' : '#FFFFFF'};
   border: 1px solid ${({ $mode }) => $mode === 'ebook' ? '#BEDAFF' : '#E6E1DA'};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   overflow: hidden;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   transition: box-shadow 0.15s, background-color 0.25s, border-color 0.25s;
@@ -219,7 +219,7 @@ const TypeBadge = styled.span<{ $bg: string; $color: string }>`
   font-weight: 700;
   background: ${({ $bg }) => $bg};
   color: ${({ $color }) => $color};
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   padding: 2px 7px;
   letter-spacing: 0.05em;
 `
@@ -229,7 +229,7 @@ const EbookBadge = styled.span`
   font-weight: 700;
   background: ${({ theme }) => theme.colors.success};
   color: #fff;
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   padding: 2px 7px;
   letter-spacing: 0.05em;
 `
@@ -261,7 +261,7 @@ const PartenaireLink = styled.a<{ $color: string }>`
   margin-top: 8px;
   align-self: flex-start;
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   background: ${({ $color }) => $color}15;
   border: 1px solid ${({ $color }) => $color}40;
   font-size: 11px;
@@ -373,7 +373,7 @@ const DropdownTrigger = styled.button<{ $open: boolean; $isEbook: boolean }>`
   }
   padding: 0 36px 0 14px;
   border: 1.5px solid ${({ $open, $isEbook, theme }) => $open ? theme.colors.navy : $isEbook ? '#BEDAFF' : '#D8D3CC'};
-  border-radius: 7px;
+  border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ $isEbook }) => $isEbook ? '#EDF4FF' : '#fff'};
   color: ${({ theme }) => theme.colors.navy};
   font-family: inherit;
@@ -419,7 +419,7 @@ const DropdownPanel = styled.div<{ $top: number; $left: number }>`
   width: 447px;
   background: #fff;
   border: 1.5px solid ${({ theme }) => theme.colors.navy};
-  border-radius: 9px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: 0 8px 24px rgba(28,50,82,0.18);
   z-index: 9999;
   overflow: hidden;
@@ -520,7 +520,7 @@ const CtrlLabel = styled.span`
 const QtyInput = styled.input`
   width: 34px; height: 22px;
   border: 1px solid #E6E1DA;
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   text-align: center;
   font-size: 12px;
   font-weight: 600;
@@ -535,7 +535,7 @@ const QtyInput = styled.input`
 const AmBtn = styled.button`
   padding: 5px 14px;
   border: none;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   background: ${({ theme }) => theme.colors.navy};
   color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -557,7 +557,7 @@ const StarRowWrap = styled.div`
 
 const StarRowBtn = styled.button<{ $active: boolean }>`
   width: 30px; height: 30px;
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
   border: 1.5px solid ${({ $active }) => $active ? 'rgba(201,168,76,0.5)' : 'rgba(28,58,95,0.15)'};
   background: ${({ $active }) => $active ? 'rgba(201,168,76,0.10)' : 'transparent'};
   cursor: pointer;
@@ -589,7 +589,7 @@ const AMOverlay = styled.div`
 
 const AMBox = styled.div`
   background: #fff;
-  border-radius: 14px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: 0 20px 60px rgba(10,20,40,0.25);
   width: 100%; max-width: 960px;
   max-height: 80vh;
@@ -598,7 +598,7 @@ const AMBox = styled.div`
 
   @media (max-width: 767px) {
     max-width: calc(100vw - 16px);
-    border-radius: 10px;
+    border-radius: ${({ theme }) => theme.radii.lg};
   }
 `
 
@@ -630,7 +630,7 @@ const AMHeadIsbn = styled.span`
 
 const AMCloseBtn = styled.button`
   background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 6px; color: rgba(255,255,255,0.8); font-size: 15px;
+  border-radius: ${({ theme }) => theme.radii.md}; color: rgba(255,255,255,0.8); font-size: 15px;
   width: 30px; height: 30px; cursor: pointer; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s;
@@ -672,7 +672,7 @@ const AMTd = styled.td<{ $right?: boolean; $bold?: boolean }>`
 const TypeBadgeAM = styled.span<{ $type: 'MONO' | 'AP' | 'SUITE' }>`
   display: inline-block;
   font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
-  border-radius: 3px; padding: 2px 7px;
+  border-radius: ${({ theme }) => theme.radii.sm}; padding: 2px 7px;
   background: ${({ $type }) =>
     $type === 'MONO'  ? '#EEF2FF' :
     $type === 'AP'    ? '#FFF3E0' :

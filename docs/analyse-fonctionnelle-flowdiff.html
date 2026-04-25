@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyse fonctionnelle — FlowDiff</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', serif;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 60px 72px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom: 2px solid #232f3e;
+      padding-bottom: 24px;
+      margin-bottom: 40px;
+    }
+
+    header .label {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #C9A84C;
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: normal;
+      color: #232f3e;
+      margin-bottom: 6px;
+    }
+
+    header .meta {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 11px;
+      color: #6B6B68;
+    }
+
+    section {
+      margin-bottom: 36px;
+    }
+
+    h2 {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #C9A84C;
+      margin-bottom: 16px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #EAEAE6;
+    }
+
+    h3 {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #232f3e;
+      margin-bottom: 6px;
+      margin-top: 20px;
+    }
+
+    h3:first-child {
+      margin-top: 0;
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .intro {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #232f3e;
+      border-left: 3px solid #C9A84C;
+      padding-left: 20px;
+      margin-bottom: 40px;
+      font-style: italic;
+    }
+
+    .points-forts {
+      background: #F4F4F0;
+      border-radius: 4px;
+      padding: 20px 24px;
+      margin-bottom: 36px;
+    }
+
+    .points-forts ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .points-forts ul li {
+      padding: 5px 0;
+      padding-left: 18px;
+      position: relative;
+      color: #333;
+    }
+
+    .points-forts ul li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #226241;
+      font-weight: bold;
+    }
+
+    .item {
+      margin-bottom: 22px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid #EAEAE6;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .priority {
+      display: inline-block;
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 2px;
+      margin-bottom: 6px;
+    }
+
+    .priority.haute {
+      background: #fdecea;
+      color: #C0392B;
+    }
+
+    .priority.moyenne {
+      background: #fff8e6;
+      color: #b07d00;
+    }
+
+    .priority.basse {
+      background: #E6EFE9;
+      color: #226241;
+    }
+
+    .conclusion {
+      background: #232f3e;
+      color: #fff;
+      padding: 28px 32px;
+      margin-top: 40px;
+      border-radius: 4px;
+    }
+
+    .conclusion h2 {
+      color: #C9A84C;
+      border-bottom-color: #42556c;
+    }
+
+    .conclusion p {
+      color: #e0e0e0;
+      font-size: 13px;
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 1px solid #EAEAE6;
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 10px;
+      color: #6B6B68;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media print {
+      body { padding: 40px 52px; }
+      .conclusion { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .priority { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .points-forts { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="label">Document interne — Confidentiel</div>
+    <h1>Analyse fonctionnelle de l'application FlowDiff</h1>
+    <div class="meta">Avril 2026 &nbsp;·&nbsp; Application B2B libraires &nbsp;·&nbsp; Point de vue direction commerciale</div>
+  </header>
+
+  <p class="intro">
+    L'application FlowDiff couvre l'essentiel du passage de commande et de la découverte catalogue.
+    Ce document identifie les points forts de la version actuelle, les fonctionnalités manquantes
+    et les axes d'amélioration prioritaires pour en faire un véritable outil de gestion
+    de la relation libraire.
+  </p>
+
+  <!-- POINTS FORTS -->
+  <section>
+    <h2>Points forts de la version actuelle</h2>
+    <div class="points-forts">
+      <ul>
+        <li>Commande directe des fonds et des nouveautés du mois, sans passer par un représentant</li>
+        <li>Remises personnalisées par librairie et par univers appliquées automatiquement</li>
+        <li>Séparation claire À paraître / Nouveautés — évite les commandes impossibles à honorer</li>
+        <li>Historique des commandes avec duplication en 1 clic — gain de temps réel</li>
+        <li>Flash Infos et Sélections éditoriales pour l'animation commerciale</li>
+        <li>Interface dédiée B2B — aucune confusion avec le grand public</li>
+        <li>Accès mobile responsive — utilisable en librairie depuis un téléphone</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FONCTIONNALITÉS MANQUANTES PRIORITAIRES -->
+  <section>
+    <h2>Fonctionnalités manquantes — priorité haute</h2>
+
+    <div class="item">
+      <div class="priority haute">Priorité haute</div>
+      <h3>Suivi de commande et de livraison</h3>
+      <p>Une fois la commande passée, le libraire n'a aucune visibilité : date d'expédition confirmée, numéro de suivi transporteur, état du colis. C'est la première source d'appels entrants dans n'importe quel service client de diffuseur. Sans ce suivi, l'app ne réduit pas la charge du SAV — elle la déplace.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority haute">Priorité haute</div>
+      <h3>Gestion des retours</h3>
+      <p>Les retours représentent structurellement 15 à 25 % du chiffre d'affaires dans la diffusion. Il faut pouvoir initier une demande de retour depuis l'app, obtenir un bon de retour, suivre l'état de l'avoir et consulter le solde retours/commandes. Aujourd'hui ce flux passe entièrement par téléphone ou email, ce qui est coûteux pour les deux parties.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority haute">Priorité haute</div>
+      <h3>Gestion des offices</h3>
+      <p>Pour un diffuseur, les offices (envois automatiques de nouveautés selon le profil de la librairie) représentent souvent la majorité du CA. Le libraire devrait pouvoir consulter son office du mois, valider ou refuser des titres, ajuster les quantités — avant expédition. Aujourd'hui ce processus est entièrement manuel et source de tensions.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority haute">Priorité haute</div>
+      <h3>Gestion des ruptures de stock et back-orders</h3>
+      <p>L'app affiche "disponible" ou "stock limité" mais si un titre passe en rupture entre la commande et l'expédition, le libraire n'est pas alerté. Il faut un mécanisme de notification de rupture, de proposition de substitution ou de commande en attente (back-order) avec date de réassort estimée.</p>
+    </div>
+
+  </section>
+
+  <!-- FONCTIONNALITÉS MANQUANTES MOYENNES -->
+  <section>
+    <h2>Fonctionnalités manquantes — priorité moyenne</h2>
+
+    <div class="item">
+      <div class="priority moyenne">Priorité moyenne</div>
+      <h3>Tableau de bord commercial du libraire</h3>
+      <p>Le libraire ne peut pas visualiser ses propres statistiques : CA mensuel par univers, évolution vs N-1, top titres commandés, taux de rotation. Ces données aident à fidéliser le compte et à orienter les commandes. C'est aussi un argument de différenciation fort vis-à-vis des concurrents qui n'offrent pas ce niveau de transparence.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority moyenne">Priorité moyenne</div>
+      <h3>Visibilité sur le représentant commercial</h3>
+      <p>Le libraire voit ses remises mais ne sait pas qui est son représentant, quand il passe dans sa région, ni comment le joindre directement. La relation humaine est au cœur du métier de la diffusion — l'app devrait la renforcer, pas l'invisibiliser. Un profil rep avec photo, zone, et planning de visites serait un vrai plus.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority moyenne">Priorité moyenne</div>
+      <h3>Conditions commerciales complètes</h3>
+      <p>Le libraire voit ses remises appliquées ligne à ligne, mais pas son contrat commercial dans son ensemble : seuils de remise par palier, conditions de port franco, délais de paiement, échéances habituelles. L'opacité sur ces points est régulièrement source de litiges et d'appels au service client.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority moyenne">Priorité moyenne</div>
+      <h3>Commande rapide par ISBN</h3>
+      <p>Les libraires expérimentés connaissent leurs ISBN. Pouvoir saisir directement un ou plusieurs ISBN pour ajouter au panier — sans passer par la recherche catalogue — accélère considérablement la prise de commande, notamment pour les réassorts urgents.</p>
+    </div>
+
+  </section>
+
+  <!-- AMÉLIORATIONS DE L'EXISTANT -->
+  <section>
+    <h2>Améliorations de l'existant</h2>
+
+    <div class="item">
+      <div class="priority basse">Amélioration</div>
+      <h3>Alertes et notifications push</h3>
+      <p>Les Flash Infos existent mais sont passives. Le libraire devrait pouvoir recevoir des alertes pour : nouveau titre disponible dans son univers préféré, stock limité sur un titre en wishlist, confirmation d'expédition, promo flash sur le fonds. Les paramètres de notifications par univers sont déjà prévus — il faut les connecter à de vraies notifications.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority basse">Amélioration</div>
+      <h3>Bande annonce et contenu éditorial enrichi</h3>
+      <p>Le lecteur vidéo est prévu mais les fiches produit restent minimalistes. Ajouter les 4e de couverture complètes, les extraits, les notes de lecture des représentants, et les avis presse renforcerait l'aide à la décision d'achat — surtout pour les titres de fonds moins connus.</p>
+    </div>
+
+    <div class="item">
+      <div class="priority basse">Amélioration</div>
+      <h3>Export des commandes et factures</h3>
+      <p>La page de facturation avec export CSV est un bon début. Il faudrait ajouter l'export en format compatible avec les logiciels de caisse utilisés en librairie (Electre, Dilicom) pour éviter les ressaisies manuelles — c'est une demande récurrente dans le secteur.</p>
+    </div>
+
+  </section>
+
+  <!-- CONCLUSION -->
+  <div class="conclusion">
+    <h2>Conclusion</h2>
+    <p>
+      L'application FlowDiff est un outil solide pour la phase de découverte et de commande. Elle remplace efficacement le catalogue papier et fluidifie la prise de commande directe.
+    </p>
+    <p style="margin-top: 12px;">
+      Mais pour un usage professionnel quotidien, il manque tout ce qui se passe <em>après</em> la commande — suivi, livraison, retours, offices — et <em>autour</em> de la relation commerciale — représentants, statistiques, conditions. C'est là que se gagne la fidélisation d'un compte libraire et la réduction des coûts de service client.
+    </p>
+    <p style="margin-top: 12px;">
+      La prochaine phase de développement devrait prioriser dans cet ordre : suivi de livraison, gestion des retours, puis offices. Le reste peut suivre en itérations successives.
+    </p>
+  </div>
+
+  <footer>
+    <span>FlowDiff — Application B2B libraires</span>
+    <span>Analyse fonctionnelle — Avril 2026</span>
+  </footer>
+
+</body>
+</html>

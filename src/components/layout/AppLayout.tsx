@@ -6,6 +6,7 @@ import { BottomNav } from './BottomNav'
 import { Sidebar } from './Sidebar'
 import { BurgerMenu } from './BurgerMenu'
 import { DemoBanner } from '@/components/ui/DemoBanner'
+import { AppFooter } from './AppFooter'
 import { useCart } from '@/contexts/CartContext'
 
 const LayoutRoot = styled.div`
@@ -14,14 +15,20 @@ const LayoutRoot = styled.div`
 `
 
 const Main = styled.main`
-  padding-top: ${({ theme }) => theme.layout.mobileHeaderHeight};
+  padding-top: calc(
+    ${({ theme }) => theme.layout.mobileHeaderHeight} +
+    ${({ theme }) => theme.layout.demoBannerHeight}
+  );
   padding-bottom: ${({ theme }) => theme.layout.bottomNavHeight};
   min-height: 100vh;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    padding-top: ${({ theme }) => theme.layout.headerHeight};
+    padding-top: calc(
+      ${({ theme }) => theme.layout.headerHeight} +
+      ${({ theme }) => theme.layout.demoBannerHeight}
+    );
     padding-left: ${({ theme }) => theme.layout.sidebarWidth};
-    padding-bottom: 0;
+    padding-bottom: ${({ theme }) => theme.layout.footerHeight};
   }
 `
 
@@ -43,11 +50,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         onBurgerClick={() => setMenuOpen(true)}
         onCartClick={() => navigate('/panier')}
       />
+      <DemoBanner />
       <Main>
         {children}
-        <DemoBanner />
       </Main>
       <BottomNav />
+      <AppFooter />
     </LayoutRoot>
   )
 }

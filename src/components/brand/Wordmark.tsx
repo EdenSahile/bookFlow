@@ -50,7 +50,7 @@ const ProTag = styled.span<{ $size: WordmarkSize }>`
   color: #E89B2E;
   padding: ${({ $size }) => sizes[$size].tagPad};
   border: ${({ $size }) => sizes[$size].tagBorder} solid #E89B2E;
-  border-radius: 3px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   line-height: 1;
   flex-shrink: 0;
 `

@@ -83,7 +83,7 @@ const BackButton = styled.button`
 
 const Wrap = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border-radius: 18px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   box-shadow: 0 6px 32px rgba(28,58,95,0.11), 0 1px 4px rgba(28,58,95,0.06);
   overflow: hidden;
   border: 1px solid rgba(28,58,95,0.07);
@@ -120,7 +120,7 @@ const CoverCol = styled.div`
 `
 
 const CoverShadow = styled.div`
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   box-shadow: 6px 10px 28px rgba(28,58,95,0.25);
   overflow: hidden;
   flex-shrink: 0;
@@ -144,7 +144,7 @@ const SecBtn = styled.button`
   padding: 9px 12px;
   background: rgba(255,255,255,0.75);
   border: 1px solid rgba(28,58,95,0.12);
-  border-radius: 9px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
   font-weight: 500;
@@ -187,7 +187,7 @@ const UniverseBadge = styled.span<{ $color: string }>`
   align-items: center;
   gap: 6px;
   padding: 4px 11px;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   background: ${({ $color }) => $color}18;
   border: 1px solid ${({ $color }) => $color}35;
   font-size: 11px;
@@ -205,7 +205,7 @@ const UniverseBadge = styled.span<{ $color: string }>`
 
 const TypeBadge = styled.span<{ $type: string }>`
   padding: 4px 11px;
-  border-radius: 20px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   font-size: 11px;
   font-weight: 700;
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -241,7 +241,7 @@ const MetaGrid = styled.dl`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   background: ${({ theme }) => theme.colors.gray[50]};
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 14px 16px;
 `
 
@@ -295,7 +295,7 @@ const FormatPill = styled.button<{ $active: boolean }>`
   align-items: flex-start;
   gap: 3px;
   padding: 13px 18px;
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   border: 2px solid ${({ $active, theme }) => $active ? theme.colors.navy : '#E0DBD4'};
   background: ${({ $active }) => $active ? '#EEF2FA' : '#FAFAF8'};
   cursor: pointer;
@@ -426,7 +426,7 @@ const QtyControl = styled.div`
   display: flex;
   align-items: center;
   border: 2px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   overflow: hidden;
   background: ${({ theme }) => theme.colors.gray[50]};
 `
@@ -461,7 +461,7 @@ const AddBtn = styled.button<{ $added: boolean }>`
   min-width: 200px;
   height: 48px;
   border: none;
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   background: ${({ $added, theme }) => $added ? theme.colors.primaryHover : theme.colors.primary};
   color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -494,7 +494,7 @@ const ParaitreNotice = styled.div`
   background: #FFF3E0;
   border: 1px solid #E65100;
   border-left: 4px solid #E65100;
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 12px 16px;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
@@ -512,7 +512,7 @@ const ContactRepBtn = styled.button`
   gap: 8px;
   padding: 12px 20px;
   border: none;
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   background: ${({ theme }) => theme.colors.navy};
   color: #fdfdfd;
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -554,7 +554,7 @@ const ModalOverlay = styled.div`
 
 const ModalBox = styled.div`
   background: #fff;
-  border-radius: 18px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   box-shadow: 0 24px 64px rgba(10,18,35,0.30);
   display: flex;
   flex-direction: column;
@@ -577,7 +577,7 @@ const PdfHeader = styled.div`
   padding: 14px 20px;
   border-bottom: 1px solid #EDE9E2;
   background: ${({ theme }) => theme.colors.navy};
-  border-radius: 18px 18px 0 0;
+  border-radius: ${({ theme }) => theme.radii.xl} ${({ theme }) => theme.radii.xl} 0 0;
 `
 
 const PdfHeaderTitle = styled.span`
@@ -598,7 +598,7 @@ const ModalCloseBtn = styled.button`
   width: 30px; height: 30px;
   background: rgba(255,255,255,0.15);
   border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   color: #fff;
   font-size: 14px;
   cursor: pointer;
@@ -625,7 +625,7 @@ const PdfPage = styled.div`
   min-height: 480px;
   background: #fff;
   margin: 24px auto;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   box-shadow: 0 4px 24px rgba(0,0,0,0.15);
   padding: 36px 40px;
   font-family: Georgia, serif;
@@ -765,13 +765,13 @@ const PdfNav = styled.div`
   padding: 12px 20px;
   border-top: 1px solid #EDE9E2;
   background: #FAFAF8;
-  border-radius: 0 0 18px 18px;
+  border-radius: 0 0 ${({ theme }) => theme.radii.xl} ${({ theme }) => theme.radii.xl};
 `
 
 const NavArrow = styled.button<{ $disabled?: boolean }>`
   width: 40px; height: 40px;
   border: 1.5px solid ${({ $disabled, theme }) => $disabled ? '#E6E1DA' : theme.colors.navy};
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   background: ${({ $disabled }) => $disabled ? '#F5F2EE' : '#fff'};
   color: ${({ $disabled, theme }) => $disabled ? '#D5CFC7' : theme.colors.navy};
   font-size: 16px;
@@ -796,7 +796,7 @@ const PageDots = styled.div`
 const PageDot = styled.span<{ $active: boolean }>`
   width: ${({ $active }) => $active ? '20px' : '7px'};
   height: 7px;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   background: ${({ $active, theme }) => $active ? theme.colors.navy : '#D5CFC7'};
   transition: all 0.2s ease;
 `
@@ -822,7 +822,7 @@ const VideoThumb = styled.div`
   width: 100%;
   aspect-ratio: 16/9;
   background: linear-gradient(135deg, #0F0F0F 0%, #1A1A2E 50%, #16213E 100%);
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -877,7 +877,7 @@ const YtBrand = styled.div`
   align-items: center;
   gap: 5px;
   background: rgba(0,0,0,0.55);
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
   padding: 3px 8px;
 `
 
@@ -914,7 +914,7 @@ const VideoUrlRow = styled.div`
   gap: 8px;
   background: ${({ theme }) => theme.colors.gray[50]};
   border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   padding: 9px 12px;
 `
 
@@ -936,7 +936,7 @@ const YtOpenBtn = styled.a`
   padding: 10px 18px;
   background: #FF0000;
   color: #fff;
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: 700;

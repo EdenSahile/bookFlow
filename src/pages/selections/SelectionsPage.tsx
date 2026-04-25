@@ -284,7 +284,7 @@ const SectionCount = styled.span`
   font-weight: 600;
   background: ${({ theme }) => theme.colors.gray[100]};
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: ${({ theme }) => theme.radii.lg};
 `
 
 /* ── Scroll horizontal — 5 max visibles ── */
@@ -299,7 +299,7 @@ const HScroll = styled.div`
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
     background: ${({ theme }) => theme.colors.gray[200]};
-    border-radius: 4px;
+    border-radius: ${({ theme }) => theme.radii.sm};
   }
 `
 
@@ -307,7 +307,7 @@ const HScroll = styled.div`
 const Tile = styled.button`
   position: relative;
   border: none;
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   overflow: hidden;
   /* ~5 tiles visibles dans 900px : (900 - 32*2 - 14*4) / 5 ≈ 150px */
   width: 148px;
@@ -404,7 +404,7 @@ const PrixBadge = styled.div`
   font-size: 9px;
   font-weight: 800;
   padding: 3px 7px;
-  border-radius: 5px;
+  border-radius: ${({ theme }) => theme.radii.md};
   z-index: 3;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -426,7 +426,7 @@ const MiniPLV = styled.div`
   width: 92px;
   flex-shrink: 0;
   background: ${({ theme }) => theme.colors.navy};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -493,7 +493,7 @@ const MiniPLVSerieLabel = styled.div`
 const OPInfoCard = styled.div`
   flex: 1;
   background: linear-gradient(135deg, #E8960C 0%, #C47A08 100%);
-  border-radius: 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 11px 14px 12px;
   display: flex;
   flex-direction: column;
@@ -516,7 +516,7 @@ const OPInfoTag = styled.div`
   letter-spacing: 0.10em;
   text-transform: uppercase;
   padding: 2px 7px;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
 `
 
 const OPInfoValidity = styled.div`
@@ -883,7 +883,7 @@ const Badge = styled.span<{ $color: string; $bg: string }>`
   color: ${({ $color }) => $color};
   background: ${({ $bg }) => $bg};
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.sm};
 `
 
 const AddAllButton = styled.button`
@@ -994,7 +994,7 @@ const PriceBadge = styled.div`
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
 `
 
 const ResultCount = styled.div`

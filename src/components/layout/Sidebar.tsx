@@ -96,7 +96,7 @@ const StyledNavLink = styled(NavLink)`
   font-size: 13px;
   font-weight: ${({ theme }) => theme.typography.weights.normal};
   border-left: 2px solid transparent;
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
   transition: color 0.15s ease, background-color 0.15s ease;
   margin: 1px 0;
 
@@ -121,7 +121,7 @@ const StyledNavLink = styled(NavLink)`
     font-weight: ${({ theme }) => theme.typography.weights.medium};
     background-color: rgba(201,168,76,0.12);
     border-left: 2px solid ${GOLD};
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 ${({ theme }) => theme.radii.md} ${({ theme }) => theme.radii.md} 0;
     padding-left: 8px; /* calc(10px - 2px) */
 
     &::before {
@@ -158,7 +158,7 @@ const LogoutBtn = styled.button`
   font-size: 12px;
   font-weight: ${({ theme }) => theme.typography.weights.medium};
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: ${({ theme }) => theme.radii.md};
   text-align: left;
   transition: color 0.15s ease, background-color 0.15s ease;
 
@@ -184,7 +184,7 @@ const ConfirmOverlay = styled.div`
 `
 const ConfirmBox = styled.div`
   background: #fff;
-  border-radius: 16px;
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 28px 24px 20px;
   max-width: 320px;
   width: 100%;
@@ -202,15 +202,15 @@ const ConfirmIconWrap = styled.div`
 const ConfirmTitle = styled.p`font-size:1rem;font-weight:700;color:#111;margin-bottom:6px;`
 const ConfirmBody  = styled.p`font-size:.875rem;color:#666;line-height:1.5;margin-bottom:20px;`
 const ConfirmBtns  = styled.div`display:flex;gap:10px;`
-const BtnCancel    = styled.button`flex:1;padding:11px;border:1.5px solid #E0E0E0;border-radius:8px;background:#fff;color:#333;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;&:hover{background:#F5F5F5;}`
-const BtnConfirm   = styled.button`flex:1;padding:11px;border:none;border-radius:8px;background:#E53935;color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;&:hover{background:#C62828;}`
+const BtnCancel    = styled.button`flex:1;padding:11px;border:1.5px solid #E0E0E0;border-radius: ${({ theme }) => theme.radii.md};background:#fff;color:#333;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;&:hover{background:#F5F5F5;}`
+const BtnConfirm   = styled.button`flex:1;padding:11px;border:none;border-radius: ${({ theme }) => theme.radii.md};background:#E53935;color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;&:hover{background:#C62828;}`
 
 const UserBlock = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
   background: rgba(255,255,255,0.07);
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.radii.md};
   padding: 8px 10px;
   margin-top: 8px;
 `
@@ -251,24 +251,6 @@ const UserCode = styled.div`
   margin-top: 1px;
 `
 
-const SocialRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-  padding: 0 4px;
-`
-
-const SocialLink = styled.a`
-  font-family: ${({ theme }) => theme.typography.fontFamilyMono};
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.28);
-  transition: color 0.12s;
-
-  &:hover { color: rgba(255,255,255,0.60); }
-`
 
 /* ── Icône logout ── */
 function IconLogout() {
@@ -299,11 +281,9 @@ const accountItems = [
 ]
 
 const infoItems = [
-  { to: '/contact',     label: 'Contact'       },
-  { to: '/newsletter',  label: 'Newsletter'    },
-  { to: '/parametres',  label: 'Paramètres'    },
-  { to: '/aide',        label: 'Aide'          },
-  { to: '/cgv',         label: 'CGV'           },
+  { to: '/contact',     label: 'Contact'    },
+  { to: '/newsletter',  label: 'Newsletter' },
+  { to: '/parametres',  label: 'Paramètres' },
 ]
 
 export function Sidebar() {
@@ -371,11 +351,6 @@ export function Sidebar() {
             <UserCode>{user?.codeClient}</UserCode>
           </UserInfo>
         </UserBlock>
-        <SocialRow>
-          <SocialLink href="#" aria-label="Site web">Web</SocialLink>
-          <SocialLink href="#" aria-label="Instagram">Insta</SocialLink>
-          <SocialLink href="#" aria-label="Facebook">FB</SocialLink>
-        </SocialRow>
       </SidebarBottom>
 
     </SidebarContainer>

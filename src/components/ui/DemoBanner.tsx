@@ -1,42 +1,48 @@
 import styled from 'styled-components'
 
 const Banner = styled.aside`
+  position: fixed;
+  top: ${({ theme }) => theme.layout.mobileHeaderHeight};
+  left: 0;
+  right: 0;
+  z-index: 98;
+  height: ${({ theme }) => theme.layout.demoBannerHeight};
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.92);
-  border-top: 1px solid rgba(35, 47, 62, 0.08);
-  border-bottom: 1px solid rgba(35, 47, 62, 0.08);
+  padding: 0 16px;
+  background: ${({ theme }) => theme.colors.accentLight};
+  border-bottom: 1px solid rgba(201, 168, 76, 0.35);
   color: ${({ theme }) => theme.colors.gray[600]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
+  font-size: 11.5px;
   line-height: 1.4;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    top: ${({ theme }) => theme.layout.headerHeight};
+    left: ${({ theme }) => theme.layout.sidebarWidth};
+  }
 `
 
-const Icon = styled.span`
-  font-size: 14px;
-  line-height: 1;
+const Dot = styled.span`
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background: ${({ theme }) => theme.colors.accent};
   flex-shrink: 0;
 `
 
-const Text = styled.span`
-  max-width: 780px;
-`
-
-interface DemoBannerProps {
-  className?: string
-}
-
-export function DemoBanner({ className }: DemoBannerProps) {
+export function DemoBanner() {
   return (
-    <Banner className={className} role="note" aria-label="Information démonstration">
-      <Icon aria-hidden="true">ℹ️</Icon>
-      <Text>
-        Site de démonstration — Toutes les données affichées (livres, librairies, commandes) sont fictives et créées à des fins pédagogiques uniquement.
-      </Text>
+    <Banner role="note" aria-label="Site de démonstration">
+      <Dot aria-hidden="true" />
+      Site de démonstration — Toutes les données affichées sont fictives et créées à des fins pédagogiques uniquement.
     </Banner>
   )
 }
