@@ -23,6 +23,7 @@ export interface DESADVLine {
 
 export interface DESADVPayload {
   desadvRef: string
+  orderId?: string
   lines: DESADVLine[]
 }
 
@@ -66,6 +67,96 @@ export interface EDIParams {
 }
 
 export type EDIFilter = 'ALL' | EDIMessageType
+
+export type DesadvDeliveryStatus = 'EN_COURS' | 'SOLDE'
+
+export interface DesadvGroupLine {
+  isbn: string
+  title?: string
+  qtyConfirmed: number
+  qtyShippedTotal: number
+  status: DesadvDeliveryStatus
+}
+
+export interface DesadvGroup {
+  orderId: string
+  diffuseur: string
+  desadvs: EDIMessage[]
+  lines: DesadvGroupLine[]
+  globalStatus: DesadvDeliveryStatus
+  lastShipDate: string
+}
+
+export function groupDESADVByOrder(messages: EDIMessage[]): {
+  grouped: DesadvGroup[]
+  ungrouped: EDIMessage[]
+} {
+  const ordrspByOrder = new Map<string, ORDRSPPayload>()
+  messages
+    .filter(m => m.type === 'ORDRSP')
+    .forEach(m => {
+      const p = m.payload as ORDRSPPayload
+      if (p.orderId) ordrspByOrder.set(p.orderId, p)
+    })
+
+  const desadvsByOrder = new Map<string, EDIMessage[]>()
+  const ungrouped: EDIMessage[] = []
+
+  messages
+    .filter(m => m.type === 'DESADV')
+    .forEach(m => {
+      const orderId = (m.payload as DESADVPayload).orderId
+      if (!orderId) { ungrouped.push(m); return }
+      if (!desadvsByOrder.has(orderId)) desadvsByOrder.set(orderId, [])
+      desadvsByOrder.get(orderId)!.push(m)
+    })
+
+  const grouped: DesadvGroup[] = []
+
+  desadvsByOrder.forEach((desadvList, orderId) => {
+    const ordrsp = ordrspByOrder.get(orderId)
+
+    const shippedByIsbn = new Map<string, number>()
+    desadvList.forEach(msg => {
+      ;(msg.payload as DESADVPayload).lines.forEach(l => {
+        shippedByIsbn.set(l.isbn, (shippedByIsbn.get(l.isbn) ?? 0) + l.qtyShipped)
+      })
+    })
+
+    const lines: DesadvGroupLine[] = ordrsp
+      ? ordrsp.lines.map(ol => {
+          const qtyShippedTotal = shippedByIsbn.get(ol.ean) ?? 0
+          return {
+            isbn: ol.ean,
+            title: ol.title,
+            qtyConfirmed: ol.qtyConfirmed,
+            qtyShippedTotal,
+            status: (qtyShippedTotal >= ol.qtyConfirmed ? 'SOLDE' : 'EN_COURS') as DesadvDeliveryStatus,
+          }
+        })
+      : []
+
+    const globalStatus: DesadvDeliveryStatus =
+      lines.length > 0 && lines.every(l => l.status === 'SOLDE') ? 'SOLDE' : 'EN_COURS'
+
+    const lastShipDate = desadvList.reduce(
+      (max, m) => (m.createdAt > max ? m.createdAt : max),
+      desadvList[0].createdAt
+    )
+
+    grouped.push({
+      orderId,
+      diffuseur: desadvList[0].diffuseur,
+      desadvs: [...desadvList].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+      lines,
+      globalStatus,
+      lastShipDate,
+    })
+  })
+
+  grouped.sort((a, b) => b.lastShipDate.localeCompare(a.lastShipDate))
+  return { grouped, ungrouped }
+}
 
 export function filterEDIMessages(messages: EDIMessage[], filter: EDIFilter): EDIMessage[] {
   if (filter === 'ALL') return messages

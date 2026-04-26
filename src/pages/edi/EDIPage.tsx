@@ -5,6 +5,7 @@ import { useAuthContext } from '@/contexts/AuthContext'
 import { useEDI } from '@/contexts/EDIContext'
 import { useToast } from '@/contexts/ToastContext'
 import { EDIMessageModal } from '@/components/edi/EDIMessageModal'
+import { DesadvGroupedList } from '@/components/edi/DesadvGroupedList'
 import { exportToCSV } from '@/lib/csv'
 import {
   filterEDIMessages,
@@ -857,65 +858,71 @@ export function EDIPage() {
               ))}
             </TabsRow>
 
-            <Table>
-              <thead>
-                <tr>
-                  <Th>Date / Heure</Th>
-                  <Th>Type de message</Th>
-                  <Th>Diffuseur</Th>
-                  <Th>N° document</Th>
-                  <Th>Statut</Th>
-                  <Th>Détail</Th>
-                  <Th>Voir</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {previewRows.map(msg => (
-                  <tr key={msg.id}>
-                    <Td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-                      {fmtDate(msg.createdAt)} {fmtTime(msg.createdAt)}
-                    </Td>
-                    <Td>{formatEDITypeLabel(msg.type)}</Td>
-                    <Td>{msg.diffuseur}</Td>
-                    <Td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-                      {msg.documentRef}
-                    </Td>
-                    <Td>
-                      <StatusBadgeTable $status={msg.status === 'ERROR' ? 'ERROR' : msg.type}>
-                        {getBusinessStatus(msg.type)}
-                      </StatusBadgeTable>
-                    </Td>
-                    <Td>
-                      {msg.detail === 'Refusée' ? (
-                        <DetailBadge $variant="error">Refusée</DetailBadge>
-                      ) : msg.detail === 'Partielle' ? (
-                        <DetailBadge $variant="warning">Partielle</DetailBadge>
-                      ) : (
-                        msg.detail
-                      )}
-                    </Td>
-                    <Td>
-                      <EyeBtn onClick={() => setSelectedMessage(msg)} aria-label="Voir le message">
-                        👁
-                      </EyeBtn>
-                    </Td>
-                  </tr>
-                ))}
-                {previewRows.length === 0 && (
-                  <tr>
-                    <Td colSpan={7} style={{ textAlign: 'center', color: '#6B6B68', padding: '24px' }}>
-                      Aucun message pour ce filtre.
-                    </Td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
+            {activeFilter === 'DESADV' ? (
+              <DesadvGroupedList messages={messages} onSelect={setSelectedMessage} />
+            ) : (
+              <>
+                <Table>
+                  <thead>
+                    <tr>
+                      <Th>Date / Heure</Th>
+                      <Th>Type de message</Th>
+                      <Th>Diffuseur</Th>
+                      <Th>N° document</Th>
+                      <Th>Statut</Th>
+                      <Th>Détail</Th>
+                      <Th>Voir</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewRows.map(msg => (
+                      <tr key={msg.id}>
+                        <Td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                          {fmtDate(msg.createdAt)} {fmtTime(msg.createdAt)}
+                        </Td>
+                        <Td>{formatEDITypeLabel(msg.type)}</Td>
+                        <Td>{msg.diffuseur}</Td>
+                        <Td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                          {msg.documentRef}
+                        </Td>
+                        <Td>
+                          <StatusBadgeTable $status={msg.status === 'ERROR' ? 'ERROR' : msg.type}>
+                            {getBusinessStatus(msg.type)}
+                          </StatusBadgeTable>
+                        </Td>
+                        <Td>
+                          {msg.detail === 'Refusée' ? (
+                            <DetailBadge $variant="error">Refusée</DetailBadge>
+                          ) : msg.detail === 'Partielle' ? (
+                            <DetailBadge $variant="warning">Partielle</DetailBadge>
+                          ) : (
+                            msg.detail
+                          )}
+                        </Td>
+                        <Td>
+                          <EyeBtn onClick={() => setSelectedMessage(msg)} aria-label="Voir le message">
+                            👁
+                          </EyeBtn>
+                        </Td>
+                      </tr>
+                    ))}
+                    {previewRows.length === 0 && (
+                      <tr>
+                        <Td colSpan={7} style={{ textAlign: 'center', color: '#6B6B68', padding: '24px' }}>
+                          Aucun message pour ce filtre.
+                        </Td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
 
-            <VoirTout>
-              <VoirToutLink onClick={() => setActiveFilter('ALL')}>
-                Voir tout l'historique →
-              </VoirToutLink>
-            </VoirTout>
+                <VoirTout>
+                  <VoirToutLink onClick={() => setActiveFilter('ALL')}>
+                    Voir tout l'historique →
+                  </VoirToutLink>
+                </VoirTout>
+              </>
+            )}
           </HistoriqueSection>
 
           {/* Panneau droit */}

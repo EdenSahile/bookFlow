@@ -145,13 +145,13 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     status: 'SENT',
     documentRef: 'CMD-2026-0427-001',
     diffuseur: 'Diffuseur 4',
-    detail: '2 lignes / 23 ex.',
+    detail: '2 lignes / 25 ex.',
     createdAt: '2026-04-27T07:00:00.000Z',
     payload: {
       orderId: 'CMD-2026-0427-001',
       diffuseur: 'Diffuseur 4',
       lines: [
-        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 8 },
+        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 10 },
         { lineNumber: 2, ean: '9781234567891', title: 'Dragon Ball Z T.3', qtyRequested: 15 },
       ],
     },
@@ -170,7 +170,7 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
       responseDate: '2026-04-27T08:30:00Z',
       globalStatus: 'PARTIAL',
       lines: [
-        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 8, qtyConfirmed: 8, status: 'ACCEPTED', estimatedDelivery: '2026-04-30' },
+        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 10, qtyConfirmed: 8, status: 'BACKORDERED', backorderQty: 2, estimatedDelivery: '2026-04-30', note: 'Stock partiel — 2 ex. en réassort semaine 19' },
         { lineNumber: 2, ean: '9781234567891', title: 'Dragon Ball Z T.3', qtyRequested: 15, qtyConfirmed: 13, status: 'BACKORDERED', backorderQty: 2, estimatedDelivery: '2026-05-07', note: 'Rupture partielle — 2 ex. en réassort semaine 19' },
       ],
     },
@@ -185,9 +185,44 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     createdAt: '2026-04-27T09:15:00.000Z',
     payload: {
       desadvRef: 'DESADV-2026-0427-001',
+      orderId: 'CMD-2026-0427-001',
       lines: [
         { isbn: '9781234567890', qtyShipped: 5 },
         { isbn: '9781234567891', qtyShipped: 13 },
+      ],
+    },
+  },
+  // ── DESADV-002 : solde ligne 1 (3 ex. …890, livraison partielle initiale soldée) ──
+  {
+    id: 'edi-desadv-0430-001',
+    type: 'DESADV',
+    status: 'RECEIVED',
+    documentRef: 'DESADV-2026-0430-001',
+    diffuseur: 'Diffuseur 4',
+    detail: '1 ligne / 3 ex. (solde …890)',
+    createdAt: '2026-04-30T10:00:00.000Z',
+    payload: {
+      desadvRef: 'DESADV-2026-0430-001',
+      orderId: 'CMD-2026-0427-001',
+      lines: [
+        { isbn: '9781234567890', qtyShipped: 3 },
+      ],
+    },
+  },
+  // ── DESADV-003 : réassort ligne 2 (2 ex. …891 backorder soldé) ───────────────────
+  {
+    id: 'edi-desadv-0507-001',
+    type: 'DESADV',
+    status: 'RECEIVED',
+    documentRef: 'DESADV-2026-0507-001',
+    diffuseur: 'Diffuseur 4',
+    detail: '1 ligne / 2 ex. (réassort …891)',
+    createdAt: '2026-05-07T08:00:00.000Z',
+    payload: {
+      desadvRef: 'DESADV-2026-0507-001',
+      orderId: 'CMD-2026-0427-001',
+      lines: [
+        { isbn: '9781234567891', qtyShipped: 2 },
       ],
     },
   },
