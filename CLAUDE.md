@@ -1,99 +1,21 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Règle de démarrage
-À chaque début de session, lire CONTEXT.md et reprendre là où on s'est arrêtés sans attendre que je le demande.
+Lire CONTEXT.md en début de session et reprendre là où on s'est arrêtés sans attendre que je le demande.
 
+
+## Règle de gestion des fichiers
+- **CLAUDE.md** : contexte projet permanent + phases + décisions techniques durables. Ne contient jamais de blocs session datés.
+- **CONTEXT.md** : état vivant. Réécrit par Claude en fin de session ou sur demande. Contient uniquement ce qui est en cours ou à faire.
+- Les décisions techniques importantes prises en session → absorbées dans les sections de ce fichier, pas conservées sous forme de log.
+
+---
 ## Résumé
-À chaque commit ou sur demande, ajoute un bloc daté en haut du fichier résumant : ce qui a été fait, l’état actuel du code, et les prochaines étapes.
-
-
----
-### Session du 2026-04-26 — Masquage GLN / Identifiant Dilicom
-
-**Ce qui a été fait :**
-- `674ef90` : 7 derniers chiffres du GLN et de l'identifiant Dilicom remplacés par `XXXXXXX` dans `EDIPage.tsx` (métadonnées de connexion) et `ediUtils.ts` (placeholders EDIFACT)
-
-**État actuel :** TypeScript clean · 109/109 tests Vitest passent.
-
-**Prochaines étapes :** Phase 10 (PWA — vite-plugin-pwa), puis Phase 13 (recette finale + déploiement Vercel)
+Mettre à jour CONTEXT.md dès qu'une étape est terminée (statut, build, prochaines étapes).
+Ne jamais ajouter de blocs datés dans CLAUDE.md.
 
 ---
-### Session du 2026-04-26 — Page EDI : viewer split-view + statut métier + étape transmission checkout
 
-**Ce qui a été fait :**
-- `f0eba76` : `STOCK` retiré de `EDIMessageType` et de tous les tests
-- `24128f2` : `getBusinessStatus(type)` ajouté (TDD) — statut métier lisible par type de message
-- `c25f101` + `fa110ca` : `generateEdifactPlaceholder(msg)` ajouté (TDD) — EDIFACT illustratif par type, comptes UNZ corrigés
-- `925767e` : `EDIViewer.tsx` créé — split-view JSON métier (gauche) / EDIFACT terminal vert sur noir (droite)
-- `a785913` : `EDIMessageModal.tsx` refactoré — réduit à un wrapper `<Overlay>` + `<EDIViewer>` (143 → 26 lignes)
-- `ae214a7` : `EDIPage.tsx` mis à jour — badge statut métier dans le tableau, colonne `Voir` indépendante, onglet STOCK supprimé
-- `fe662ae` : checkout cart — étape `transmission` ajoutée (choix FLOWDIFF / EDI), `delivery-address` + `billing-address` fusionnés en `addresses`
-
-**Décisions techniques prises :**
-- Statut dans le tableau : `getBusinessStatus(type)` partout — texte métier, override couleur rouge si `msg.status === 'ERROR'`
-- Architecture viewer : approche B — `EDIViewer` autonome, `EDIMessageModal` wrapper pur
-- EDIFACT : placeholder structuré par type généré à la volée (`generateEdifactPlaceholder`), jamais hardcodé
-- Couleurs terminal EDIFACT : `#000000` / `#00FF41` autorisées en dur (exception charte — usage technique)
-- `.claude/` ajouté au `.gitignore` — mémoire locale jamais versionnée
-
-**État actuel :** TypeScript clean · 109/109 tests Vitest passent · push `origin/main` effectué.
-
-**Prochaines étapes :** Phase 10 (PWA — vite-plugin-pwa), puis Phase 13 (recette finale + déploiement Vercel)
-
----
-### Session du 2026-04-23 — Refactoring contextes + sécurité + design system (Commits 3–6)
-
-**Ce qui a été fait :**
-- Commit 3 : `ToastProvider`/`useToast` → `ToastContext.tsx` ; `slugifyAuthor` → `slugify.ts` ; `ThemeContext.tsx` créé
-- Commit 4 : bug `subtotalHT` corrigé (était TTC) ; isolation inter-librairies (`WishlistContext` NAME_KEY suffixé) ; `logout()` nettoie la clé username wishlists ; `CartContext` saute la persistence pour les guests
-- Commit 5 : validation Zod sur tous les formulaires non-auth (`contactSchema`, `newsletterSchema`, `wishlistNameSchema`, `cartQtySchema`) ; validation Zod sur tous les reads localStorage (`storedCartSchema`, `storedOrdersSchema`, `storedWishlistsSchema`)
-- Commit 6 : design system — toutes les couleurs hardcodées remplacées par des tokens (`theme.colors.accent/navy/success/primaryHover`) ; `theme.shadows` supprimé ; `theme.colors.success` corrigé (`#226241`)
-
-**Décisions design prises :**
-- Design **plat assumé** : `box-shadow: none !important` dans `index.css` + `theme.radii.*` = `’0px’` — aucune ombre, bordures droites partout
-- Les dégradés de `SelectionsPage.tsx` (`#226241 0%, #2D6A52 100%`) sont conservés en dur — usage contextuel décoratif, pas sémantique
-
-**État actuel :** TypeScript clean, 0 erreur, build OK, 21/21 tests Vitest passent.
-
-**Prochaines étapes :** Phase 10 (PWA — vite-plugin-pwa), puis Phase 13 (recette finale + déploiement Vercel)
-
----
-### Session du 2026-04-20 — Audit architecture BDD
-
-**Décisions prises :**
-- Supprimer Prisma du projet (@prisma/client + prisma)
-- Garder le schéma prisma.schema comme référence 
-  pour créer les tables dans Supabase
-- Utiliser @supabase/supabase-js directement dans React
-- Pas de couche API intermédiaire
-
-**Prochaines étapes :** Phase 10 (PWA) puis Phase 13 déploiement Vercel
-
-
-### Session du 2026-04-20 — Audit de sécurité & dettes techniques
-
-
-**Ce qui a été fait :**
-- Rotation credentials : mot de passe Supabase + NEXTAUTH_SECRET régénéré
-- Providers réordonnés : `AuthProvider` enveloppe désormais `CartProvider` + `OrdersProvider`
-- Clés localStorage suffixées par `codeClient` (`bookflow_cart_LIB001`) — isolation multi-utilisateur
-- `logout()` vide les données cart/orders de l’utilisateur déconnecté
-- `computeTotals` utilise `user.remisesParUnivers` (taux personnalisés) au lieu des taux globaux
-- ESLint opérationnel : config Next.js remplacée par `@typescript-eslint` + `react-hooks` — **0 erreurs**
-- `COMPTES_TEST.md` déplacé dans `docs/dev/` — hors `src/` et hors bundle
-- Code splitting : bundle principal réduit de 641 KB → 104 KB via `React.lazy` + `manualChunks`
-- Cast `(theme as any)` supprimé dans SelectionsPage
-- Guard anti-prod dans `mockUsers.ts` (throw si chargé en prod)
-
-**État actuel :** build TypeScript propre, 0 erreurs ESLint, 7 warnings mineurs, code splitting actif.
-
-**Limitation connue Phase 12 :** `mockUsers.ts` est encore importé statiquement par `AuthContext` → les mots de passe de test (`Libraire123!`) restent dans le bundle. Suppression définitive à la migration Prisma/Supabase (Phase 12).
-
-**Prochaines étapes :** Phase 10 (PWA), puis recette finale + déploiement Vercel. Migration Next.js annulée — projet reste sur Vite.
-
----
 
 ## Contexte du projet
 
@@ -106,7 +28,7 @@ Application B2B **FlowDiff** à destination exclusive des **libraires**, permett
 
 ## Charte graphique
 
-> Palette actuelle — source de vérité : `src/lib/theme.ts`
+> Palette actuelle — source de vérité : `src/lib/theme.ts` - 
 
 | Rôle | Token | Valeur | Usage |
 |------|-------|--------|-------|
@@ -264,7 +186,7 @@ En permanence : **Panier** (droite, avec badge quantité) +  à gauche du panier
 | 7 | Flash Infos | ✅ Fait |
 | 8 | Menu Burger + Mon compte + Historique | ✅ Fait |
 | 9 | ~~Scanner caméra (lecture code-barres réelle)~~ — **supprimé** | 🚫 Annulé |
-| 10 | PWA — vite-plugin-pwa (manifest + service worker + icônes) | ⬜ À faire |
+| 10 | ~~PWA — vite-plugin-pwa (manifest + service worker + icônes)~~ — **annulé** | 🚫 Annulé |
 | 11 | Tests + recette fonctionnelle | ✅ Fait (Vitest — computeTotals + isOrderable) |
 | 12 | ~~Migration Next.js 14~~ — **annulé**, projet reste sur Vite (test Vercel) | 🚫 Annulé |
 | 13 | Recette finale + déploiement Vercel | ⬜ À faire |
@@ -272,7 +194,7 @@ En permanence : **Panier** (droite, avec badge quantité) +  à gauche du panier
 
 ---
 
-## Skills actifs — utilisation automatique
+## Skills actifs — invocation automatique
 
 Les skills suivants sont installés via les plugins `superpowers` et `code-review`.
 Claude doit les invoquer automatiquement selon le contexte, sans attendre une demande explicite.
