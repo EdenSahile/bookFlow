@@ -46,4 +46,4 @@ Aucune tâche planifiée.
 2. Cocher `- [x]` dès qu'une tâche est terminée (TS clean)
 3. S'arrêter après chaque tâche et demander validation avant de passer à la suivante
 4. Ne jamais commiter sans validation
-5. Quand tout est fait et que l'utilisateur le demande : réécrire ce fichier pour la prochaine demande
+5. Quand toutes les tâches sont ✅ et que l'utilisateur le demande : vider la section "Session en cours", mettre à jour "État du build", et laisser "Prochaines étapes" vide — prêt pour la prochaine feature
