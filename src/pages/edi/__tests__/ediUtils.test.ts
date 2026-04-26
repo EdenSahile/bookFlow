@@ -5,6 +5,7 @@ import {
   formatEDITypeLabel,
   formatEDIStatusLabel,
   getBusinessStatus,
+  generateEdifactPlaceholder,
   type EDIMessage,
 } from '@/lib/ediUtils'
 
@@ -80,5 +81,50 @@ describe('getBusinessStatus', () => {
   })
   it('INVOIC → Facture reçue', () => {
     expect(getBusinessStatus('INVOIC')).toBe('Facture reçue')
+  })
+})
+
+describe('generateEdifactPlaceholder', () => {
+  const base = {
+    id: 'edi-test-1',
+    documentRef: 'CMD-2026-0426-001',
+    diffuseur: 'Diffuseur 1',
+    detail: '5 ex.',
+    createdAt: '2026-04-26T14:32:00.000Z',
+    payload: {},
+  }
+
+  it('ORDERS contient les segments UNH et BGM+220', () => {
+    const msg = { ...base, type: 'ORDERS' as const, status: 'SENT' as const }
+    const result = generateEdifactPlaceholder(msg)
+    expect(result).toContain("UNH+1+ORDERS:D:96A:UN'")
+    expect(result).toContain("BGM+220+CMD-2026-0426-001")
+  })
+
+  it('ORDRSP contient BGM+231', () => {
+    const msg = { ...base, type: 'ORDRSP' as const, status: 'RECEIVED' as const }
+    const result = generateEdifactPlaceholder(msg)
+    expect(result).toContain("BGM+231+")
+  })
+
+  it('DESADV contient BGM+351 et CPS', () => {
+    const msg = { ...base, type: 'DESADV' as const, status: 'RECEIVED' as const }
+    const result = generateEdifactPlaceholder(msg)
+    expect(result).toContain("BGM+351+")
+    expect(result).toContain("CPS+1'")
+  })
+
+  it('INVOIC contient BGM+380 et TAX', () => {
+    const msg = { ...base, type: 'INVOIC' as const, status: 'RECEIVED' as const }
+    const result = generateEdifactPlaceholder(msg)
+    expect(result).toContain("BGM+380+")
+    expect(result).toContain("TAX+7+VAT")
+  })
+
+  it('retourne toujours UNB et UNZ', () => {
+    const msg = { ...base, type: 'ORDERS' as const, status: 'SENT' as const }
+    const result = generateEdifactPlaceholder(msg)
+    expect(result).toContain("UNB+UNOA:1+")
+    expect(result).toContain("UNZ+")
   })
 })

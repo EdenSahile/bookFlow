@@ -72,3 +72,65 @@ const BUSINESS_STATUS: Record<EDIMessageType, string> = {
 export function getBusinessStatus(type: EDIMessageType): string {
   return BUSINESS_STATUS[type]
 }
+
+function fmtEdifactDate(iso: string): string {
+  return iso.slice(0, 10).replace(/-/g, '')
+}
+
+function fmtEdifactTime(iso: string): string {
+  return iso.slice(11, 16).replace(':', '')
+}
+
+const EDIFACT_TEMPLATES: Record<EDIMessageType, (msg: EDIMessage) => string> = {
+  ORDERS: (msg) => [
+    `UNB+UNOA:1+3012345678901:14+GLN-DIFFUSEUR:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
+    `UNH+1+ORDERS:D:96A:UN'`,
+    `BGM+220+${msg.documentRef}+9'`,
+    `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
+    `NAD+BY+3012345678901::9'`,
+    `NAD+SU+GLN-DIFFUSEUR::9'`,
+    `LIN+1++9782070360024:EN'`,
+    `QTY+21:5'`,
+    `UNS+S'`,
+    `UNZ+8+1'`,
+  ].join('\n'),
+
+  ORDRSP: (msg) => [
+    `UNB+UNOA:1+GLN-DIFFUSEUR:14+3012345678901:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
+    `UNH+1+ORDRSP:D:96A:UN'`,
+    `BGM+231+${msg.documentRef}+9'`,
+    `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
+    `DOC+1+${msg.documentRef}'`,
+    `RFF+ON:${msg.documentRef}'`,
+    `UNS+S'`,
+    `UNZ+6+1'`,
+  ].join('\n'),
+
+  DESADV: (msg) => [
+    `UNB+UNOA:1+GLN-DIFFUSEUR:14+3012345678901:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
+    `UNH+1+DESADV:D:96A:UN'`,
+    `BGM+351+${msg.documentRef}+9'`,
+    `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
+    `CPS+1'`,
+    `QTY+52:5'`,
+    `UNS+S'`,
+    `UNZ+7+1'`,
+  ].join('\n'),
+
+  INVOIC: (msg) => [
+    `UNB+UNOA:1+GLN-DIFFUSEUR:14+3012345678901:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
+    `UNH+1+INVOIC:D:96A:UN'`,
+    `BGM+380+${msg.documentRef}+9'`,
+    `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
+    `NAD+SE+GLN-DIFFUSEUR::9'`,
+    `NAD+BY+3012345678901::9'`,
+    `MOA+79:856.00:EUR'`,
+    `TAX+7+VAT+++:::5.5+S'`,
+    `UNS+S'`,
+    `UNZ+9+1'`,
+  ].join('\n'),
+}
+
+export function generateEdifactPlaceholder(msg: EDIMessage): string {
+  return EDIFACT_TEMPLATES[msg.type](msg)
+}
