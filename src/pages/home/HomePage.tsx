@@ -3,6 +3,7 @@ import { theme } from '@/lib/theme'
 import styled from 'styled-components'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/contexts/CartContext'
 import { MOCK_BOOKS } from '@/data/mockBooks'
 import { BookCover } from '@/components/catalogue/BookCover'
 
@@ -1133,6 +1134,7 @@ const ArrowBtn = styled.button<{ $side: 'left' | 'right'; $visible: boolean }>`
 /* ── Component ── */
 export function HomePage() {
   const { user } = useAuth()
+  const { totalItems: cartCount } = useCart()
   const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft,  setCanScrollLeft]  = useState(false)
@@ -1243,11 +1245,11 @@ export function HomePage() {
             <SeeAllBtn onClick={() => navigate('/historique')}>Voir toutes les actions →</SeeAllBtn>
           </ActionsHeader>
           <ActionsGrid>
-            <ActionCard onClick={() => navigate('/historique')}>
+            <ActionCard onClick={() => navigate('/panier')}>
               <ActionIconWrap $bg="#FFF7ED" $color="#EA580C"><IconOrders /></ActionIconWrap>
               <ActionBody>
-                <ActionCount>4</ActionCount>
-                <ActionLabel>Commandes à valider</ActionLabel>
+                <ActionCount>{cartCount}</ActionCount>
+                <ActionLabel>{cartCount <= 1 ? 'Ouvrage dans le panier' : 'Ouvrages dans le panier'}</ActionLabel>
               </ActionBody>
               <ActionArrow>→</ActionArrow>
             </ActionCard>
@@ -1255,7 +1257,7 @@ export function HomePage() {
               <ActionIconWrap $bg="#FFFBEB" $color="#D97706"><IconReceipt /></ActionIconWrap>
               <ActionBody>
                 <ActionCount>2</ActionCount>
-                <ActionLabel>Accusés de réception manquants</ActionLabel>
+                <ActionLabel>commandes à vérifier</ActionLabel>
               </ActionBody>
               <ActionArrow>→</ActionArrow>
             </ActionCard>
@@ -1263,7 +1265,7 @@ export function HomePage() {
               <ActionIconWrap $bg="#FEF2F2" $color="#DC2626"><IconAlertClock /></ActionIconWrap>
               <ActionBody>
                 <ActionCount>1</ActionCount>
-                <ActionLabel>Erreur EDI à corriger</ActionLabel>
+                <ActionLabel>erreur EDI à corriger</ActionLabel>
               </ActionBody>
               <ActionArrow>→</ActionArrow>
             </ActionCard>
@@ -1271,7 +1273,7 @@ export function HomePage() {
               <ActionIconWrap $bg="#EFF6FF" $color="#2563EB"><IconTruck /></ActionIconWrap>
               <ActionBody>
                 <ActionCount>3</ActionCount>
-                <ActionLabel>Expéditions en retard</ActionLabel>
+                <ActionLabel>expéditions en retard</ActionLabel>
               </ActionBody>
               <ActionArrow>→</ActionArrow>
             </ActionCard>
