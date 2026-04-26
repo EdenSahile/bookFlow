@@ -7,30 +7,14 @@
 ---
 
 ## État du build
-TS clean · 109/109 tests Vitest · dernière session 2026-04-26
+TS clean · 109/109 tests Vitest · dernière session 2026-04-26  
+Refonte HomePage complète (étapes 1→10) + corrections post-refonte.
 
 ---
 
-## Session en cours — 2026-04-26
+## Session en cours
 
-### Refonte HomePage (commit `d3a3a45`)
-- [x] Étape 1 — Greeting row
-- [x] Étape 2 — Bloc "Actions en attente"
-- [x] Étape 3 — Bilan du mois précédent
-- [x] Étape 4 — Évolution des commandes
-- [x] Étape 5 — Répartition des achats
-- [x] Étape 6 — Top éditeurs
-- [x] Étape 7 — Suivi des flux EDI
-- [x] Étape 8 — Nouveautés du mois (4 titres)
-- [x] Étape 9 — Raccourcis
-- [x] Étape 10 — Footer dynamique
-
-### Corrections post-refonte (commit `35627dc`)
-- [x] Étape 8 : limiter à 4 nouveautés au lieu de 8
-- [x] Carte "Actions en attente" — panier : libellé "Ouvrage(s) dans le panier", compteur dynamique via `useCart().totalItems`, singulier/pluriel, clic → `/panier`
-- [x] Carte "Actions en attente" — libellé 2 : "commandes à vérifier"
-- [x] Carte "Actions en attente" — libellé 3 : "erreur EDI à corriger"
-- [x] Carte "Actions en attente" — libellé 4 : "expéditions en retard"
+Aucune tâche en cours.
 
 ---
 
