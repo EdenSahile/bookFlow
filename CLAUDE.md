@@ -189,7 +189,7 @@ En permanence : **Panier** (droite, avec badge quantité) +  à gauche du panier
 | 10 | ~~PWA — vite-plugin-pwa (manifest + service worker + icônes)~~ — **annulé** | 🚫 Annulé |
 | 11 | Tests + recette fonctionnelle | ✅ Fait (Vitest — computeTotals + isOrderable) |
 | 12 | ~~Migration Next.js 14~~ — **annulé**, projet reste sur Vite (test Vercel) | 🚫 Annulé |
-| 13 | Recette finale + déploiement Vercel | ⬜ À faire |
+| 13 | ~~Recette finale + déploiement Vercel~~ — **annulé** | 🚫 Annulé |
 
 
 ---
