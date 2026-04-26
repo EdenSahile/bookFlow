@@ -10,7 +10,8 @@ import { DatePicker } from '@/components/ui/DatePicker'
 import { useToast } from '@/contexts/ToastContext'
 import { theme } from '@/lib/theme'
 import { CHECKOUT_STEPS, type CheckoutStep, getNextStep, getPrevStep, getStepIndex, getStepLabel } from './checkoutSteps'
-import { addressSchema, parseAddressString, type AddressData } from './checkoutSchemas'
+import { addressSchema, parseAddressString, type AddressData, type TransmissionMode } from './checkoutSchemas'
+import { OrderTransmissionStep } from './OrderTransmissionStep'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { IconTrash, IconCart, IconChevronLeft } from '@/components/ui/icons'
 
@@ -879,7 +880,8 @@ function AddressFormFields({
    COMPOSANT PRINCIPAL
 ══════════════════════════════════════════════════════ */
 export function CartPage() {
-  const { items, opGroups, totalItems, updateQty, removeFromCart, removeOP, clearCart, hasReliquatItems } = useCart()
+  const { items, opGroups, totalItems, updateQty, removeFromCart, removeOP, clearCart, hasReliquatItems,
+          transmissionMode, setTransmissionMode } = useCart()
   const { addOrder } = useOrders()
   const { showToast } = useToast()
   const { user } = useAuth()
@@ -896,9 +898,11 @@ export function CartPage() {
   const [billingAddress, setBillingAddress] = useState<AddressData>(() =>
     parseAddressString(user?.adresseLivraison ?? '')
   )
-  const [sameAsDelivery, setSameAsDelivery] = useState(true)
-  const [deliveryErrors, setDeliveryErrors] = useState<FormErrors>({})
-  const [billingErrors, setBillingErrors]   = useState<FormErrors>({})
+  const [sameAsDelivery, setSameAsDelivery]     = useState(true)
+  const [deliveryErrors, setDeliveryErrors]     = useState<FormErrors>({})
+  const [billingErrors, setBillingErrors]       = useState<FormErrors>({})
+  const [localTransmission, setLocalTransmission] = useState<TransmissionMode>(transmissionMode)
+  const [saveAsDefault, setSaveAsDefault]       = useState(false)
 
   const askConfirm = (title: string, message: string, onConfirm: () => void) =>
     setConfirm({ open: true, title, message, onConfirm })
@@ -948,15 +952,18 @@ export function CartPage() {
 
   /* ── Navigation tunnel ── */
   function goNext() {
-    if (page === 'delivery-address') {
-      const errs = validateAddress(deliveryAddress)
-      if (Object.keys(errs).length > 0) { setDeliveryErrors(errs); return }
+    if (page === 'addresses') {
+      const delivErr = validateAddress(deliveryAddress)
+      if (Object.keys(delivErr).length > 0) { setDeliveryErrors(delivErr); return }
       setDeliveryErrors({})
-    }
-    if (page === 'billing-address' && !sameAsDelivery) {
-      const errs = validateAddress(billingAddress)
-      if (Object.keys(errs).length > 0) { setBillingErrors(errs); return }
+      if (!sameAsDelivery) {
+        const billErr = validateAddress(billingAddress)
+        if (Object.keys(billErr).length > 0) { setBillingErrors(billErr); return }
+      }
       setBillingErrors({})
+    }
+    if (page === 'transmission' && saveAsDefault) {
+      setTransmissionMode(localTransmission)
     }
     const next = getNextStep(page as CheckoutStep)
     if (next) setPage(next)
@@ -982,6 +989,7 @@ export function CartPage() {
       totalTTC: totalCalc,
       deliveryMode: delivery,
       deliveryDate: delivery === 'specific' ? specificDate : undefined,
+      transmissionMode: localTransmission,
     })
     void effectiveBilling // billing address acknowledged
     clearCart()
@@ -997,12 +1005,33 @@ export function CartPage() {
       <SuccessBox>
         <IconCheck />
         <EmptyText>Commande envoyée !</EmptyText>
-        <EmptySubtext style={{ marginBottom: '24px' }}>
-          Votre commande a bien été transmise. Un récapitulatif vous sera envoyé par email.
-        </EmptySubtext>
-        <Button variant="primary" size="lg" onClick={() => navigate('/')}>
-          Retour à l'accueil
-        </Button>
+        {localTransmission === 'EDI' ? (
+          <>
+            <EmptySubtext style={{ marginBottom: '8px' }}>
+              Commande transmise via Dilicom (EDI). Vous recevrez un accusé de réception automatique.
+            </EmptySubtext>
+            <EmptySubtext style={{ marginBottom: '24px' }}>
+              Statut EDI initial : <strong>En attente d'envoi</strong>
+            </EmptySubtext>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+              <Button variant="primary" size="lg" onClick={() => navigate('/historique')}>
+                Voir mes commandes
+              </Button>
+              <Button variant="ghost" size="md" onClick={() => navigate('/')}>
+                Retour à l'accueil
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <EmptySubtext style={{ marginBottom: '24px' }}>
+              Votre commande a bien été transmise via FlowDiff. Un récapitulatif vous sera envoyé par email.
+            </EmptySubtext>
+            <Button variant="primary" size="lg" onClick={() => navigate('/')}>
+              Retour à l'accueil
+            </Button>
+          </>
+        )}
       </SuccessBox>
     </Page>
   )
@@ -1079,7 +1108,7 @@ export function CartPage() {
 
       <NavActions>
         <Button variant="primary" size="lg" fullWidth onClick={goNext}>
-          Suivant — Adresse de livraison
+          Suivant — Adresses
         </Button>
         <Button variant="ghost" size="md" fullWidth onClick={goBack}>
           <IconChevronLeft /> Modifier le panier
@@ -1088,15 +1117,15 @@ export function CartPage() {
     </Page>
   )
 
-  /* ────────── TUNNEL — ÉTAPE 2 : Adresse de livraison ────────── */
-  if (page === 'delivery-address') return (
+  /* ────────── TUNNEL — ÉTAPE 2 : Adresses ────────── */
+  if (page === 'addresses') return (
     <Page>
-      <PageTitle style={{ marginBottom: '4px' }}>Adresse de livraison</PageTitle>
+      <PageTitle style={{ marginBottom: '4px' }}>Adresses</PageTitle>
       <ClientCode>Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold></ClientCode>
-      <CheckoutStepper current="delivery-address" />
+      <CheckoutStepper current="addresses" />
 
       <FormCard>
-        <SectionTitle style={{ marginBottom: '16px' }}>Où livrer votre commande ?</SectionTitle>
+        <SectionTitle style={{ marginBottom: '16px' }}>Adresse de livraison</SectionTitle>
         <AddressFormFields
           data={deliveryAddress}
           errors={deliveryErrors}
@@ -1107,40 +1136,21 @@ export function CartPage() {
         />
       </FormCard>
 
-      <NavActions>
-        <Button variant="primary" size="lg" fullWidth onClick={goNext}>
-          Suivant — Adresse de facturation
-        </Button>
-        <Button variant="ghost" size="md" fullWidth onClick={goBack}>
-          <IconChevronLeft /> Récapitulatif
-        </Button>
-      </NavActions>
-    </Page>
-  )
+      <SameAsDeliveryRow>
+        <input
+          type="checkbox"
+          checked={sameAsDelivery}
+          onChange={e => {
+            setSameAsDelivery(e.target.checked)
+            if (e.target.checked) setBillingErrors({})
+          }}
+        />
+        Adresse de facturation identique à la livraison
+      </SameAsDeliveryRow>
 
-  /* ────────── TUNNEL — ÉTAPE 3 : Adresse de facturation ────────── */
-  if (page === 'billing-address') return (
-    <Page>
-      <PageTitle style={{ marginBottom: '4px' }}>Adresse de facturation</PageTitle>
-      <ClientCode>Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold></ClientCode>
-      <CheckoutStepper current="billing-address" />
-
-      <FormCard>
-        <SectionTitle style={{ marginBottom: '16px' }}>Adresse de facturation</SectionTitle>
-
-        <SameAsDeliveryRow>
-          <input
-            type="checkbox"
-            checked={sameAsDelivery}
-            onChange={e => {
-              setSameAsDelivery(e.target.checked)
-              if (e.target.checked) setBillingErrors({})
-            }}
-          />
-          Identique à l'adresse de livraison
-        </SameAsDeliveryRow>
-
-        {!sameAsDelivery && (
+      {!sameAsDelivery && (
+        <FormCard>
+          <SectionTitle style={{ marginBottom: '16px' }}>Adresse de facturation</SectionTitle>
           <AddressFormFields
             data={billingAddress}
             errors={billingErrors}
@@ -1149,15 +1159,42 @@ export function CartPage() {
               setBillingErrors(prev => ({ ...prev, [field]: undefined }))
             }}
           />
-        )}
+        </FormCard>
+      )}
+
+      <NavActions>
+        <Button variant="primary" size="lg" fullWidth onClick={goNext}>
+          Suivant — Mode de transmission
+        </Button>
+        <Button variant="ghost" size="md" fullWidth onClick={goBack}>
+          <IconChevronLeft /> Récapitulatif
+        </Button>
+      </NavActions>
+    </Page>
+  )
+
+  /* ────────── TUNNEL — ÉTAPE 3 : Mode de transmission ────────── */
+  if (page === 'transmission') return (
+    <Page>
+      <PageTitle style={{ marginBottom: '4px' }}>Mode de transmission</PageTitle>
+      <ClientCode>Code client : <ClientCodeBold>{user?.codeClient ?? '—'}</ClientCodeBold></ClientCode>
+      <CheckoutStepper current="transmission" />
+
+      <FormCard>
+        <OrderTransmissionStep
+          value={localTransmission}
+          onChange={setLocalTransmission}
+          saveAsDefault={saveAsDefault}
+          onSaveAsDefaultChange={setSaveAsDefault}
+        />
       </FormCard>
 
       <NavActions>
         <Button variant="primary" size="lg" fullWidth onClick={goNext}>
-          Suivant — Confirmation finale
+          Suivant — Confirmation
         </Button>
         <Button variant="ghost" size="md" fullWidth onClick={goBack}>
-          <IconChevronLeft /> Adresse de livraison
+          <IconChevronLeft /> Adresses
         </Button>
       </NavActions>
     </Page>
@@ -1206,6 +1243,10 @@ export function CartPage() {
 
           <div style={{ borderTop: '1px solid #eee', marginTop: '12px', paddingTop: '12px' }}>
             <RecapRow><span>Livraison</span><span>{deliveryLabel}</span></RecapRow>
+            <RecapRow>
+              <span>Transmission</span>
+              <span>{localTransmission === 'EDI' ? '📡 EDI Dilicom' : '🌐 FlowDiff'}</span>
+            </RecapRow>
             <RecapRow><span>Sous-total TTC</span><span>{fmt(subtotalTTC)}</span></RecapRow>
             <RecapRow><span>Remise</span><span>− {fmt(remiseTotal)}</span></RecapRow>
             <RecapRow><span>Net HT</span><span>{fmt(netHT)}</span></RecapRow>
@@ -1236,7 +1277,7 @@ export function CartPage() {
             Confirmer la commande
           </Button>
           <Button variant="ghost" size="md" fullWidth onClick={goBack}>
-            <IconChevronLeft /> Adresse de facturation
+            <IconChevronLeft /> Mode de transmission
           </Button>
         </NavActions>
       </Page>

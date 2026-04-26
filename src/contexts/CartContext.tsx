@@ -3,6 +3,7 @@ import type { Book, StockStatut, Universe } from '@/data/mockBooks'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { storedCartSchema } from '@/lib/storageSchemas'
+import type { TransmissionMode } from '@/pages/cart/checkoutSchemas'
 
 export const CART_LIMIT = 30
 
@@ -80,12 +81,27 @@ interface CartContextValue {
   netHT: number
   tva: number
   totalTTC: number
+  /* Préférence mode de transmission */
+  transmissionMode: TransmissionMode
+  setTransmissionMode: (mode: TransmissionMode) => void
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
 
 function cartKey(codeClient: string | undefined) {
   return `bookflow_cart_${codeClient ?? 'guest'}`
+}
+
+function transmissionKey(codeClient: string | undefined) {
+  return `bookflow_transmission_${codeClient ?? 'guest'}`
+}
+
+function loadTransmissionMode(codeClient: string | undefined): TransmissionMode {
+  try {
+    const stored = localStorage.getItem(transmissionKey(codeClient))
+    if (stored === 'FLOWDIFF' || stored === 'EDI') return stored
+  } catch { /* ignore */ }
+  return 'FLOWDIFF'
 }
 
 function loadCart(key: string): StoredCart {
@@ -140,12 +156,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const key = cartKey(user?.codeClient)
 
   const [{ items, opGroups }, setCart] = useState<StoredCart>(() => loadCart(cartKey(user?.codeClient)))
+  const [transmissionMode, setTransmissionModeState] = useState<TransmissionMode>(() =>
+    loadTransmissionMode(user?.codeClient)
+  )
 
-  /* Re-charger le panier quand l'utilisateur change (connexion/déconnexion) */
+  /* Re-charger le panier et la préférence quand l'utilisateur change */
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCart(loadCart(key))
-  }, [key])
+    setTransmissionModeState(loadTransmissionMode(user?.codeClient))
+  }, [key, user?.codeClient])
 
   const setItems   = (fn: (prev: CartItem[]) => CartItem[]) =>
     setCart(c => ({ ...c, items: fn(c.items) }))
@@ -217,6 +237,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => setCart({ items: [], opGroups: [] })
 
+  const setTransmissionMode = (mode: TransmissionMode) => {
+    setTransmissionModeState(mode)
+    if (user?.codeClient) {
+      localStorage.setItem(transmissionKey(user.codeClient), mode)
+    }
+  }
+
   /* Taux effectifs : remisesParUnivers du libraire connecté (÷100) ou taux par défaut */
   const effectiveRates: Record<string, number> = user?.remisesParUnivers
     ? Object.fromEntries(Object.entries(user.remisesParUnivers).map(([k, v]) => [k, v / 100]))
@@ -242,6 +269,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       clearCart,
       hasReliquatItems,
       ...computeTotals(items, opGroups, effectiveRates),
+      transmissionMode,
+      setTransmissionMode,
     }}>
       {children}
     </CartContext.Provider>

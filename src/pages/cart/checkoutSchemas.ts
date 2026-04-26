@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+export type TransmissionMode = 'FLOWDIFF' | 'EDI'
+
+export const transmissionSchema = z.object({
+  transmissionMode: z.enum(['FLOWDIFF', 'EDI']),
+})
+
 export const addressSchema = z.object({
   rue:        z.string().min(1, 'L\'adresse est requise'),
   codePostal: z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)'),

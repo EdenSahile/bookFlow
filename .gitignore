@@ -47,3 +47,6 @@ next-env.d.ts
 
 # docs internes — ne pas inclure dans src/
 src/**/*.md
+
+# Claude Code — mémoire locale, non versionnée
+.claude/

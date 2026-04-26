@@ -1,12 +1,12 @@
-export const CHECKOUT_STEPS = ['recap', 'delivery-address', 'billing-address', 'final'] as const
+export const CHECKOUT_STEPS = ['recap', 'addresses', 'transmission', 'final'] as const
 
 export type CheckoutStep = (typeof CHECKOUT_STEPS)[number]
 
 const STEP_LABELS: Record<CheckoutStep, string> = {
-  'recap':            'Récapitulatif',
-  'delivery-address': 'Adresse de livraison',
-  'billing-address':  'Adresse de facturation',
-  'final':            'Confirmation',
+  'recap':        'Récapitulatif',
+  'addresses':    'Adresses',
+  'transmission': 'Mode de transmission',
+  'final':        'Confirmation',
 }
 
 export function getStepIndex(step: CheckoutStep): number {

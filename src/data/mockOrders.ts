@@ -72,6 +72,8 @@ export interface Order {
   dateFacturation?: string   // ISO date — si facturé
   numFacture?: string        // ex. FACT-2024-0892
   shipment?: Shipment
+  transmissionMode?: 'FLOWDIFF' | 'EDI'
+  ediStatus?: 'PENDING' | 'SENT' | 'ACK' | 'ERROR'
 }
 
 export const MOCK_CLIENT_NAMES: Record<string, string> = {

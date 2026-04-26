@@ -28,6 +28,8 @@ const storedOrderSchema = z.object({
   adresseLivraison: z.string(),
   codeClient:       z.string(),
   deliveryMode:     z.enum(['standard', 'specific']),
+  transmissionMode: z.enum(['FLOWDIFF', 'EDI']).optional(),
+  ediStatus:        z.enum(['PENDING', 'SENT', 'ACK', 'ERROR']).optional(),
 }).passthrough()
 
 export const storedOrdersSchema = z.array(storedOrderSchema)

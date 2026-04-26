@@ -36,6 +36,7 @@ interface OrdersContextValue {
     totalTTC: number
     deliveryMode: 'standard' | 'specific'
     deliveryDate?: string
+    transmissionMode: 'FLOWDIFF' | 'EDI'
   }) => Order
 }
 
@@ -89,6 +90,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     totalTTC: number
     deliveryMode: 'standard' | 'specific'
     deliveryDate?: string
+    transmissionMode: 'FLOWDIFF' | 'EDI'
   }): Order {
     const orderItems: OrderItem[] = params.items.map(({ book, quantity, statut, enReliquat }) => ({
       bookId: book.id,
@@ -112,6 +114,8 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       adresseLivraison: params.adresseLivraison,
       deliveryMode: params.deliveryMode,
       deliveryDate: params.deliveryDate,
+      transmissionMode: params.transmissionMode,
+      ediStatus: params.transmissionMode === 'EDI' ? 'PENDING' : undefined,
       items: orderItems,
       subtotalHT: params.subtotalHT,
       remiseAmount: params.remiseAmount,
