@@ -58,9 +58,6 @@ describe('formatEDITypeLabel', () => {
   it('maps INVOIC to Facture (INVOIC)', () => {
     expect(formatEDITypeLabel('INVOIC')).toBe('Facture (INVOIC)')
   })
-  it('maps STOCK to Stock (STOCK)', () => {
-    expect(formatEDITypeLabel('STOCK')).toBe('Stock (STOCK)')
-  })
 })
 
 describe('formatEDIStatusLabel', () => {

@@ -837,7 +837,6 @@ export function EDIPage() {
                 { key: 'ORDRSP', label: 'Accusés (ORDRSP)' },
                 { key: 'DESADV', label: 'Expéditions (DESADV)' },
                 { key: 'INVOIC', label: 'Factures (INVOIC)' },
-                { key: 'STOCK',  label: 'Stocks (STOCK)' },
               ] as { key: EDIFilter; label: string }[]).map(({ key, label }) => (
                 <Tab key={key} $active={activeFilter === key} onClick={() => setActiveFilter(key)}>
                   {label}

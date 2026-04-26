@@ -1,4 +1,4 @@
-export type EDIMessageType = 'ORDERS' | 'ORDRSP' | 'DESADV' | 'INVOIC' | 'STOCK'
+export type EDIMessageType = 'ORDERS' | 'ORDRSP' | 'DESADV' | 'INVOIC'
 export type EDIStatus = 'PENDING' | 'SENT' | 'RECEIVED' | 'ERROR'
 
 export interface EDIMessage {
@@ -45,7 +45,6 @@ const TYPE_LABELS: Record<EDIMessageType, string> = {
   ORDRSP: 'Accusé réception (ORDRSP)',
   DESADV: 'Expédition (DESADV)',
   INVOIC: 'Facture (INVOIC)',
-  STOCK:  'Stock (STOCK)',
 }
 
 export function formatEDITypeLabel(type: EDIMessageType): string {
