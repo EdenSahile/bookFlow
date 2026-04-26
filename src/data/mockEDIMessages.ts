@@ -140,6 +140,42 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     },
   },
   {
+    id: 'edi-orders-0427-001',
+    type: 'ORDERS',
+    status: 'SENT',
+    documentRef: 'CMD-2026-0427-001',
+    diffuseur: 'Diffuseur 4',
+    detail: '2 lignes / 23 ex.',
+    createdAt: '2026-04-27T07:00:00.000Z',
+    payload: {
+      orderId: 'CMD-2026-0427-001',
+      diffuseur: 'Diffuseur 4',
+      lines: [
+        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 8 },
+        { lineNumber: 2, ean: '9781234567891', title: 'Dragon Ball Z T.3', qtyRequested: 15 },
+      ],
+    },
+  },
+  {
+    id: 'edi-ordrsp-0427-001',
+    type: 'ORDRSP',
+    status: 'RECEIVED',
+    documentRef: 'ACK-2026-0427-001',
+    diffuseur: 'Diffuseur 4',
+    detail: 'Partielle',
+    createdAt: '2026-04-27T08:30:00.000Z',
+    payload: {
+      orderId: 'CMD-2026-0427-001',
+      orderResponseId: 'ACK-2026-0427-001',
+      responseDate: '2026-04-27T08:30:00Z',
+      globalStatus: 'PARTIAL',
+      lines: [
+        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 8, qtyConfirmed: 8, status: 'ACCEPTED', estimatedDelivery: '2026-04-30' },
+        { lineNumber: 2, ean: '9781234567891', title: 'Dragon Ball Z T.3', qtyRequested: 15, qtyConfirmed: 13, status: 'BACKORDERED', backorderQty: 2, estimatedDelivery: '2026-05-07', note: 'Rupture partielle — 2 ex. en réassort semaine 19' },
+      ],
+    },
+  },
+  {
     id: 'edi-rec-4',
     type: 'DESADV',
     status: 'RECEIVED',

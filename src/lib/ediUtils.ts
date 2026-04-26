@@ -3,6 +3,19 @@ export type EDIStatus = 'PENDING' | 'SENT' | 'RECEIVED' | 'ERROR'
 export type ORDRSPLineStatus = 'ACCEPTED' | 'BACKORDERED' | 'REJECTED'
 export type ORDRSPGlobalStatus = 'ACCEPTED' | 'PARTIAL' | 'REJECTED'
 
+export interface ORDERSLine {
+  lineNumber: number
+  ean: string
+  title: string
+  qtyRequested: number
+}
+
+export interface ORDERSPayload {
+  orderId: string
+  diffuseur: string
+  lines: ORDERSLine[]
+}
+
 export interface DESADVLine {
   isbn: string
   qtyShipped: number
@@ -115,18 +128,25 @@ function fmtEdifactTime(iso: string): string {
 }
 
 const EDIFACT_TEMPLATES: Record<EDIMessageType, (msg: EDIMessage) => string> = {
-  ORDERS: (msg) => [
-    `UNB+UNOA:1+301234XXXXXXX:14+GLN-DIFFUSEUR:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
-    `UNH+1+ORDERS:D:96A:UN'`,
-    `BGM+220+${msg.documentRef}+9'`,
-    `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
-    `NAD+BY+301234XXXXXXX::9'`,
-    `NAD+SU+GLN-DIFFUSEUR::9'`,
-    `LIN+1++9782070360024:EN'`,
-    `QTY+21:5'`,
-    `UNS+S'`,
-    `UNZ+8+1'`,
-  ].join('\n'),
+  ORDERS: (msg) => {
+    const p = msg.payload as Partial<ORDERSPayload> & { totalQty?: number }
+    const header = [
+      `UNB+UNOA:1+301234XXXXXXX:14+GLN-DIFFUSEUR:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
+      `UNH+1+ORDERS:D:96A:UN'`,
+      `BGM+220+${msg.documentRef}+9'`,
+      `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
+      `NAD+BY+301234XXXXXXX::9'`,
+      `NAD+SU+GLN-DIFFUSEUR::9'`,
+    ]
+    const lineSegments = Array.isArray(p.lines)
+      ? p.lines.flatMap((line, i) => [
+          `LIN+${i + 1}++${line.ean}:EN'`,
+          `QTY+21:${line.qtyRequested}'`,
+        ])
+      : [`LIN+1++9782070360024:EN'`, `QTY+21:${p.totalQty ?? 5}'`]
+    const footer = [`UNS+S'`, `UNZ+${header.length + lineSegments.length + 2}+1'`]
+    return [...header, ...lineSegments, ...footer].join('\n')
+  },
 
   ORDRSP: (msg) => {
     const p = msg.payload as Partial<ORDRSPPayload>

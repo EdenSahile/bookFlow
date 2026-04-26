@@ -7,8 +7,8 @@
 ---
 
 ## État du build
-TS clean · 109/109 tests Vitest · dernière session 2026-04-26  
-Format DESADV corrigé (JSON lines + EDIFACT dynamique), seed localStorage v3.
+TS clean · 109/109 tests Vitest · dernière session 2026-04-27  
+Chaîne EDI ORDERS → ORDRSP → DESADV complète : mocks + types + EDIFACT dynamique.
 
 ---
 
