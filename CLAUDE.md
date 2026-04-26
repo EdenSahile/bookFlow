@@ -10,6 +10,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 
 ---
+### Session du 2026-04-26 — Masquage GLN / Identifiant Dilicom
+
+**Ce qui a été fait :**
+- `674ef90` : 7 derniers chiffres du GLN et de l'identifiant Dilicom remplacés par `XXXXXXX` dans `EDIPage.tsx` (métadonnées de connexion) et `ediUtils.ts` (placeholders EDIFACT)
+
+**État actuel :** TypeScript clean · 109/109 tests Vitest passent.
+
+**Prochaines étapes :** Phase 10 (PWA — vite-plugin-pwa), puis Phase 13 (recette finale + déploiement Vercel)
+
+---
 ### Session du 2026-04-26 — Page EDI : viewer split-view + statut métier + étape transmission checkout
 
 **Ce qui a été fait :**
