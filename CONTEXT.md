@@ -1,3 +1,28 @@
+# CONTEXT — Session EDI (2026-04-26) — TERMINÉE ✅
+
+---
+
+### Bilan de fin de session
+
+**Toutes les tâches du plan `2026-04-26-edi-viewer-statut-metier.md` sont terminées et commitées.**
+
+| Commit | Description |
+|--------|-------------|
+| `f0eba76` | refactor(edi): retirer STOCK du type EDIMessageType et des tests |
+| `24128f2` | feat(edi): ajouter getBusinessStatus — statut métier par type |
+| `c25f101` | feat(edi): ajouter generateEdifactPlaceholder — EDIFACT illustratif par type |
+| `fa110ca` | fix(edi): corriger comptes UNZ DESADV (7→6) et INVOIC (9→8) |
+| `925767e` | feat(edi): créer EDIViewer — split view JSON / EDIFACT terminal |
+| `a785913` | refactor(edi): EDIMessageModal → wrapper Overlay + EDIViewer |
+| `ae214a7` | feat(edi): statut métier dans tableau + col Voir + suppr. onglet STOCK |
+| `fe662ae` | feat(cart): ajouter étape transmission (FLOWDIFF/EDI) dans le checkout |
+
+**État :** TypeScript clean, 109/109 tests Vitest passent, `.claude/` ajouté au `.gitignore`.
+
+**Prochaines étapes :** Phase 10 (PWA — vite-plugin-pwa), puis Phase 13 (recette finale + déploiement Vercel)
+
+---
+
 # CONTEXT — Session EDI (2026-04-26)
 
 Ce fichier résume tout le contexte de la session de conception de la page EDI.
