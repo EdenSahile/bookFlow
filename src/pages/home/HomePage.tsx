@@ -1269,7 +1269,7 @@ export function HomePage() {
               </ActionBody>
               <ActionArrow>→</ActionArrow>
             </ActionCard>
-            <ActionCard onClick={() => navigate('/historique')}>
+            <ActionCard onClick={() => navigate('/edi?filter=DESADV')}>
               <ActionIconWrap $bg="#EFF6FF" $color="#2563EB"><IconTruck /></ActionIconWrap>
               <ActionBody>
                 <ActionCount>3</ActionCount>

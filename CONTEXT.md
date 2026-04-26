@@ -14,7 +14,8 @@ Mocks ORDRSP (3 cas), badges Détail, navigation accueil → EDI ORDRSP, seed ve
 
 ## Session en cours
 
-Aucune tâche en cours.
+### Fix : "expéditions en retard" → /edi?filter=DESADV
+- [x] HomePage : clic "expéditions en retard" → `/edi?filter=DESADV`
 
 ---
 
