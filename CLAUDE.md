@@ -7,6 +7,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 À chaque fin de session ou sur demande, ajoute un bloc daté en haut du fichier résumant : ce qui a été fait, l’état actuel du code, et les prochaines étapes.
 
 ---
+### Session du 2026-04-26 — Page EDI : viewer split-view + statut métier + étape transmission checkout
+
+**Ce qui a été fait :**
+- `f0eba76` : `STOCK` retiré de `EDIMessageType` et de tous les tests
+- `24128f2` : `getBusinessStatus(type)` ajouté (TDD) — statut métier lisible par type de message
+- `c25f101` + `fa110ca` : `generateEdifactPlaceholder(msg)` ajouté (TDD) — EDIFACT illustratif par type, comptes UNZ corrigés
+- `925767e` : `EDIViewer.tsx` créé — split-view JSON métier (gauche) / EDIFACT terminal vert sur noir (droite)
+- `a785913` : `EDIMessageModal.tsx` refactoré — réduit à un wrapper `<Overlay>` + `<EDIViewer>` (143 → 26 lignes)
+- `ae214a7` : `EDIPage.tsx` mis à jour — badge statut métier dans le tableau, colonne `Voir` indépendante, onglet STOCK supprimé
+- `fe662ae` : checkout cart — étape `transmission` ajoutée (choix FLOWDIFF / EDI), `delivery-address` + `billing-address` fusionnés en `addresses`
+
+**Décisions techniques prises :**
+- Statut dans le tableau : `getBusinessStatus(type)` partout — texte métier, override couleur rouge si `msg.status === 'ERROR'`
+- Architecture viewer : approche B — `EDIViewer` autonome, `EDIMessageModal` wrapper pur
+- EDIFACT : placeholder structuré par type généré à la volée (`generateEdifactPlaceholder`), jamais hardcodé
+- Couleurs terminal EDIFACT : `#000000` / `#00FF41` autorisées en dur (exception charte — usage technique)
+- `.claude/` ajouté au `.gitignore` — mémoire locale jamais versionnée
+
+**État actuel :** TypeScript clean · 109/109 tests Vitest passent · push `origin/main` effectué.
+
+**Prochaines étapes :** Phase 10 (PWA — vite-plugin-pwa), puis Phase 13 (recette finale + déploiement Vercel)
+
+---
 ### Session du 2026-04-23 — Refactoring contextes + sécurité + design system (Commits 3–6)
 
 **Ce qui a été fait :**
