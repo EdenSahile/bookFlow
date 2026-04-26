@@ -8,7 +8,7 @@
 
 ## État du build
 TS clean · 109/109 tests Vitest · dernière session 2026-04-26  
-Refonte HomePage complète + logo cliquable → accueil.
+Mocks ORDRSP (3 cas), badges Détail, navigation accueil → EDI ORDRSP, seed version localStorage.
 
 ---
 

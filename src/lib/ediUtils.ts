@@ -1,5 +1,28 @@
 export type EDIMessageType = 'ORDERS' | 'ORDRSP' | 'DESADV' | 'INVOIC'
 export type EDIStatus = 'PENDING' | 'SENT' | 'RECEIVED' | 'ERROR'
+export type ORDRSPLineStatus = 'ACCEPTED' | 'BACKORDERED' | 'REJECTED'
+export type ORDRSPGlobalStatus = 'ACCEPTED' | 'PARTIAL' | 'REJECTED'
+
+export interface ORDRSPLine {
+  lineNumber: number
+  ean: string
+  title: string
+  qtyRequested: number
+  qtyConfirmed: number
+  status: ORDRSPLineStatus
+  backorderQty?: number
+  estimatedDelivery?: string
+  note?: string
+}
+
+export interface ORDRSPPayload {
+  orderId: string
+  orderResponseId: string
+  responseDate: string
+  globalStatus: ORDRSPGlobalStatus
+  rejectionReason?: string
+  lines: ORDRSPLine[]
+}
 
 export interface EDIMessage {
   id: string
@@ -95,16 +118,33 @@ const EDIFACT_TEMPLATES: Record<EDIMessageType, (msg: EDIMessage) => string> = {
     `UNZ+8+1'`,
   ].join('\n'),
 
-  ORDRSP: (msg) => [
-    `UNB+UNOA:1+GLN-DIFFUSEUR:14+301234XXXXXXX:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
-    `UNH+1+ORDRSP:D:96A:UN'`,
-    `BGM+231+${msg.documentRef}+9'`,
-    `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
-    `DOC+1+${msg.documentRef}'`,
-    `RFF+ON:${msg.documentRef}'`,
-    `UNS+S'`,
-    `UNZ+6+1'`,
-  ].join('\n'),
+  ORDRSP: (msg) => {
+    const p = msg.payload as Partial<ORDRSPPayload>
+    const lines = p.lines ?? []
+    const bgmStatus = p.globalStatus === 'REJECTED' ? '5' : '4'
+    const segments: string[] = [
+      `UNB+UNOA:1+GLN-DIFFUSEUR:14+301234XXXXXXX:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
+      `UNH+1+ORDRSP:D:96A:UN'`,
+      `BGM+231+${msg.documentRef}+${bgmStatus}'`,
+      `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
+      `RFF+ON:${p.orderId ?? msg.documentRef}'`,
+    ]
+    if (p.rejectionReason) {
+      segments.push(`FTX+ZZZ+++${p.rejectionReason}'`)
+    }
+    lines.forEach((line, i) => {
+      segments.push(`LIN+${i + 1}++${line.ean}:EN'`)
+      segments.push(`QTY+21:${line.qtyConfirmed}'`)
+      segments.push(`QTY+1:${line.qtyRequested}'`)
+      if (line.backorderQty) segments.push(`QTY+83:${line.backorderQty}'`)
+      if (line.estimatedDelivery) segments.push(`DTM+358:${line.estimatedDelivery.replace(/-/g, '')}:102'`)
+      segments.push(`PIA+1+${line.status}:ZZZ'`)
+      if (line.note) segments.push(`FTX+ZZZ+++${line.note}'`)
+    })
+    segments.push(`UNS+S'`)
+    segments.push(`UNZ+${segments.length}+1'`)
+    return segments.join('\n')
+  },
 
   DESADV: (msg) => [
     `UNB+UNOA:1+GLN-DIFFUSEUR:14+301234XXXXXXX:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,

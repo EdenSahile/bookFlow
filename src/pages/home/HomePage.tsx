@@ -1253,7 +1253,7 @@ export function HomePage() {
               </ActionBody>
               <ActionArrow>→</ActionArrow>
             </ActionCard>
-            <ActionCard onClick={() => navigate('/historique')}>
+            <ActionCard onClick={() => navigate('/edi?filter=ORDRSP')}>
               <ActionIconWrap $bg="#FFFBEB" $color="#D97706"><IconReceipt /></ActionIconWrap>
               <ActionBody>
                 <ActionCount>2</ActionCount>

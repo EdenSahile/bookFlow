@@ -21,8 +21,11 @@ interface EDIContextValue {
 
 const EDIContext = createContext<EDIContextValue | null>(null)
 
-function messagesKey(cc: string) { return `bookflow_edi_${cc}` }
-function paramsKey(cc: string)   { return `bookflow_edi_params_${cc}` }
+const MOCK_EDI_VERSION = 'v2' // incrémenter à chaque modification de MOCK_EDI_MESSAGES
+
+function messagesKey(cc: string)  { return `bookflow_edi_${cc}` }
+function paramsKey(cc: string)    { return `bookflow_edi_params_${cc}` }
+function versionKey(cc: string)   { return `bookflow_edi_version_${cc}` }
 
 const DEFAULT_PARAMS: EDIParams = {
   preferEdiByDefault: true,
@@ -32,6 +35,13 @@ const DEFAULT_PARAMS: EDIParams = {
 
 function loadMessages(cc: string): EDIMessage[] {
   try {
+    const storedVersion = localStorage.getItem(versionKey(cc))
+    if (storedVersion !== MOCK_EDI_VERSION) {
+      // Mocks mis à jour — on réinitialise localStorage
+      localStorage.removeItem(messagesKey(cc))
+      localStorage.setItem(versionKey(cc), MOCK_EDI_VERSION)
+      return MOCK_EDI_MESSAGES
+    }
     const raw = localStorage.getItem(messagesKey(cc))
     if (raw) {
       const parsed = JSON.parse(raw) as EDIMessage[]

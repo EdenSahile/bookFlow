@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useEDI } from '@/contexts/EDIContext'
@@ -376,6 +376,16 @@ const StatusBadgeTable = styled.span<{ $status: string }>`
     theme.colors.success};
 `
 
+const DetailBadge = styled.span<{ $variant: 'warning' | 'error' }>`
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  background: ${({ $variant, theme }) =>
+    $variant === 'error' ? '#FDECEA' : '#FFF7ED'};
+  color: ${({ $variant, theme }) =>
+    $variant === 'error' ? theme.colors.error : '#C2410C'};
+`
+
 const EyeBtn = styled.button`
   background: none;
   border: none;
@@ -660,8 +670,10 @@ export function EDIPage() {
   const { messages, lastSync, params, updateParams } = useEDI()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
-  const [activeFilter, setActiveFilter] = useState<EDIFilter>('ALL')
+  const initialFilter = (searchParams.get('filter') as EDIFilter | null) ?? 'ALL'
+  const [activeFilter, setActiveFilter] = useState<EDIFilter>(initialFilter)
   const [selectedMessage, setSelectedMessage] = useState<EDIMessage | null>(null)
   const [refInput, setRefInput] = useState('')
 
@@ -873,7 +885,15 @@ export function EDIPage() {
                         {getBusinessStatus(msg.type)}
                       </StatusBadgeTable>
                     </Td>
-                    <Td>{msg.detail}</Td>
+                    <Td>
+                      {msg.detail === 'Refusée' ? (
+                        <DetailBadge $variant="error">Refusée</DetailBadge>
+                      ) : msg.detail === 'Partielle' ? (
+                        <DetailBadge $variant="warning">Partielle</DetailBadge>
+                      ) : (
+                        msg.detail
+                      )}
+                    </Td>
                     <Td>
                       <EyeBtn onClick={() => setSelectedMessage(msg)} aria-label="Voir le message">
                         👁
