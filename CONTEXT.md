@@ -8,14 +8,14 @@
 
 ## État du build
 TS clean · 117/117 tests Vitest · dernière session 2026-04-27  
-Recherche ISBN dans l'historique EDI terminée : filtre live sur tous les onglets, vue DESADV groupée filtrée, INVOIC → "Aucun message disponible".  
-Prochaine phase prévue : INVOIC EDI avec lignes ISBN (intégration complète).
+Fix mock DESADV : suppression de DESADV-2026-0507-001 (2 ex. sur ISBN 9781234567891 non confirmés dans l'ORDRSP — basé sur backorderQty au lieu de qtyConfirmed).  
+Pour CMD-2026-0427-001 : 2 DESADV cohérents, les deux ISBN soldés exactement à hauteur de qtyConfirmed.
 
 ---
 
 ## Session en cours
 
-Aucune tâche en cours.
+- [x] Supprimer DESADV-2026-0507-001 du mock (quantités basées sur backorderQty non confirmé)
 
 ---
 

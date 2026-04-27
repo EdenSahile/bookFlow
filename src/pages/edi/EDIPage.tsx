@@ -891,10 +891,9 @@ export function EDIPage() {
               <SearchIcon>🔍</SearchIcon>
               <ISBNInput
                 type="text"
-                placeholder="Rechercher par ISBN / EAN"
+                placeholder="Rechercher par ISBN / EAN ou N° commande"
                 value={isbnSearch}
                 onChange={e => setIsbnSearch(e.target.value)}
-                maxLength={13}
               />
               {isbnSearch && (
                 <ClearBtn onClick={() => setIsbnSearch('')} aria-label="Effacer la recherche">✕</ClearBtn>
@@ -929,7 +928,7 @@ export function EDIPage() {
                       <Th>Date / Heure</Th>
                       <Th>Type de message</Th>
                       <Th>Diffuseur</Th>
-                      <Th>N° document</Th>
+                      <Th>N° commande</Th>
                       <Th>Statut</Th>
                       <Th>Détail</Th>
                       <Th>Voir</Th>

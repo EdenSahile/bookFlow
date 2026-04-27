@@ -158,15 +158,19 @@ export function groupDESADVByOrder(messages: EDIMessage[]): {
   return { grouped, ungrouped }
 }
 
-export function messageContainsISBN(msg: EDIMessage, isbn: string): boolean {
-  const q = isbn.trim()
+export function messageContainsISBN(msg: EDIMessage, query: string): boolean {
+  const q = query.trim().toLowerCase()
   if (!q) return true
+  if (msg.documentRef?.toLowerCase().includes(q)) return true
+  if (msg.orderId?.toLowerCase().includes(q)) return true
   if (msg.type === 'ORDERS' || msg.type === 'ORDRSP') {
     const p = msg.payload as Partial<ORDERSPayload & ORDRSPPayload>
+    if ((p as Partial<ORDERSPayload>).orderId?.toLowerCase().includes(q)) return true
     return (p.lines ?? []).some(l => (l as ORDERSLine | ORDRSPLine).ean.includes(q))
   }
   if (msg.type === 'DESADV') {
     const p = msg.payload as Partial<DESADVPayload>
+    if (p.orderId?.toLowerCase().includes(q)) return true
     return (p.lines ?? []).some(l => l.isbn.includes(q))
   }
   return false

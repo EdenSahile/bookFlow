@@ -429,22 +429,6 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     },
   },
   {
-    id: 'edi-desadv-0507-001',
-    type: 'DESADV',
-    status: 'RECEIVED',
-    documentRef: 'DESADV-2026-0507-001',
-    diffuseur: 'Diffuseur 4',
-    detail: '1 ligne / 2 ex. (réassort …891)',
-    createdAt: '2026-05-07T08:00:00.000Z',
-    payload: {
-      desadvRef: 'DESADV-2026-0507-001',
-      orderId: 'CMD-2026-0427-001',
-      lines: [
-        { isbn: '9781234567891', qtyShipped: 2 },
-      ],
-    },
-  },
-  {
     id: 'edi-rec-5',
     type: 'INVOIC',
     status: 'RECEIVED',
