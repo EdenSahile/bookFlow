@@ -5,7 +5,7 @@ import styled, { keyframes } from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useCart, REMISE_RATES } from '@/contexts/CartContext'
 import { useClientOrders } from '@/contexts/OrdersContext'
-import { ORDER_STATUSES, ORDER_STATUS_LABELS, type OrderStatus, type Order } from '@/data/mockOrders'
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, type OrderStatus, type Order, type OrderItem } from '@/data/mockOrders'
 import { TrackingModal } from '@/components/historique/TrackingModal'
 import type { Shipment } from '@/data/mockOrders'
 import { MOCK_BOOKS } from '@/data/mockBooks'
@@ -372,6 +372,30 @@ const ReturnButton = styled.button`
   }
 `
 
+const ReturnDeadlineText = styled.div`
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  color: ${({ theme }) => theme.colors.error};
+  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  text-align: right;
+`
+
+const ReturnInfoBanner = styled.div`
+  background: #FFF5F5;
+  border: 1px solid #F5C6C6;
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 10px 14px;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`
+
+const ReturnInfoLine = styled.div`
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  color: ${({ theme }) => theme.colors.error};
+  font-weight: ${({ theme }) => theme.typography.weights.medium};
+`
+
 const TitleRow = styled.div`
   display: flex;
   align-items: center;
@@ -479,6 +503,31 @@ function getHeaders(multiOrder: boolean): string[] {
 /* ── Utils ── */
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(iso))
+}
+
+function addDaysToDate(isoDate: string, days: number): string {
+  const d = new Date(isoDate)
+  d.setDate(d.getDate() + days)
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function getBookType(bookId: string) {
+  return MOCK_BOOKS.find(b => b.id === bookId)?.type ?? 'fonds'
+}
+
+function isOrderMixed(order: Order): boolean {
+  const types = new Set(order.items.map(item => getBookType(item.bookId)))
+  return types.has('nouveaute') && types.has('fonds')
+}
+
+function computeReturnDeadline(order: Order): string {
+  const hasNouveaute = order.items.some(item => getBookType(item.bookId) === 'nouveaute')
+  return addDaysToDate(order.date, hasNouveaute ? 30 : 60)
+}
+
+function getItemReturnDeadline(item: OrderItem, orderDate: string): string {
+  const days = getBookType(item.bookId) === 'nouveaute' ? 30 : 60
+  return addDaysToDate(orderDate, days)
 }
 function formatDateLong(iso: string) {
   return new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(iso))
@@ -658,6 +707,7 @@ export function HistoriquePage() {
       ) : (
         filtered.map(order => {
           const isDone = !!addedMap[order.id]
+          const isMixed = order.status === 'livré' && isOrderMixed(order)
           return (
             <OrderCard key={order.id}>
               {/* En-tête */}
@@ -720,6 +770,11 @@ export function HistoriquePage() {
                           </ItemStatutLine>
                         ) : null}
                         <ItemIsbn>ISBN {item.isbn}</ItemIsbn>
+                        {isMixed && (
+                          <ReturnDeadlineText style={{ textAlign: 'left', marginTop: '3px' }}>
+                            Date limite retour : {getItemReturnDeadline(item, order.date)}
+                          </ReturnDeadlineText>
+                        )}
                       </ItemInfo>
                       <ItemQtyPrice>
                         {item.quantity} × {formatEur(item.unitPriceHT)}
@@ -757,6 +812,11 @@ export function HistoriquePage() {
                         </ReturnButton>
                       )}
                     </div>
+                    {order.status === 'livré' && !isMixed && (
+                      <ReturnDeadlineText>
+                        Date limite retour : {computeReturnDeadline(order)}
+                      </ReturnDeadlineText>
+                    )}
                     {isDone && (
                       <SuccessAlert>
                         <IconCheck />
@@ -775,6 +835,11 @@ export function HistoriquePage() {
 
       {activeTab === 'retours' && (
         <>
+          <ReturnInfoBanner>
+            <ReturnInfoLine>Nouveautés : date limite de retour 30 jours à compter de la commande</ReturnInfoLine>
+            <ReturnInfoLine>Fonds : date limite de retour 60 jours à compter de la commande</ReturnInfoLine>
+          </ReturnInfoBanner>
+
           {!returnsLoading && returnsStats && returns.length > 0 && (
             <StatsGrid>
               <StatCard>
