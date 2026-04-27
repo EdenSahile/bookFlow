@@ -9,6 +9,7 @@ import { DesadvGroupedList } from '@/components/edi/DesadvGroupedList'
 import { exportToCSV } from '@/lib/csv'
 import {
   filterEDIMessages,
+  messageContainsISBN,
   getFluxCounts,
   formatEDITypeLabel,
   formatEDIStatusLabel,
@@ -311,6 +312,43 @@ const ExportBtn = styled.button`
   color: ${({ theme }) => theme.colors.navy};
   cursor: pointer;
   &:hover { background: ${({ theme }) => theme.colors.gray[50]}; }
+`
+
+/* Recherche ISBN */
+const SearchRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+`
+
+const SearchIcon = styled.span`
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  flex-shrink: 0;
+`
+
+const ISBNInput = styled.input`
+  flex: 1;
+  max-width: 280px;
+  padding: 7px 10px;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+  font-size: 0.8125rem;
+  font-family: ${({ theme }) => theme.typography.fontFamilyMono};
+  color: ${({ theme }) => theme.colors.navy};
+  &:focus { outline: none; border-color: ${({ theme }) => theme.colors.navy}; }
+  &::placeholder { font-family: ${({ theme }) => theme.typography.fontFamily}; color: ${({ theme }) => theme.colors.gray[400]}; }
+`
+
+const ClearBtn = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  padding: 4px;
+  line-height: 1;
+  &:hover { color: ${({ theme }) => theme.colors.navy}; }
 `
 
 /* Onglets filtres */
@@ -677,13 +715,18 @@ export function EDIPage() {
   const [activeFilter, setActiveFilter] = useState<EDIFilter>(initialFilter)
   const [selectedMessage, setSelectedMessage] = useState<EDIMessage | null>(null)
   const [refInput, setRefInput] = useState('')
+  const [isbnSearch, setIsbnSearch] = useState('')
 
-  const filtered = filterEDIMessages(messages, activeFilter)
+  const isbnFiltered = isbnSearch.trim()
+    ? messages.filter(m => messageContainsISBN(m, isbnSearch))
+    : messages
+
+  const filtered = filterEDIMessages(isbnFiltered, activeFilter)
   const counts   = getFluxCounts(messages)
 
   const previewRows = [...filtered]
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    .slice(-5)
+    .slice(isbnSearch.trim() ? 0 : -5)
 
   const pendingOrdersCount = messages.filter(m => m.type === 'ORDERS' && m.status === 'PENDING').length
 
@@ -844,6 +887,20 @@ export function EDIPage() {
               </SectionActions>
             </SectionHeader>
 
+            <SearchRow>
+              <SearchIcon>🔍</SearchIcon>
+              <ISBNInput
+                type="text"
+                placeholder="Rechercher par ISBN / EAN"
+                value={isbnSearch}
+                onChange={e => setIsbnSearch(e.target.value)}
+                maxLength={13}
+              />
+              {isbnSearch && (
+                <ClearBtn onClick={() => setIsbnSearch('')} aria-label="Effacer la recherche">✕</ClearBtn>
+              )}
+            </SearchRow>
+
             <TabsRow>
               {([
                 { key: 'ALL',    label: 'Tous' },
@@ -859,7 +916,11 @@ export function EDIPage() {
             </TabsRow>
 
             {activeFilter === 'DESADV' ? (
-              <DesadvGroupedList messages={messages} onSelect={setSelectedMessage} />
+              <DesadvGroupedList
+                messages={isbnFiltered}
+                onSelect={setSelectedMessage}
+                isbnFilter={isbnSearch.trim() || undefined}
+              />
             ) : (
               <>
                 <Table>
@@ -909,7 +970,9 @@ export function EDIPage() {
                     {previewRows.length === 0 && (
                       <tr>
                         <Td colSpan={7} style={{ textAlign: 'center', color: '#6B6B68', padding: '24px' }}>
-                          Aucun message pour ce filtre.
+                          {isbnSearch.trim() && activeFilter === 'INVOIC'
+                            ? 'Aucun message disponible.'
+                            : 'Aucun message pour ce filtre.'}
                         </Td>
                       </tr>
                     )}

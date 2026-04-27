@@ -113,13 +113,18 @@ function sumConfirmed(g: DesadvGroup) {
 interface Props {
   messages: EDIMessage[]
   onSelect: (msg: EDIMessage) => void
+  isbnFilter?: string
 }
 
-export function DesadvGroupedList({ messages, onSelect }: Props) {
+export function DesadvGroupedList({ messages, onSelect, isbnFilter }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const { grouped, ungrouped } = groupDESADVByOrder(messages)
 
+  const isOpen = (orderId: string) =>
+    isbnFilter ? true : expanded.has(orderId)
+
   function toggle(orderId: string) {
+    if (isbnFilter) return
     setExpanded(prev => {
       const next = new Set(prev)
       next.has(orderId) ? next.delete(orderId) : next.add(orderId)
@@ -144,15 +149,14 @@ export function DesadvGroupedList({ messages, onSelect }: Props) {
           {grouped.length === 0 ? (
             <tr>
               <Td colSpan={6} style={{ textAlign: 'center', color: '#6B6B68', padding: '24px' }}>
-                Aucune expédition liée à une commande.
+                {isbnFilter ? 'Aucun message disponible.' : 'Aucune expédition liée à une commande.'}
               </Td>
             </tr>
           ) : grouped.map(group => {
-            const isOpen = expanded.has(group.orderId)
             return (
               <React.Fragment key={group.orderId}>
                 <GroupTr onClick={() => toggle(group.orderId)}>
-                  <Td><ExpandIcon>{isOpen ? '▼' : '▶'}</ExpandIcon></Td>
+                  <Td><ExpandIcon>{isOpen(group.orderId) ? '▼' : '▶'}</ExpandIcon></Td>
                   <Td><Mono>{group.orderId}</Mono></Td>
                   <Td>{group.diffuseur}</Td>
                   <Td>{group.desadvs.length} DESADV</Td>
@@ -168,7 +172,7 @@ export function DesadvGroupedList({ messages, onSelect }: Props) {
                   </Td>
                 </GroupTr>
 
-                {isOpen && group.desadvs.map(desadv => {
+                {isOpen(group.orderId) && group.desadvs.map(desadv => {
                   const p = desadv.payload as DESADVPayload
                   return (
                     <SubTr key={desadv.id}>

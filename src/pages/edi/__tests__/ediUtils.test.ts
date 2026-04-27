@@ -6,6 +6,7 @@ import {
   formatEDIStatusLabel,
   getBusinessStatus,
   generateEdifactPlaceholder,
+  messageContainsISBN,
   type EDIMessage,
 } from '@/lib/ediUtils'
 
@@ -81,6 +82,62 @@ describe('getBusinessStatus', () => {
   })
   it('INVOIC → Facture reçue', () => {
     expect(getBusinessStatus('INVOIC')).toBe('Facture reçue')
+  })
+})
+
+describe('messageContainsISBN', () => {
+  const orders: EDIMessage = {
+    id: 'o1', type: 'ORDERS', status: 'SENT', documentRef: 'CMD-001',
+    diffuseur: 'D1', detail: '-', createdAt: '2026-04-24T10:00:00.000Z',
+    payload: { orderId: 'CMD-001', diffuseur: 'D1', lines: [
+      { lineNumber: 1, ean: '9782070360024', title: 'Titre A', qtyRequested: 2 },
+      { lineNumber: 2, ean: '9782075017346', title: 'Titre B', qtyRequested: 1 },
+    ]},
+  }
+  const ordrsp: EDIMessage = {
+    id: 'r1', type: 'ORDRSP', status: 'RECEIVED', documentRef: 'ACK-001',
+    diffuseur: 'D1', detail: '-', createdAt: '2026-04-24T11:00:00.000Z',
+    payload: { orderId: 'CMD-001', orderResponseId: 'ACK-001', responseDate: '', globalStatus: 'ACCEPTED', lines: [
+      { lineNumber: 1, ean: '9782070360024', title: 'Titre A', qtyRequested: 2, qtyConfirmed: 2, status: 'ACCEPTED' },
+    ]},
+  }
+  const desadv: EDIMessage = {
+    id: 'd1', type: 'DESADV', status: 'RECEIVED', documentRef: 'DES-001',
+    diffuseur: 'D1', detail: '-', createdAt: '2026-04-25T08:00:00.000Z',
+    payload: { desadvRef: 'DES-001', orderId: 'CMD-001', lines: [
+      { isbn: '9782070360024', qtyShipped: 2 },
+    ]},
+  }
+  const invoic: EDIMessage = {
+    id: 'i1', type: 'INVOIC', status: 'RECEIVED', documentRef: 'INV-001',
+    diffuseur: 'D1', detail: '-', createdAt: '2026-04-25T09:00:00.000Z',
+    payload: { invoiceRef: 'INV-001', amountTTC: 100, currency: 'EUR' },
+  }
+
+  it('retourne true si EAN correspond dans ORDERS', () => {
+    expect(messageContainsISBN(orders, '9782070360024')).toBe(true)
+  })
+  it('retourne false si EAN absent dans ORDERS', () => {
+    expect(messageContainsISBN(orders, '9999999999999')).toBe(false)
+  })
+  it('accepte une recherche partielle (préfixe)', () => {
+    expect(messageContainsISBN(orders, '97820703')).toBe(true)
+  })
+  it('retourne true si EAN correspond dans ORDRSP', () => {
+    expect(messageContainsISBN(ordrsp, '9782070360024')).toBe(true)
+  })
+  it('retourne true si ISBN correspond dans DESADV', () => {
+    expect(messageContainsISBN(desadv, '9782070360024')).toBe(true)
+  })
+  it('retourne false si ISBN absent dans DESADV', () => {
+    expect(messageContainsISBN(desadv, '9999999999999')).toBe(false)
+  })
+  it('retourne false pour INVOIC (pas d\'ISBN dans le payload)', () => {
+    expect(messageContainsISBN(invoic, '9782070360024')).toBe(false)
+  })
+  it('retourne true si la recherche est vide (pas de filtre)', () => {
+    expect(messageContainsISBN(orders, '')).toBe(true)
+    expect(messageContainsISBN(invoic, '')).toBe(true)
   })
 })
 
