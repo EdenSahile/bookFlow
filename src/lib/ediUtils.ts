@@ -222,7 +222,7 @@ const EDIFACT_TEMPLATES: Record<EDIMessageType, (msg: EDIMessage) => string> = {
   ORDERS: (msg) => {
     const p = msg.payload as Partial<ORDERSPayload> & { totalQty?: number }
     const header = [
-      `UNB+UNOC:3+301234XXXXXXX:14+GLN-DIFFUSEUR:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
+      `UNB+UNOA:1+301234XXXXXXX:14+GLN-DIFFUSEUR:14+${fmtEdifactDate(msg.createdAt)}:${fmtEdifactTime(msg.createdAt)}+1'`,
       `UNH+1+ORDERS:D:96A:UN'`,
       `BGM+220+${msg.documentRef}+9'`,
       `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
@@ -281,6 +281,7 @@ const EDIFACT_TEMPLATES: Record<EDIMessageType, (msg: EDIMessage) => string> = {
       `BGM+351+${p.desadvRef ?? msg.documentRef}'`,
       `DTM+137:${fmtEdifactDate(msg.createdAt)}:102'`,
       `DTM+11:${fmtEdifactDate(msg.createdAt)}:102'`,
+      `CPS+1'`,
     ]
     if (p.orderId) segments.push(`RFF+ON:${p.orderId}'`)
     lines.forEach((line, i) => {

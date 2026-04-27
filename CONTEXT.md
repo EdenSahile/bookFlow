@@ -8,9 +8,8 @@
 
 ## État du build
 TS clean · 109/109 tests Vitest · dernière session 2026-04-27  
-Chaîne EDI ORDERS → ORDRSP → DESADV complète : mocks cohérents + types + vue groupée DESADV par commande.  
-Commit pushé : `f3a7b23` — feat(edi): vue groupée DESADV par commande + chaîne complète.  
-Corrections EDIFACT D:96A (A1–A10) appliquées — fichier `ediUtils.ts` à jour.
+Refonte mocks EDI terminée : 7 chaînes ORDERS→ORDRSP→DESADV complètes + cohérentes.  
+Fix ediUtils.ts : ORDERS UNB+UNOA:1+ + DESADV CPS+1'.
 
 ---
 
@@ -90,10 +89,10 @@ Pour chaque ORDERS, avoir : **lignes réelles** (EAN + titre + qty) + ORDRSP coh
 
 ### Étapes
 - [x] **Étape 0** : CONTEXT.md mis à jour
-- [ ] **Étape 1** : Mettre les lignes réelles dans tous les ORDERS (màj `edi-old-1`, `edi-old-2`, `edi-old-3`, `edi-rec-1`, `edi-rec-2`) + ajouter ORDERS pour chaîne 6 + supprimer `edi-old-4` (DESADV sans orderId devenu inutile)
-- [ ] **Étape 2** : Ajouter les ORDRSP manquants (chaînes 1, 2, 3)
-- [ ] **Étape 3** : Ajouter les DESADV manquants (chaînes 1, 2, 3, 4, 5)
-- [ ] **Étape 4** : Vérifier build TS + tests
+- [x] **Étape 1** : Mettre les lignes réelles dans tous les ORDERS (màj `edi-old-1`, `edi-old-2`, `edi-old-3`, `edi-rec-1`, `edi-rec-2`) + ajouter ORDERS pour chaîne 6 + supprimer `edi-old-4` (DESADV sans orderId devenu inutile)
+- [x] **Étape 2** : Ajouter les ORDRSP manquants (chaînes 1, 2, 3)
+- [x] **Étape 3** : Ajouter les DESADV manquants (chaînes 1, 2, 3, 4, 5)
+- [x] **Étape 4** : Vérifier build TS + tests
 
 ---
 

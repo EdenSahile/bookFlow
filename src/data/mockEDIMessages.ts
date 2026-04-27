@@ -2,7 +2,7 @@
 import type { EDIMessage } from '@/lib/ediUtils'
 
 export const MOCK_EDI_MESSAGES: EDIMessage[] = [
-  // ── 5 messages anciens (alimentent les "Flux en cours") ──────────────
+  // ── Messages anciens (alimentent les "Flux en cours") ────────────────
   {
     id: 'edi-old-1',
     type: 'ORDERS',
@@ -11,7 +11,74 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     diffuseur: 'Diffuseur 1',
     detail: '5 lignes / 10 ex.',
     createdAt: '2026-04-25T16:00:00.000Z',
-    payload: { orderId: 'CMD-2026-0425-001', lines: 5, totalQty: 10, diffuseur: 'Diffuseur 1' },
+    payload: {
+      orderId: 'CMD-2026-0425-001',
+      diffuseur: 'Diffuseur 1',
+      lines: [
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1',      qtyRequested: 3 },
+        { lineNumber: 2, ean: '9782075017346', title: 'Kaguya-sama T.1',                  qtyRequested: 2 },
+        { lineNumber: 3, ean: '9782812919483', title: "Pâtisserie – L'ultime référence",  qtyRequested: 1 },
+        { lineNumber: 4, ean: '9782344044285', title: 'Chainsaw Man T.12',                qtyRequested: 3 },
+        { lineNumber: 5, ean: '9782756099736', title: 'One Piece T.105',                  qtyRequested: 1 },
+      ],
+    },
+  },
+  {
+    id: 'edi-ordrsp-0425-001',
+    type: 'ORDRSP',
+    status: 'RECEIVED',
+    documentRef: 'ACK-2026-0425-001',
+    diffuseur: 'Diffuseur 1',
+    detail: 'Partielle',
+    createdAt: '2026-04-25T17:00:00.000Z',
+    payload: {
+      orderId: 'CMD-2026-0425-001',
+      orderResponseId: 'ACK-2026-0425-001',
+      responseDate: '2026-04-25T17:00:00Z',
+      globalStatus: 'PARTIAL',
+      lines: [
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1',     qtyRequested: 3, qtyConfirmed: 3, status: 'ACCEPTED',    estimatedDelivery: '2026-04-29' },
+        { lineNumber: 2, ean: '9782075017346', title: 'Kaguya-sama T.1',                 qtyRequested: 2, qtyConfirmed: 2, status: 'ACCEPTED',    estimatedDelivery: '2026-04-29' },
+        { lineNumber: 3, ean: '9782812919483', title: "Pâtisserie – L'ultime référence", qtyRequested: 1, qtyConfirmed: 0, status: 'BACKORDERED', backorderQty: 1, note: 'Rupture stock — sans date de réassort' },
+        { lineNumber: 4, ean: '9782344044285', title: 'Chainsaw Man T.12',               qtyRequested: 3, qtyConfirmed: 2, status: 'BACKORDERED', backorderQty: 1, estimatedDelivery: '2026-05-05', note: 'Stock partiel — 1 ex. en réassort semaine 19' },
+        { lineNumber: 5, ean: '9782756099736', title: 'One Piece T.105',                 qtyRequested: 1, qtyConfirmed: 1, status: 'ACCEPTED',    estimatedDelivery: '2026-04-29' },
+      ],
+    },
+  },
+  {
+    id: 'edi-desadv-0429-001',
+    type: 'DESADV',
+    status: 'RECEIVED',
+    documentRef: 'DESADV-2026-0429-001',
+    diffuseur: 'Diffuseur 1',
+    detail: 'Partielle (8 ex.)',
+    createdAt: '2026-04-29T08:00:00.000Z',
+    payload: {
+      desadvRef: 'DESADV-2026-0429-001',
+      orderId: 'CMD-2026-0425-001',
+      lines: [
+        { isbn: '9782070360024', qtyShipped: 3 },
+        { isbn: '9782075017346', qtyShipped: 2 },
+        { isbn: '9782344044285', qtyShipped: 2 },
+        { isbn: '9782756099736', qtyShipped: 1 },
+      ],
+    },
+  },
+  {
+    id: 'edi-desadv-0505-001',
+    type: 'DESADV',
+    status: 'RECEIVED',
+    documentRef: 'DESADV-2026-0505-001',
+    diffuseur: 'Diffuseur 1',
+    detail: '1 ligne / 1 ex. (solde Chainsaw Man)',
+    createdAt: '2026-05-05T08:00:00.000Z',
+    payload: {
+      desadvRef: 'DESADV-2026-0505-001',
+      orderId: 'CMD-2026-0425-001',
+      lines: [
+        { isbn: '9782344044285', qtyShipped: 1 },
+      ],
+    },
   },
   {
     id: 'edi-old-2',
@@ -21,7 +88,53 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     diffuseur: 'Diffuseur 2',
     detail: '3 lignes / 6 ex.',
     createdAt: '2026-04-24T11:00:00.000Z',
-    payload: { orderId: 'CMD-2026-0424-001', lines: 3, totalQty: 6, diffuseur: 'Diffuseur 2' },
+    payload: {
+      orderId: 'CMD-2026-0424-001',
+      diffuseur: 'Diffuseur 2',
+      lines: [
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1', qtyRequested: 2 },
+        { lineNumber: 2, ean: '9782253004226', title: 'Le Petit Prince',             qtyRequested: 3 },
+        { lineNumber: 3, ean: '9782070541027', title: "L'Étranger",                 qtyRequested: 1 },
+      ],
+    },
+  },
+  {
+    id: 'edi-ordrsp-0424-001',
+    type: 'ORDRSP',
+    status: 'RECEIVED',
+    documentRef: 'ACK-2026-0424-001',
+    diffuseur: 'Diffuseur 2',
+    detail: 'Acceptée',
+    createdAt: '2026-04-24T12:00:00.000Z',
+    payload: {
+      orderId: 'CMD-2026-0424-001',
+      orderResponseId: 'ACK-2026-0424-001',
+      responseDate: '2026-04-24T12:00:00Z',
+      globalStatus: 'ACCEPTED',
+      lines: [
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1', qtyRequested: 2, qtyConfirmed: 2, status: 'ACCEPTED', estimatedDelivery: '2026-04-28' },
+        { lineNumber: 2, ean: '9782253004226', title: 'Le Petit Prince',             qtyRequested: 3, qtyConfirmed: 3, status: 'ACCEPTED', estimatedDelivery: '2026-04-28' },
+        { lineNumber: 3, ean: '9782070541027', title: "L'Étranger",                 qtyRequested: 1, qtyConfirmed: 1, status: 'ACCEPTED', estimatedDelivery: '2026-04-28' },
+      ],
+    },
+  },
+  {
+    id: 'edi-desadv-0428-001',
+    type: 'DESADV',
+    status: 'RECEIVED',
+    documentRef: 'DESADV-2026-0428-001',
+    diffuseur: 'Diffuseur 2',
+    detail: 'Complète (6 ex.)',
+    createdAt: '2026-04-28T10:00:00.000Z',
+    payload: {
+      desadvRef: 'DESADV-2026-0428-001',
+      orderId: 'CMD-2026-0424-001',
+      lines: [
+        { isbn: '9782070360024', qtyShipped: 2 },
+        { isbn: '9782253004226', qtyShipped: 3 },
+        { isbn: '9782070541027', qtyShipped: 1 },
+      ],
+    },
   },
   {
     id: 'edi-old-3',
@@ -29,23 +142,64 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     status: 'PENDING',
     documentRef: 'CMD-2026-0424-002',
     diffuseur: 'Diffuseur 3',
-    detail: '7 lignes / 14 ex.',
+    detail: '7 lignes / 17 ex.',
     createdAt: '2026-04-24T14:30:00.000Z',
-    payload: { orderId: 'CMD-2026-0424-002', lines: 7, totalQty: 14, diffuseur: 'Diffuseur 3' },
+    payload: {
+      orderId: 'CMD-2026-0424-002',
+      diffuseur: 'Diffuseur 3',
+      lines: [
+        { lineNumber: 1, ean: '9782075017346', title: 'Kaguya-sama T.1',                     qtyRequested: 4 },
+        { lineNumber: 2, ean: '9782756099736', title: 'One Piece T.105',                      qtyRequested: 3 },
+        { lineNumber: 3, ean: '9782344044285', title: 'Chainsaw Man T.12',                    qtyRequested: 2 },
+        { lineNumber: 4, ean: '9782012101227', title: 'Tintin : Les Bijoux de la Castafiore', qtyRequested: 2 },
+        { lineNumber: 5, ean: '9782072970962', title: 'Astérix T.38',                         qtyRequested: 3 },
+        { lineNumber: 6, ean: '9782070360628', title: 'Les Misérables T.1',                   qtyRequested: 1 },
+        { lineNumber: 7, ean: '9782221257906', title: 'Dune',                                 qtyRequested: 2 },
+      ],
+    },
   },
   {
-    id: 'edi-old-4',
+    id: 'edi-ordrsp-0424-002',
+    type: 'ORDRSP',
+    status: 'RECEIVED',
+    documentRef: 'ACK-2026-0424-002',
+    diffuseur: 'Diffuseur 3',
+    detail: 'Partielle',
+    createdAt: '2026-04-24T15:30:00.000Z',
+    payload: {
+      orderId: 'CMD-2026-0424-002',
+      orderResponseId: 'ACK-2026-0424-002',
+      responseDate: '2026-04-24T15:30:00Z',
+      globalStatus: 'PARTIAL',
+      lines: [
+        { lineNumber: 1, ean: '9782075017346', title: 'Kaguya-sama T.1',                     qtyRequested: 4, qtyConfirmed: 4, status: 'ACCEPTED',    estimatedDelivery: '2026-04-28' },
+        { lineNumber: 2, ean: '9782756099736', title: 'One Piece T.105',                      qtyRequested: 3, qtyConfirmed: 3, status: 'ACCEPTED',    estimatedDelivery: '2026-04-28' },
+        { lineNumber: 3, ean: '9782344044285', title: 'Chainsaw Man T.12',                    qtyRequested: 2, qtyConfirmed: 2, status: 'ACCEPTED',    estimatedDelivery: '2026-04-28' },
+        { lineNumber: 4, ean: '9782012101227', title: 'Tintin : Les Bijoux de la Castafiore', qtyRequested: 2, qtyConfirmed: 2, status: 'ACCEPTED',    estimatedDelivery: '2026-04-28' },
+        { lineNumber: 5, ean: '9782072970962', title: 'Astérix T.38',                         qtyRequested: 3, qtyConfirmed: 2, status: 'BACKORDERED', backorderQty: 1, estimatedDelivery: '2026-05-10', note: 'Stock partiel — 1 ex. en réassort semaine 19' },
+        { lineNumber: 6, ean: '9782070360628', title: 'Les Misérables T.1',                   qtyRequested: 1, qtyConfirmed: 1, status: 'ACCEPTED',    estimatedDelivery: '2026-04-28' },
+        { lineNumber: 7, ean: '9782221257906', title: 'Dune',                                 qtyRequested: 2, qtyConfirmed: 0, status: 'BACKORDERED', backorderQty: 2, estimatedDelivery: '2026-05-15', note: 'Rupture totale — réassort prévu semaine 20' },
+      ],
+    },
+  },
+  {
+    id: 'edi-desadv-0428-002',
     type: 'DESADV',
     status: 'RECEIVED',
-    documentRef: 'DESADV-2026-0423-001',
-    diffuseur: 'Diffuseur 1',
-    detail: 'Complète (10 ex.)',
-    createdAt: '2026-04-23T09:00:00.000Z',
+    documentRef: 'DESADV-2026-0428-002',
+    diffuseur: 'Diffuseur 3',
+    detail: 'Partielle (14 ex.)',
+    createdAt: '2026-04-28T11:00:00.000Z',
     payload: {
-      desadvRef: 'DESADV-2026-0423-001',
+      desadvRef: 'DESADV-2026-0428-002',
+      orderId: 'CMD-2026-0424-002',
       lines: [
-        { isbn: '9782070360024', qtyShipped: 5 },
-        { isbn: '9782075017346', qtyShipped: 5 },
+        { isbn: '9782075017346', qtyShipped: 4 },
+        { isbn: '9782756099736', qtyShipped: 3 },
+        { isbn: '9782344044285', qtyShipped: 2 },
+        { isbn: '9782012101227', qtyShipped: 2 },
+        { isbn: '9782072970962', qtyShipped: 2 },
+        { isbn: '9782070360628', qtyShipped: 1 },
       ],
     },
   },
@@ -59,16 +213,41 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     createdAt: '2026-04-22T15:45:00.000Z',
     payload: { invoiceRef: 'INV-2026-0422-001', amountTTC: 856.0, currency: 'EUR' },
   },
-  // ── 5 messages récents (affichés dans le tableau de la page) ─────────
+  // ── Messages récents (affichés dans le tableau de la page) ────────────
+  {
+    id: 'edi-orders-0426-003',
+    type: 'ORDERS',
+    status: 'SENT',
+    documentRef: 'CMD-2026-0426-003',
+    diffuseur: 'Diffuseur 3',
+    detail: '2 lignes / 10 ex.',
+    createdAt: '2026-04-26T09:45:00.000Z',
+    payload: {
+      orderId: 'CMD-2026-0426-003',
+      diffuseur: 'Diffuseur 3',
+      lines: [
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1', qtyRequested: 6 },
+        { lineNumber: 2, ean: '9782075017346', title: 'Kaguya-sama T.1',             qtyRequested: 4 },
+      ],
+    },
+  },
   {
     id: 'edi-rec-1',
     type: 'ORDERS',
     status: 'SENT',
     documentRef: 'CMD-2026-0426-002',
     diffuseur: 'Diffuseur 1',
-    detail: '8 lignes / 16 ex.',
+    detail: '3 lignes / 22 ex.',
     createdAt: '2026-04-26T11:02:00.000Z',
-    payload: { orderId: 'CMD-2026-0426-002', lines: 8, totalQty: 16, diffuseur: 'Diffuseur 1' },
+    payload: {
+      orderId: 'CMD-2026-0426-002',
+      diffuseur: 'Diffuseur 1',
+      lines: [
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1',     qtyRequested: 10 },
+        { lineNumber: 2, ean: '9782075017346', title: 'Kaguya-sama T.1',                 qtyRequested: 8  },
+        { lineNumber: 3, ean: '9782812919483', title: "Pâtisserie – L'ultime référence", qtyRequested: 4  },
+      ],
+    },
   },
   {
     id: 'edi-rec-2',
@@ -76,9 +255,16 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     status: 'SENT',
     documentRef: 'CMD-2026-0426-001',
     diffuseur: 'Diffuseur 4',
-    detail: '12 lignes / 24 ex.',
+    detail: '2 lignes / 8 ex.',
     createdAt: '2026-04-26T14:32:00.000Z',
-    payload: { orderId: 'CMD-2026-0426-001', lines: 12, totalQty: 24, diffuseur: 'Diffuseur 4' },
+    payload: {
+      orderId: 'CMD-2026-0426-001',
+      diffuseur: 'Diffuseur 4',
+      lines: [
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1', qtyRequested: 5 },
+        { lineNumber: 2, ean: '9782075017346', title: 'Kaguya-sama T.1',             qtyRequested: 3 },
+      ],
+    },
   },
   {
     id: 'edi-rec-3',
@@ -100,11 +286,28 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
     },
   },
   {
+    id: 'edi-desadv-0429-002',
+    type: 'DESADV',
+    status: 'RECEIVED',
+    documentRef: 'DESADV-2026-0429-002',
+    diffuseur: 'Diffuseur 4',
+    detail: 'Complète (8 ex.)',
+    createdAt: '2026-04-29T09:00:00.000Z',
+    payload: {
+      desadvRef: 'DESADV-2026-0429-002',
+      orderId: 'CMD-2026-0426-001',
+      lines: [
+        { isbn: '9782070360024', qtyShipped: 5 },
+        { isbn: '9782075017346', qtyShipped: 3 },
+      ],
+    },
+  },
+  {
     id: 'edi-ordrsp-partial',
     type: 'ORDRSP',
     status: 'RECEIVED',
     documentRef: 'ACK-2026-0426-002',
-    diffuseur: 'Diffuseur 2',
+    diffuseur: 'Diffuseur 1',
     detail: 'Partielle',
     createdAt: '2026-04-26T15:10:00.000Z',
     payload: {
@@ -113,9 +316,26 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
       responseDate: '2026-04-26T15:10:00Z',
       globalStatus: 'PARTIAL',
       lines: [
-        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1', qtyRequested: 10, qtyConfirmed: 10, status: 'ACCEPTED',    estimatedDelivery: '2026-04-29' },
-        { lineNumber: 2, ean: '9782075017346', title: 'Kaguya-sama T.1',             qtyRequested: 8,  qtyConfirmed: 3,  status: 'BACKORDERED', backorderQty: 5, estimatedDelivery: '2026-05-12', note: 'Stock partiel disponible, réassort prévu semaine 19' },
-        { lineNumber: 3, ean: '9782812919483', title: 'Pâtisserie – L\'ultime référence', qtyRequested: 4, qtyConfirmed: 0, status: 'BACKORDERED', backorderQty: 4, estimatedDelivery: '2026-05-20', note: 'Rupture temporaire diffuseur' },
+        { lineNumber: 1, ean: '9782070360024', title: 'Le Voyageur des confins T.1',     qtyRequested: 10, qtyConfirmed: 10, status: 'ACCEPTED',    estimatedDelivery: '2026-04-29' },
+        { lineNumber: 2, ean: '9782075017346', title: 'Kaguya-sama T.1',                 qtyRequested: 8,  qtyConfirmed: 3,  status: 'BACKORDERED', backorderQty: 5, estimatedDelivery: '2026-05-12', note: 'Stock partiel disponible, réassort prévu semaine 19' },
+        { lineNumber: 3, ean: '9782812919483', title: "Pâtisserie – L'ultime référence", qtyRequested: 4,  qtyConfirmed: 0,  status: 'BACKORDERED', backorderQty: 4, estimatedDelivery: '2026-05-20', note: 'Rupture temporaire diffuseur' },
+      ],
+    },
+  },
+  {
+    id: 'edi-desadv-0429-003',
+    type: 'DESADV',
+    status: 'RECEIVED',
+    documentRef: 'DESADV-2026-0429-003',
+    diffuseur: 'Diffuseur 1',
+    detail: 'Partielle (13 ex.)',
+    createdAt: '2026-04-29T10:00:00.000Z',
+    payload: {
+      desadvRef: 'DESADV-2026-0429-003',
+      orderId: 'CMD-2026-0426-002',
+      lines: [
+        { isbn: '9782070360024', qtyShipped: 10 },
+        { isbn: '9782075017346', qtyShipped: 3  },
       ],
     },
   },
@@ -170,7 +390,7 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
       responseDate: '2026-04-27T08:30:00Z',
       globalStatus: 'PARTIAL',
       lines: [
-        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 10, qtyConfirmed: 8, status: 'BACKORDERED', backorderQty: 2, estimatedDelivery: '2026-04-30', note: 'Stock partiel — 2 ex. en réassort semaine 19' },
+        { lineNumber: 1, ean: '9781234567890', title: "L'Été des sirènes", qtyRequested: 10, qtyConfirmed: 8,  status: 'BACKORDERED', backorderQty: 2, estimatedDelivery: '2026-04-30', note: 'Stock partiel — 2 ex. en réassort semaine 19' },
         { lineNumber: 2, ean: '9781234567891', title: 'Dragon Ball Z T.3', qtyRequested: 15, qtyConfirmed: 13, status: 'BACKORDERED', backorderQty: 2, estimatedDelivery: '2026-05-07', note: 'Rupture partielle — 2 ex. en réassort semaine 19' },
       ],
     },
@@ -192,7 +412,6 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
       ],
     },
   },
-  // ── DESADV-002 : solde ligne 1 (3 ex. …890, livraison partielle initiale soldée) ──
   {
     id: 'edi-desadv-0430-001',
     type: 'DESADV',
@@ -209,7 +428,6 @@ export const MOCK_EDI_MESSAGES: EDIMessage[] = [
       ],
     },
   },
-  // ── DESADV-003 : réassort ligne 2 (2 ex. …891 backorder soldé) ───────────────────
   {
     id: 'edi-desadv-0507-001',
     type: 'DESADV',

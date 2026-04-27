@@ -11,6 +11,7 @@ Lire CONTEXT.md en début de session et reprendre là où on s'est arrêtés san
 
 ---
 ## Résumé
+Lister toutes les étapes d'une feature ou mise à jour ou fix bug avant implémentation
 Mettre à jour CONTEXT.md dès qu'une étape est terminée (statut, build, prochaines étapes).
 Ne jamais ajouter de blocs datés dans CLAUDE.md.
 
@@ -19,7 +20,20 @@ Ne jamais ajouter de blocs datés dans CLAUDE.md.
 
 ## Contexte du projet
 
-Application B2B **FlowDiff** à destination exclusive des **libraires**, permettant de passer des commandes de livres (notamment les titres de fonds déjà parus) et de consulter les actualités éditoriales.
+Application B2B **FlowDiff** à destination exclusive des **libraires**, permettant de passer des commandes de livres sur : 
+- les titres de fonds déjà parus
+- les nouveautés
+- les titres à paraître
+- Sur les meiilleurs ventes
+- Sur des sélections et OP commerciales
+  
+L'app permet également :
+- de voir les flash infos sur les titres, l'app, les auteurs etc..
+- de passer des commandes via le site ou via Dilicom (EDI)
+- de créer des listes de titres 
+- de voir l'historique des commande
+- de contacter son représentant ou service commercial
+- de voir un dashboard sur la page d'accueil avec plusieurs statistiques
 
 **Cible** : application **desktop** (interface large) ET **mobile responsive** (téléphone).
 **Design source** : `/Users/macbookeden/Documents/Projets-code/ux-design-application-libraires.pdf`
