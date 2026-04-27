@@ -3,8 +3,7 @@ import { theme } from '@/lib/theme'
 import styled from 'styled-components'
 import { MOCK_FLASH_INFOS, FLASH_CATEGORIES } from '@/data/mockFlashInfos'
 import type { FlashCategory } from '@/data/mockFlashInfos'
-import { UniverseFilter } from '@/components/catalogue/UniverseFilter'
-import { getBookById } from '@/data/mockBooks'
+import { getBookById, UNIVERSES } from '@/data/mockBooks'
 import type { Universe } from '@/data/mockBooks'
 import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/contexts/ToastContext'
@@ -25,37 +24,59 @@ const PageTitle = styled.h1`
 `
 
 /* ── Filtres ── */
-const FiltersRow = styled.div`
+const FiltersGroup = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
-  align-items: center;
 `
 
-const CategoryChip = styled.button<{ $active: boolean }>`
+const FilterRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  overflow: hidden;
+`
+
+const FilterLabel = styled.span`
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.xs};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  color: ${({ theme }) => theme.colors.gray[400]};
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+`
+
+const FilterPillsBar = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar { display: none; }
+`
+
+const FilterPill = styled.button<{ $active: boolean }>`
+  flex-shrink: 0;
   padding: 6px 14px;
   border-radius: ${({ theme }) => theme.radii.full};
-  border: 1.5px solid ${({ theme, $active }) => $active ? theme.colors.navy : theme.colors.gray[200]};
+  border: 2px solid ${({ theme, $active }) => $active ? theme.colors.navy : theme.colors.gray[200]};
   background: ${({ theme, $active }) => $active ? theme.colors.navy : theme.colors.white};
-  color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.gray[600]};
+  color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.gray[600]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme, $active }) => $active ? theme.typography.weights.semibold : theme.typography.weights.normal};
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   white-space: nowrap;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.navy};
-    color: ${({ $active, theme }) => $active ? '#fdfdfd' : theme.colors.navy};
+    color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.navy};
   }
-`
-
-const Divider = styled.div`
-  width: 1px;
-  height: 28px;
-  background: ${({ theme }) => theme.colors.gray[200]};
 `
 
 /* ── Liste ── */
@@ -439,21 +460,39 @@ export function FlashInfosPage() {
     <Page>
       <PageTitle>Flash Infos</PageTitle>
 
-      <FiltersRow>
-        <UniverseFilter value={universe} onChange={setUniverse} />
+      <FiltersGroup>
+        <FilterRow>
+          <FilterLabel>Rayon</FilterLabel>
+          <FilterPillsBar>
+            <FilterPill $active={universe === null} onClick={() => setUniverse(null)}>Tous</FilterPill>
+            {UNIVERSES.map(u => (
+              <FilterPill
+                key={u}
+                $active={universe === u}
+                onClick={() => setUniverse(universe === u ? null : u)}
+              >
+                {u}
+              </FilterPill>
+            ))}
+          </FilterPillsBar>
+        </FilterRow>
 
-        <Divider />
-
-        {FLASH_CATEGORIES.map(cat => (
-          <CategoryChip
-            key={cat}
-            $active={category === cat}
-            onClick={() => setCategory(c => c === cat ? null : cat)}
-          >
-            {cat}
-          </CategoryChip>
-        ))}
-      </FiltersRow>
+        <FilterRow>
+          <FilterLabel>Type d'info</FilterLabel>
+          <FilterPillsBar>
+            <FilterPill $active={category === null} onClick={() => setCategory(null)}>Tous</FilterPill>
+            {FLASH_CATEGORIES.map(cat => (
+              <FilterPill
+                key={cat}
+                $active={category === cat}
+                onClick={() => setCategory(c => c === cat ? null : cat)}
+              >
+                {cat}
+              </FilterPill>
+            ))}
+          </FilterPillsBar>
+        </FilterRow>
+      </FiltersGroup>
 
       <ResultCount>
         {filtered.length} flash info{filtered.length !== 1 ? 's' : ''}
