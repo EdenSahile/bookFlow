@@ -8,8 +8,9 @@
 
 ## État du build
 TS clean · 117/117 tests Vitest · dernière session 2026-04-27  
-Fix mock DESADV : suppression de DESADV-2026-0507-001 (2 ex. sur ISBN 9781234567891 non confirmés dans l'ORDRSP — basé sur backorderQty au lieu de qtyConfirmed).  
-Pour CMD-2026-0427-001 : 2 DESADV cohérents, les deux ISBN soldés exactement à hauteur de qtyConfirmed.
+Feature Offices complète : page `/offices`, route, sidebar, carte dashboard.  
+Carte panier vide : état neutre (gris, opacité 0.55, non-cliquable) — grille toujours 5 colonnes.  
+Carte « office à valider » en 1re position avec date limite en rouge.
 
 ---
 

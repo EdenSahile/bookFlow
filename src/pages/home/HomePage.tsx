@@ -315,7 +315,7 @@ const SeeAllBtn = styled.button`
 
 const ActionsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 
   @media (max-width: 700px) {
@@ -323,17 +323,19 @@ const ActionsGrid = styled.div`
   }
 `
 
-const ActionCard = styled.button`
+const ActionCard = styled.button<{ $empty?: boolean }>`
   background: white;
-  border: 1px solid #FEE2E2;
+  border: 1px solid ${({ $empty }) => $empty ? '#E5E7EB' : '#FEE2E2'};
   padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
+  cursor: ${({ $empty }) => $empty ? 'default' : 'pointer'};
   text-align: left;
   width: 100%;
-  &:hover { border-color: #FECACA; }
+  opacity: ${({ $empty }) => $empty ? 0.55 : 1};
+  pointer-events: ${({ $empty }) => $empty ? 'none' : 'auto'};
+  &:hover { border-color: ${({ $empty }) => $empty ? '#E5E7EB' : '#FECACA'}; }
 `
 
 const ActionIconWrap = styled.div<{ $bg: string; $color: string }>`
@@ -364,6 +366,14 @@ const ActionLabel = styled.div`
   font-size: 12px;
   color: ${({ theme }) => theme.colors.gray[600]};
   line-height: 1.3;
+`
+
+const ActionDeadline = styled.div`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.error};
+  font-weight: 500;
+  margin-top: 2px;
+  line-height: 1.2;
 `
 
 const ActionArrow = styled.span`
@@ -1245,13 +1255,32 @@ export function HomePage() {
             <SeeAllBtn onClick={() => navigate('/historique')}>Voir toutes les actions →</SeeAllBtn>
           </ActionsHeader>
           <ActionsGrid>
-            <ActionCard onClick={() => navigate('/panier')}>
-              <ActionIconWrap $bg="#FFF7ED" $color="#EA580C"><IconOrders /></ActionIconWrap>
+            <ActionCard onClick={() => navigate('/offices')}>
+              <ActionIconWrap $bg="#F0FDF4" $color="#16A34A"><IconPackage /></ActionIconWrap>
               <ActionBody>
-                <ActionCount>{cartCount}</ActionCount>
-                <ActionLabel>{cartCount <= 1 ? 'Ouvrage dans le panier' : 'Ouvrages dans le panier'}</ActionLabel>
+                <ActionCount>1</ActionCount>
+                <ActionLabel>office à valider</ActionLabel>
+                <ActionDeadline>Limite : 13 mai 2026</ActionDeadline>
               </ActionBody>
               <ActionArrow>→</ActionArrow>
+            </ActionCard>
+            <ActionCard
+              $empty={cartCount === 0}
+              onClick={cartCount > 0 ? () => navigate('/panier') : undefined}
+            >
+              <ActionIconWrap
+                $bg={cartCount === 0 ? '#F3F4F6' : '#FFF7ED'}
+                $color={cartCount === 0 ? '#9CA3AF' : '#EA580C'}
+              >
+                <IconOrders />
+              </ActionIconWrap>
+              <ActionBody>
+                <ActionCount>{cartCount}</ActionCount>
+                <ActionLabel>
+                  {cartCount === 0 ? 'Panier vide' : cartCount <= 1 ? 'Ouvrage dans le panier' : 'Ouvrages dans le panier'}
+                </ActionLabel>
+              </ActionBody>
+              {cartCount > 0 && <ActionArrow>→</ActionArrow>}
             </ActionCard>
             <ActionCard onClick={() => navigate('/edi?filter=ORDRSP')}>
               <ActionIconWrap $bg="#FFFBEB" $color="#D97706"><IconReceipt /></ActionIconWrap>

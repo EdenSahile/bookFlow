@@ -233,8 +233,9 @@ const accountItems = [
 ]
 
 const toolItems = [
-  { to: '/panier', label: 'Panier' },
-  { to: '/edi',    label: 'EDI'    },
+  { to: '/panier',  label: 'Panier'   },
+  { to: '/edi',     label: 'EDI'      },
+  { to: '/offices', label: 'Offices'  },
 ]
 
 const infoItems = [

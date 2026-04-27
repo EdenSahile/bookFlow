@@ -35,6 +35,7 @@ const AuteurPage       = lazy(() => import('@/pages/auteur/AuteurPage').then(m =
 const FacturationPage  = lazy(() => import('@/pages/facturation/FacturationPage').then(m => ({ default: m.FacturationPage })))
 const RdvPage          = lazy(() => import('@/pages/rdv/RdvPage').then(m => ({ default: m.RdvPage })))
 const EDIPage          = lazy(() => import('@/pages/edi/EDIPage').then(m => ({ default: m.EDIPage })))
+const OfficesPage      = lazy(() => import('@/pages/offices/OfficesPage').then(m => ({ default: m.OfficesPage })))
 
 function ProtectedLayout() {
   return (
@@ -88,6 +89,7 @@ export default function App() {
                     <Route path="/facturation" element={<FacturationPage />} />
                     <Route path="/rdv-representant" element={<RdvPage />} />
                     <Route path="/edi" element={<EDIPage />} />
+                    <Route path="/offices" element={<OfficesPage />} />
                   </Route>
                 </Route>
               </Routes>
