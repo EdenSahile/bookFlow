@@ -10,6 +10,8 @@ import { BookCover } from '@/components/catalogue/BookCover'
 import { usePeriodFilter, type CompareMode } from '@/hooks/usePeriodFilter'
 import { PeriodSelector } from '@/components/dashboard/PeriodSelector'
 import { ComparaisonToggle } from '@/components/dashboard/ComparaisonToggle'
+import { useDashboardConfig } from '@/hooks/useDashboardConfig'
+import { CustomizerDrawer } from '@/components/dashboard/CustomizerDrawer'
 import { computeKPIs, computeChartData, computeDonutData, computeTopPublishers, orderToDashboardOrders, fmtEur, type ChartPoint, type DonutSegment } from '@/data/mockDashboard'
 
 const GREEN = theme.colors.success
@@ -415,6 +417,25 @@ const DashboardControls = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     width: 100%;
+  }
+`
+
+const CustomizeBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.gray[400]};
+    color: ${({ theme }) => theme.colors.gray[800]};
   }
 `
 
@@ -1234,6 +1255,9 @@ export function HomePage() {
   const [canNovLeft,  setCanNovLeft]  = useState(false)
   const [canNovRight, setCanNovRight] = useState(true)
 
+  const [customizerOpen, setCustomizerOpen] = useState(false)
+  const dashConfig = useDashboardConfig()
+
   const now = new Date()
   const hour = now.getHours()
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
@@ -1448,6 +1472,9 @@ export function HomePage() {
                 customCompareEnd={periodFilter.customCompareEnd}
                 setCustomCompareEnd={periodFilter.setCustomCompareEnd}
               />
+              <CustomizeBtn type="button" onClick={() => setCustomizerOpen(true)}>
+                ⊞ Personnaliser
+              </CustomizeBtn>
             </DashboardControls>
           </BilanHeader>
           <KPIGrid>
@@ -1805,6 +1832,15 @@ export function HomePage() {
             Les statistiques intègrent vos commandes passées via l'application et sont calculées en temps réel. L'historique de démonstration couvre la période du {fmtFrDate(new Date('2024-01-01'))} à aujourd'hui.
           </FooterText>
         </FooterBar>
+
+        <CustomizerDrawer
+          open={customizerOpen}
+          onClose={() => setCustomizerOpen(false)}
+          config={dashConfig.config}
+          onReorder={dashConfig.reorder}
+          onToggle={dashConfig.toggle}
+          onReset={dashConfig.reset}
+        />
 
       </Content>
     </Page>
