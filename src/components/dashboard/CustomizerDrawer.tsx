@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
 import type { DashboardConfig, DashboardZone, ConfigItem } from '../../hooks/useDashboardConfig'
 
@@ -44,7 +44,7 @@ const Overlay = styled.div<{ $open: boolean }>`
   transition: opacity 300ms ease;
 `
 
-const Panel = styled.div<{ $open: boolean }>`
+const PanelBase = styled.div<{ $open: boolean }>`
   position: fixed;
   top: 0;
   right: 0;
@@ -60,6 +60,11 @@ const Panel = styled.div<{ $open: boolean }>`
   transition: transform 300ms ease;
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
 `
+
+const Panel = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { $open: boolean }
+>(({ $open, ...props }, ref) => <PanelBase ref={ref} $open={$open} {...props} />)
 
 const DrawerHeader = styled.div`
   display: flex;
@@ -110,14 +115,14 @@ const ItemRow = styled.div<{ $dragging: boolean; $dropTarget: boolean }>`
   padding: 8px 20px;
   background: white;
   opacity: ${({ $dragging }) => ($dragging ? 0.4 : 1)};
-  border-top: 2px solid ${({ $dropTarget }) => ($dropTarget ? '#2563EB' : 'transparent')};
+  border-top: 2px solid ${({ $dropTarget, theme }) => ($dropTarget ? theme.colors.navy : 'transparent')};
   transition: border-color 0.1s, opacity 0.1s;
   cursor: default;
 `
 
 const DragHandle = styled.div`
   cursor: grab;
-  color: ${({ theme }) => theme.colors.gray[200]};
+  color: ${({ theme }) => theme.colors.gray[400]};
   font-size: 15px;
   flex-shrink: 0;
   user-select: none;
@@ -167,7 +172,7 @@ const ToggleBtn = styled.button<{ $visible: boolean }>`
   cursor: pointer;
   padding: 4px;
   flex-shrink: 0;
-  color: ${({ $visible, theme }) => ($visible ? theme.colors.gray[600] : theme.colors.gray[200])};
+  color: ${({ $visible, theme }) => ($visible ? theme.colors.gray[600] : theme.colors.gray[400])};
   display: flex;
   align-items: center;
   &:disabled { cursor: not-allowed; opacity: 0.35; }
@@ -245,6 +250,16 @@ export function CustomizerDrawer({ open, onClose, config, onReorder, onToggle, o
   const [dragging, setDragging] = useState<{ zone: DashboardZone; idx: number } | null>(null)
   const [dropTarget, setDropTarget] = useState<{ zone: DashboardZone; idx: number } | null>(null)
 
+  // Issue 7: Escape key handler
+  useEffect(() => {
+    if (!open) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open, onClose])
+
   function handleDragStart(zone: DashboardZone, idx: number) {
     dragRef.current = { zone, idx }
     setDragging({ zone, idx })
@@ -277,10 +292,13 @@ export function CustomizerDrawer({ open, onClose, config, onReorder, onToggle, o
         role="dialog"
         aria-modal="true"
         aria-label="Personnaliser le tableau de bord"
+        aria-hidden={!open}
+        // @ts-expect-error: inert attribute not yet in TS types
+        inert={!open ? '' : undefined}
       >
         <DrawerHeader>
           <DrawerTitle>Personnaliser le tableau de bord</DrawerTitle>
-          <CloseBtn onClick={onClose} aria-label="Fermer">✕</CloseBtn>
+          <CloseBtn type="button" onClick={onClose} aria-label="Fermer">✕</CloseBtn>
         </DrawerHeader>
 
         <DrawerBody>
@@ -299,7 +317,7 @@ export function CustomizerDrawer({ open, onClose, config, onReorder, onToggle, o
                       key={item.id}
                       $dragging={isDragging}
                       $dropTarget={isDropTarget}
-                      draggable
+                      draggable={item.visible}
                       onDragStart={() => handleDragStart(zone, idx)}
                       onDragOver={e => handleDragOver(e, zone, idx)}
                       onDrop={() => handleDrop(zone, idx)}
@@ -308,11 +326,13 @@ export function CustomizerDrawer({ open, onClose, config, onReorder, onToggle, o
                       <DragHandle title="Glisser pour réordonner">⠿</DragHandle>
                       <MobileArrows>
                         <ArrowBtn
+                          type="button"
                           disabled={idx === 0}
                           onClick={() => onReorder(zone, idx, idx - 1)}
                           aria-label="Monter"
                         >▲</ArrowBtn>
                         <ArrowBtn
+                          type="button"
                           disabled={idx === items.length - 1}
                           onClick={() => onReorder(zone, idx, idx + 1)}
                           aria-label="Descendre"
@@ -322,11 +342,12 @@ export function CustomizerDrawer({ open, onClose, config, onReorder, onToggle, o
                         {LABEL[item.id] ?? item.id}
                       </ItemLabel>
                       <ToggleBtn
+                        type="button"
                         $visible={item.visible}
                         disabled={isLastVisible}
                         onClick={() => onToggle(zone, item.id)}
                         title={item.visible ? 'Masquer' : 'Afficher'}
-                        aria-label={item.visible ? 'Masquer' : 'Afficher'}
+                        aria-label={item.visible ? `Masquer ${LABEL[item.id] ?? item.id}` : `Afficher ${LABEL[item.id] ?? item.id}`}
                       >
                         {item.visible ? <IconEyeOpen /> : <IconEyeOff />}
                       </ToggleBtn>
@@ -339,8 +360,8 @@ export function CustomizerDrawer({ open, onClose, config, onReorder, onToggle, o
         </DrawerBody>
 
         <DrawerFooter>
-          <ResetBtn onClick={onReset}>Réinitialiser par défaut</ResetBtn>
-          <CloseFooterBtn onClick={onClose}>Fermer</CloseFooterBtn>
+          <ResetBtn type="button" onClick={onReset}>Réinitialiser par défaut</ResetBtn>
+          <CloseFooterBtn type="button" onClick={onClose}>Fermer</CloseFooterBtn>
         </DrawerFooter>
       </Panel>
     </>
