@@ -47,6 +47,7 @@ export interface OrderItem {
   isbn: string
   quantity: number
   unitPriceHT: number
+  unitPriceTTC?: number   // prix public TTC affiché sur les blocs ouvrages
   universe: string
   typeCommande?: TypeCommande
   statut?: StockStatut

@@ -6,9 +6,9 @@ import { useAuthContext } from '@/contexts/AuthContext'
 import { useCart, REMISE_RATES } from '@/contexts/CartContext'
 import { useClientOrders } from '@/contexts/OrdersContext'
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, type OrderStatus, type Order, type OrderItem } from '@/data/mockOrders'
+import { MOCK_BOOKS } from '@/data/mockBooks'
 import { TrackingModal } from '@/components/historique/TrackingModal'
 import type { Shipment } from '@/data/mockOrders'
-import { MOCK_BOOKS } from '@/data/mockBooks'
 import { useReturns } from '@/contexts/ReturnsContext'
 import { ReturnCard } from '@/components/historique/ReturnCard'
 import { NewReturnModal } from '@/components/historique/NewReturnModal'
@@ -824,7 +824,7 @@ export function HistoriquePage() {
                         )}
                       </ItemInfo>
                       <ItemQtyPrice>
-                        {item.quantity} × {formatEur(item.unitPriceHT)}
+                        {item.quantity} × {formatEur(item.unitPriceTTC ?? MOCK_BOOKS.find(b => b.id === item.bookId)?.priceTTC ?? item.unitPriceHT)}
                       </ItemQtyPrice>
                     </Item>
                   ))}

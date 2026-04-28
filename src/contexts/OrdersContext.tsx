@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { MOCK_ORDERS, type Order, type OrderItem } from '@/data/mockOrders'
 import type { CartItem } from '@/contexts/CartContext'
 import { useAuthContext } from '@/contexts/AuthContext'
@@ -25,6 +25,7 @@ function todayISO(): string {
 /* ── Context type ── */
 interface OrdersContextValue {
   orders: Order[]
+  userOrders: Order[]   // commandes réellement passées (hors mocks statiques)
   addOrder: (params: {
     codeClient: string
     adresseLivraison: string
@@ -79,6 +80,8 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(key, JSON.stringify(newOrders))
   }, [orders, key])
 
+  const userOrders = useMemo(() => orders.filter(o => !MOCK_IDS.has(o.id)), [orders])
+
   function addOrder(params: {
     codeClient: string
     adresseLivraison: string
@@ -100,6 +103,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       isbn: book.isbn,
       quantity,
       unitPriceHT: book.price,
+      unitPriceTTC: book.priceTTC,
       universe: book.universe,
       statut,
       enReliquat,
@@ -129,7 +133,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <OrdersContext.Provider value={{ orders, addOrder }}>
+    <OrdersContext.Provider value={{ orders, userOrders, addOrder }}>
       {children}
     </OrdersContext.Provider>
   )

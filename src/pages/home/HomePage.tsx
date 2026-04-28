@@ -1,11 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { theme } from '@/lib/theme'
 import styled from 'styled-components'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/contexts/CartContext'
+import { useOrders } from '@/contexts/OrdersContext'
 import { MOCK_BOOKS } from '@/data/mockBooks'
 import { BookCover } from '@/components/catalogue/BookCover'
+import { usePeriodFilter, type CompareMode } from '@/hooks/usePeriodFilter'
+import { PeriodSelector } from '@/components/dashboard/PeriodSelector'
+import { ComparaisonToggle } from '@/components/dashboard/ComparaisonToggle'
+import { computeKPIs, computeChartData, computeDonutData, computeTopPublishers, orderToDashboardOrders, fmtEur, type ChartPoint, type DonutSegment } from '@/data/mockDashboard'
 
 const GREEN = theme.colors.success
 
@@ -387,16 +392,10 @@ const BilanSection = styled.section``
 
 const BilanHeader = styled.div`
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
   gap: 12px;
-`
-
-const BilanTitleGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
 `
 
@@ -405,17 +404,18 @@ const BilanTitle = styled.h2`
   font-weight: 600;
   color: ${({ theme }) => theme.colors.gray[800]};
   margin: 0;
-`
-
-const BilanPeriod = styled.span`
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.gray[400]};
-`
-
-const BilanUpdate = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.gray[400]};
   white-space: nowrap;
+`
+
+const DashboardControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    width: 100%;
+  }
 `
 
 const KPIGrid = styled.div`
@@ -535,63 +535,70 @@ const PanelSeeAll = styled.button`
   &:hover { color: ${({ theme }) => theme.colors.navy}; }
 `
 
-/* ── Évolution des commandes ── */
-const CHART_POINTS = [12,10,18,15,22,20,28,25,20,30,28,18,35,32,28,38,33,28,40,36,42,38,35,44,40,42,38,44,40,43,42]
-const CHART_MAX_Y = 50
-const CHART_W = 210
-const CHART_H = 85
-const CHART_OX = 25
-const CHART_OY = 90
+/* ── Évolution des commandes (dynamique) ── */
+const CW = 210, CH = 85, COX = 25, COY = 90
 
-function buildPolyline(): string {
-  return CHART_POINTS.map((v, i) => {
-    const x = CHART_OX + (i / (CHART_POINTS.length - 1)) * CHART_W
-    const y = CHART_OY - (v / CHART_MAX_Y) * CHART_H
+function toPolyline(pts: ChartPoint[], yMax: number): string {
+  if (pts.length < 2) return ''
+  return pts.map((p, i) => {
+    const x = COX + (i / (pts.length - 1)) * CW
+    const y = COY - (p.count / yMax) * CH
     return `${x.toFixed(1)},${y.toFixed(1)}`
   }).join(' ')
 }
 
-const X_LABELS = [
-  { i: 0,  label: '01/03' },
-  { i: 7,  label: '08/03' },
-  { i: 14, label: '15/03' },
-  { i: 21, label: '22/03' },
-  { i: 30, label: '31/03' },
-]
+function xLabel(iso: string): string {
+  if (!iso) return ''
+  return `${iso.slice(8)}/${iso.slice(5, 7)}`
+}
 
-const Y_TICKS = [0, 10, 20, 30, 40, 50]
+function ChartEvolution({
+  main,
+  compare,
+}: {
+  main: ChartPoint[]
+  compare: ChartPoint[] | null
+}) {
+  const mainMax    = Math.max(...main.map(p => p.count), 1)
+  const compareMax = compare ? Math.max(...compare.map(p => p.count), 1) : 0
+  const yMaxRaw    = Math.max(mainMax, compareMax, 5)
+  const yMax       = Math.ceil(yMaxRaw / 5) * 5
+  const yTicks     = Array.from({ length: 6 }, (_, i) => Math.round((i / 5) * yMax))
 
-function ChartEvolution() {
-  const polyline = buildPolyline()
+  const xIdxs = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(t * Math.max(main.length - 1, 0)))
+
+  const mainPoly    = toPolyline(main, yMax)
+  const comparePoly = compare ? toPolyline(compare, yMax) : null
+
   return (
     <svg viewBox="0 0 260 105" width="100%" aria-label="Évolution des commandes">
-      {/* Grille horizontale */}
-      {Y_TICKS.map(v => {
-        const y = CHART_OY - (v / CHART_MAX_Y) * CHART_H
+      {yTicks.map(v => {
+        const y = COY - (v / yMax) * CH
         return (
           <g key={v}>
-            <line x1={CHART_OX} y1={y} x2={CHART_OX + CHART_W} y2={y}
-              stroke="#E5E7EB" strokeWidth="0.5" />
-            <text x={CHART_OX - 4} y={y + 3.5} textAnchor="end"
-              fontSize="7" fill="#9CA3AF">{v}</text>
+            <line x1={COX} y1={y} x2={COX + CW} y2={y} stroke="#E5E7EB" strokeWidth="0.5" />
+            <text x={COX - 4} y={y + 3.5} textAnchor="end" fontSize="7" fill="#9CA3AF">{v}</text>
           </g>
         )
       })}
-      {/* Courbe */}
-      <polyline points={polyline} fill="none" stroke="#16a34a" strokeWidth="1.5"
-        strokeLinejoin="round" strokeLinecap="round" />
-      {/* Axe X */}
-      <line x1={CHART_OX} y1={CHART_OY} x2={CHART_OX + CHART_W} y2={CHART_OY}
-        stroke="#D1D5DB" strokeWidth="0.8" />
-      {X_LABELS.map(({ i, label }) => {
-        const x = CHART_OX + (i / (CHART_POINTS.length - 1)) * CHART_W
+      {comparePoly && (
+        <polyline points={comparePoly} fill="none" stroke="#C9A84C" strokeWidth="1.2"
+          strokeDasharray="4 2" strokeLinejoin="round" strokeLinecap="round" opacity="0.75" />
+      )}
+      {mainPoly && (
+        <polyline points={mainPoly} fill="none" stroke="#16a34a" strokeWidth="1.5"
+          strokeLinejoin="round" strokeLinecap="round" />
+      )}
+      <line x1={COX} y1={COY} x2={COX + CW} y2={COY} stroke="#D1D5DB" strokeWidth="0.8" />
+      {xIdxs.map((idx, k) => {
+        const x = COX + (idx / Math.max(main.length - 1, 1)) * CW
         return (
-          <text key={i} x={x} y={CHART_OY + 10} textAnchor="middle"
-            fontSize="7" fill="#9CA3AF">{label}</text>
+          <text key={k} x={x} y={COY + 10} textAnchor="middle" fontSize="7" fill="#9CA3AF">
+            {xLabel(main[idx]?.date ?? '')}
+          </text>
         )
       })}
-      {/* Label */}
-      <text x={CHART_OX} y="6" fontSize="7" fill="#9CA3AF">Nombre de commandes par jour</text>
+      <text x={COX} y="6" fontSize="7" fill="#9CA3AF">Commandes / jour</text>
     </svg>
   )
 }
@@ -605,6 +612,28 @@ const ChartInner = styled.div`
 const ChartSvgWrap = styled.div`
   flex: 1;
   min-width: 0;
+`
+
+const ChartLegend = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+`
+
+const ChartLegendItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+`
+
+const ChartLegendLine = styled.span<{ $color: string; $dashed?: boolean }>`
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  border-top: 2px ${({ $dashed }) => ($dashed ? 'dashed' : 'solid')} ${({ $color }) => $color};
 `
 
 const ChartStatsList = styled.div`
@@ -672,37 +701,58 @@ function IconXCircle() {
   )
 }
 
-/* ── Donut chart ── */
-const DONUT_SEGMENTS = [
-  { percent: 45, color: '#3B82F6', label: 'BD / Mangas' },
-  { percent: 30, color: '#22C55E', label: 'Littérature' },
-  { percent: 15, color: '#EAB308', label: 'Jeunesse' },
-  { percent: 10, color: '#9CA3AF', label: 'Autres' },
-]
-const DONUT_R    = 35
-const DONUT_CX   = 50
-const DONUT_CY   = 50
-const DONUT_CIRC = 2 * Math.PI * DONUT_R
-
-function ChartDonut() {
+/* ── Donut chart (dynamique) ── */
+function buildDonutArcs(segments: DonutSegment[], r: number) {
+  const circ = 2 * Math.PI * r
   let cumulative = 0
+  return segments.map(({ percent, color }) => {
+    const dash   = (percent / 100) * circ
+    const offset = circ * 0.25 - cumulative
+    cumulative  += dash
+    return { dash, offset, circ, color }
+  })
+}
+
+function ChartDonut({
+  main,
+  compare,
+}: {
+  main: DonutSegment[]
+  compare: DonutSegment[] | null
+}) {
+  const outerR = compare ? 36 : 35
+  const outerW = compare ? 10 : 14
+  const innerR = 22
+  const innerW = 10
+
+  const mainArcs    = buildDonutArcs(main, outerR)
+  const compareArcs = compare ? buildDonutArcs(compare, innerR) : null
+
   return (
     <svg viewBox="0 0 100 100" width="110" height="110" aria-label="Répartition des achats">
-      <circle cx={DONUT_CX} cy={DONUT_CY} r={DONUT_R}
-        fill="none" stroke="#F3F4F6" strokeWidth="14" />
-      {DONUT_SEGMENTS.map(({ percent, color }) => {
-        const dash   = (percent / 100) * DONUT_CIRC
-        const offset = DONUT_CIRC * 0.25 - cumulative
-        cumulative  += dash
-        return (
-          <circle key={color}
-            cx={DONUT_CX} cy={DONUT_CY} r={DONUT_R}
-            fill="none" stroke={color} strokeWidth="14"
-            strokeDasharray={`${dash.toFixed(2)} ${DONUT_CIRC.toFixed(2)}`}
-            strokeDashoffset={offset.toFixed(2)}
-          />
-        )
-      })}
+      {/* Fond anneau principal */}
+      <circle cx="50" cy="50" r={outerR} fill="none" stroke="#F3F4F6" strokeWidth={outerW} />
+      {/* Segments principaux */}
+      {mainArcs.map(({ dash, offset, circ, color }, i) => (
+        <circle key={i} cx="50" cy="50" r={outerR} fill="none"
+          stroke={color} strokeWidth={outerW}
+          strokeDasharray={`${dash.toFixed(2)} ${circ.toFixed(2)}`}
+          strokeDashoffset={offset.toFixed(2)}
+        />
+      ))}
+      {/* Fond + segments anneau de comparaison */}
+      {compareArcs && (
+        <>
+          <circle cx="50" cy="50" r={innerR} fill="none" stroke="#F3F4F6" strokeWidth={innerW} />
+          {compareArcs.map(({ dash, offset, circ, color }, i) => (
+            <circle key={i} cx="50" cy="50" r={innerR} fill="none"
+              stroke={color} strokeWidth={innerW} opacity="0.5"
+              strokeDasharray={`${dash.toFixed(2)} ${circ.toFixed(2)}`}
+              strokeDashoffset={offset.toFixed(2)}
+            />
+          ))}
+        </>
+      )}
     </svg>
   )
 }
@@ -746,14 +796,13 @@ const LegendPct = styled.span`
   color: ${({ theme }) => theme.colors.gray[800]};
 `
 
+const LegendPctCompare = styled.span`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  white-space: nowrap;
+`
+
 /* ── Top éditeurs ── */
-const TOP_EDITEURS = [
-  { rank: 1, name: 'Éditeur 1',        pct: 35, amount: '4 358 €' },
-  { rank: 2, name: 'Éditeur 2',        pct: 25, amount: '3 113 €' },
-  { rank: 3, name: 'Éditeur 3',        pct: 15, amount: '1 868 €' },
-  { rank: 4, name: 'Éditeur 4',        pct: 10, amount: '1 245 €' },
-  { rank: 5, name: 'Autres éditeurs',  pct: 15, amount: '1 866 €' },
-]
 
 const TopEdList = styled.div`
   display: flex;
@@ -843,15 +892,15 @@ const MiniCoverWrap = styled.div`
 `
 
 const UniverseBadge = styled.span<{ $bg: string; $text: string }>`
-  position: absolute;
-  top: 5px;
-  left: 0;
+  display: inline-block;
   background: ${({ $bg }) => $bg};
   color: ${({ $text }) => $text};
   font-size: 9px;
   font-weight: 600;
-  padding: 2px 5px;
+  padding: 2px 6px;
+  border-radius: 3px;
   line-height: 1.4;
+  margin-bottom: 4px;
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
@@ -1141,10 +1190,41 @@ const ArrowBtn = styled.button<{ $side: 'left' | 'right'; $visible: boolean }>`
   &:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
 `
 
+/* ── KPI trend helper ── */
+function compareModeShort(mode: CompareMode): string {
+  if (mode === 'previous') return 'période préc.'
+  if (mode === 'year-ago') return 'N-1'
+  return 'période perso.'
+}
+
+function KpiTrendLine({
+  current,
+  compare,
+  mode,
+  invert = false,
+}: {
+  current: number
+  compare: number
+  mode: CompareMode
+  invert?: boolean
+}) {
+  if (compare === 0 || mode === 'none') return null
+  const raw       = ((current - compare) / compare) * 100
+  const increased = raw >= 0
+  const up        = invert ? !increased : increased
+  const pct       = Math.round(Math.abs(raw))
+  return (
+    <KPITrend $up={up}>
+      {increased ? `▲ +${pct}%` : `▼ -${pct}%`} vs {compareModeShort(mode)}
+    </KPITrend>
+  )
+}
+
 /* ── Component ── */
 export function HomePage() {
   const { user } = useAuth()
   const { totalItems: cartCount } = useCart()
+  const { userOrders } = useOrders()
   const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft,  setCanScrollLeft]  = useState(false)
@@ -1161,13 +1241,49 @@ export function HomePage() {
   const dateLabel = 'Aujourd\'hui'
   const dateValue = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  const prevMonthStart  = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const prevMonthEnd    = new Date(now.getFullYear(), now.getMonth(), 0)
-  const updateDate      = new Date(now.getFullYear(), now.getMonth(), 1)
-  const nextMonthFirst  = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-  const bilanPeriod     = `${fmtFrDate(prevMonthStart)} – ${fmtFrDate(prevMonthEnd)}`
-  const bilanUpdate     = `Mise à jour le ${fmtFrDate(updateDate)} ↻`
-  const prevMonthName   = prevMonthStart.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+  const extraDashboardOrders = useMemo(
+    () => userOrders.flatMap(orderToDashboardOrders),
+    [userOrders],
+  )
+  const periodFilter = usePeriodFilter(extraDashboardOrders)
+
+  const kpi        = useMemo(() => computeKPIs(periodFilter.orders),        [periodFilter.orders])
+  const compareKpi = useMemo(
+    () => periodFilter.compareOrders.length > 0 ? computeKPIs(periodFilter.compareOrders) : null,
+    [periodFilter.compareOrders],
+  )
+
+  const mainChartData = useMemo(
+    () => computeChartData(periodFilter.orders, periodFilter.period.start, periodFilter.period.end),
+    [periodFilter.orders, periodFilter.period.start, periodFilter.period.end],
+  )
+  const compareChartData = useMemo(
+    () => periodFilter.comparePeriod
+      ? computeChartData(periodFilter.compareOrders, periodFilter.comparePeriod.start, periodFilter.comparePeriod.end)
+      : null,
+    [periodFilter.compareOrders, periodFilter.comparePeriod],
+  )
+
+  const donutData = useMemo(
+    () => computeDonutData(periodFilter.orders),
+    [periodFilter.orders],
+  )
+  const compareDonutData = useMemo(
+    () => periodFilter.compareOrders.length > 0 ? computeDonutData(periodFilter.compareOrders) : null,
+    [periodFilter.compareOrders],
+  )
+
+  const topPublishers = useMemo(
+    () => computeTopPublishers(periodFilter.orders),
+    [periodFilter.orders],
+  )
+
+  const nbEnvoyees  = kpi.nbCommandes - Math.round(kpi.nbCommandes * kpi.tauxRupture)
+  const nbAnnulees  = Math.round(kpi.nbCommandes * kpi.tauxRupture)
+  const cmpEnvoyees = compareKpi
+    ? compareKpi.nbCommandes - Math.round(compareKpi.nbCommandes * compareKpi.tauxRupture)
+    : null
+  const cmpAnnulees = compareKpi ? Math.round(compareKpi.nbCommandes * compareKpi.tauxRupture) : null
 
   /* Raccourci / → focus champ de recherche du header */
   useEffect(() => {
@@ -1309,14 +1425,30 @@ export function HomePage() {
           </ActionsGrid>
         </ActionsBox>
 
-        {/* 3 — Bilan du mois précédent */}
-        <BilanSection aria-label="Bilan du mois précédent">
+        {/* 3 — Tableau de bord (KPI + graphiques) */}
+        <BilanSection aria-label="Tableau de bord">
           <BilanHeader>
-            <BilanTitleGroup>
-              <BilanTitle>Bilan du mois précédent</BilanTitle>
-              <BilanPeriod>{bilanPeriod}</BilanPeriod>
-            </BilanTitleGroup>
-            <BilanUpdate>{bilanUpdate}</BilanUpdate>
+            <BilanTitle>Tableau de bord</BilanTitle>
+            <DashboardControls>
+              <PeriodSelector
+                preset={periodFilter.preset}
+                setPreset={periodFilter.setPreset}
+                period={periodFilter.period}
+                customStart={periodFilter.customStart}
+                setCustomStart={periodFilter.setCustomStart}
+                customEnd={periodFilter.customEnd}
+                setCustomEnd={periodFilter.setCustomEnd}
+              />
+              <ComparaisonToggle
+                compareMode={periodFilter.compareMode}
+                setCompareMode={periodFilter.setCompareMode}
+                comparePeriod={periodFilter.comparePeriod}
+                customCompareStart={periodFilter.customCompareStart}
+                setCustomCompareStart={periodFilter.setCustomCompareStart}
+                customCompareEnd={periodFilter.customCompareEnd}
+                setCustomCompareEnd={periodFilter.setCustomCompareEnd}
+              />
+            </DashboardControls>
           </BilanHeader>
           <KPIGrid>
             <KPICard>
@@ -1324,8 +1456,14 @@ export function HomePage() {
                 <KPIIconWrap $bg="#DCFCE7" $color="#16a34a"><IconCart /></KPIIconWrap>
                 <KPILabel>Commandes passées</KPILabel>
               </KPITop>
-              <KPIValue>32</KPIValue>
-              <KPITrend $up={true}>▲ +12% vs {prevMonthName}</KPITrend>
+              <KPIValue>{kpi.nbCommandes}</KPIValue>
+              {compareKpi && (
+                <KpiTrendLine
+                  current={kpi.nbCommandes}
+                  compare={compareKpi.nbCommandes}
+                  mode={periodFilter.compareMode}
+                />
+              )}
               <KPILink onClick={() => navigate('/historique')}>Voir le détail →</KPILink>
             </KPICard>
             <KPICard>
@@ -1333,8 +1471,14 @@ export function HomePage() {
                 <KPIIconWrap $bg="#DCFCE7" $color="#16a34a"><IconEuro /></KPIIconWrap>
                 <KPILabel>Montant total commandé</KPILabel>
               </KPITop>
-              <KPIValue>12 450 €</KPIValue>
-              <KPITrend $up={true}>▲ +8% vs {prevMonthName}</KPITrend>
+              <KPIValue>{fmtEur(kpi.montantTotal)}</KPIValue>
+              {compareKpi && (
+                <KpiTrendLine
+                  current={kpi.montantTotal}
+                  compare={compareKpi.montantTotal}
+                  mode={periodFilter.compareMode}
+                />
+              )}
               <KPILink onClick={() => navigate('/historique')}>Voir le détail →</KPILink>
             </KPICard>
             <KPICard>
@@ -1342,8 +1486,14 @@ export function HomePage() {
                 <KPIIconWrap $bg="#DCFCE7" $color="#16a34a"><IconBox /></KPIIconWrap>
                 <KPILabel>Exemplaires commandés</KPILabel>
               </KPITop>
-              <KPIValue>1 240</KPIValue>
-              <KPITrend $up={true}>▲ +9% vs {prevMonthName}</KPITrend>
+              <KPIValue>{kpi.nbExemplaires.toLocaleString('fr-FR')}</KPIValue>
+              {compareKpi && (
+                <KpiTrendLine
+                  current={kpi.nbExemplaires}
+                  compare={compareKpi.nbExemplaires}
+                  mode={periodFilter.compareMode}
+                />
+              )}
               <KPILink onClick={() => navigate('/historique')}>Voir le détail →</KPILink>
             </KPICard>
             <KPICard>
@@ -1351,9 +1501,62 @@ export function HomePage() {
                 <KPIIconWrap $bg="#EDE9FE" $color="#7C3AED"><IconBarChart /></KPIIconWrap>
                 <KPILabel>Panier moyen</KPILabel>
               </KPITop>
-              <KPIValue>389 €</KPIValue>
-              <KPITrend $up={false}>▼ -2% vs {prevMonthName}</KPITrend>
+              <KPIValue>{fmtEur(kpi.panierMoyen)}</KPIValue>
+              {compareKpi && (
+                <KpiTrendLine
+                  current={kpi.panierMoyen}
+                  compare={compareKpi.panierMoyen}
+                  mode={periodFilter.compareMode}
+                />
+              )}
               <KPILink onClick={() => navigate('/historique')}>Voir le détail →</KPILink>
+            </KPICard>
+
+            <KPICard>
+              <KPITop>
+                <KPIIconWrap $bg="#FFF7ED" $color="#EA580C"><IconAlertClock /></KPIIconWrap>
+                <KPILabel>Délai moyen de livraison</KPILabel>
+              </KPITop>
+              <KPIValue>{kpi.delaiMoyen.toFixed(1).replace('.', ',')} j</KPIValue>
+              {compareKpi && (
+                <KpiTrendLine
+                  current={kpi.delaiMoyen}
+                  compare={compareKpi.delaiMoyen}
+                  mode={periodFilter.compareMode}
+                  invert
+                />
+              )}
+            </KPICard>
+
+            <KPICard>
+              <KPITop>
+                <KPIIconWrap $bg="#FEE2E2" $color="#DC2626"><IconXCircle /></KPIIconWrap>
+                <KPILabel>Taux de rupture</KPILabel>
+              </KPITop>
+              <KPIValue>{(kpi.tauxRupture * 100).toFixed(1).replace('.', ',')} %</KPIValue>
+              {compareKpi && (
+                <KpiTrendLine
+                  current={kpi.tauxRupture}
+                  compare={compareKpi.tauxRupture}
+                  mode={periodFilter.compareMode}
+                  invert
+                />
+              )}
+            </KPICard>
+
+            <KPICard>
+              <KPITop>
+                <KPIIconWrap $bg="#EFF6FF" $color="#2563EB"><IconBooks /></KPIIconWrap>
+                <KPILabel>Références distinctes</KPILabel>
+              </KPITop>
+              <KPIValue>{kpi.nbReferences.toLocaleString('fr-FR')}</KPIValue>
+              {compareKpi && (
+                <KpiTrendLine
+                  current={kpi.nbReferences}
+                  compare={compareKpi.nbReferences}
+                  mode={periodFilter.compareMode}
+                />
+              )}
             </KPICard>
           </KPIGrid>
         </BilanSection>
@@ -1369,31 +1572,64 @@ export function HomePage() {
                 <IconCalendar />
               </PanelTitle>
             </PanelHeader>
+            {compareChartData && (
+              <ChartLegend>
+                <ChartLegendItem>
+                  <ChartLegendLine $color="#16a34a" />
+                  Période sélectionnée
+                </ChartLegendItem>
+                <ChartLegendItem>
+                  <ChartLegendLine $color="#C9A84C" $dashed />
+                  {compareModeShort(periodFilter.compareMode)}
+                </ChartLegendItem>
+              </ChartLegend>
+            )}
             <ChartInner>
-              <ChartSvgWrap><ChartEvolution /></ChartSvgWrap>
+              <ChartSvgWrap>
+                <ChartEvolution main={mainChartData} compare={compareChartData} />
+              </ChartSvgWrap>
               <ChartStatsList>
                 <ChartStatRow>
                   <ChartStatLabel>Commandes envoyées</ChartStatLabel>
                   <ChartStatValueRow>
                     <ChartStatIcon $bg="#DCFCE7" $color="#16a34a"><IconSend /></ChartStatIcon>
-                    <ChartStatNum>32</ChartStatNum>
-                    <ChartStatDelta $up={true}>▲ +12%</ChartStatDelta>
+                    <ChartStatNum>{nbEnvoyees}</ChartStatNum>
+                    {cmpEnvoyees !== null && (
+                      <ChartStatDelta $up={nbEnvoyees >= cmpEnvoyees}>
+                        {nbEnvoyees >= cmpEnvoyees ? '▲' : '▼'}
+                        {cmpEnvoyees > 0
+                          ? ` ${Math.abs(Math.round(((nbEnvoyees - cmpEnvoyees) / cmpEnvoyees) * 100))}%`
+                          : ''}
+                      </ChartStatDelta>
+                    )}
                   </ChartStatValueRow>
                 </ChartStatRow>
                 <ChartStatRow>
                   <ChartStatLabel>Commandes annulées</ChartStatLabel>
                   <ChartStatValueRow>
                     <ChartStatIcon $bg="#FEE2E2" $color="#DC2626"><IconXCircle /></ChartStatIcon>
-                    <ChartStatNum>2</ChartStatNum>
-                    <ChartStatDelta $up={false}>▼ -33%</ChartStatDelta>
+                    <ChartStatNum>{nbAnnulees}</ChartStatNum>
+                    {cmpAnnulees !== null && (
+                      <ChartStatDelta $up={nbAnnulees <= cmpAnnulees}>
+                        {nbAnnulees <= cmpAnnulees ? '▼' : '▲'}
+                        {cmpAnnulees > 0
+                          ? ` ${Math.abs(Math.round(((nbAnnulees - cmpAnnulees) / cmpAnnulees) * 100))}%`
+                          : ''}
+                      </ChartStatDelta>
+                    )}
                   </ChartStatValueRow>
                 </ChartStatRow>
                 <ChartStatRow>
                   <ChartStatLabel>Taux d'annulation</ChartStatLabel>
                   <ChartStatValueRow>
                     <ChartStatIcon $bg="#FEE2E2" $color="#DC2626"><IconXCircle /></ChartStatIcon>
-                    <ChartStatNum>6,2 %</ChartStatNum>
-                    <ChartStatDelta $up={false}>▼ -3,1 pts</ChartStatDelta>
+                    <ChartStatNum>{(kpi.tauxRupture * 100).toFixed(1).replace('.', ',')} %</ChartStatNum>
+                    {compareKpi && (
+                      <ChartStatDelta $up={kpi.tauxRupture <= compareKpi.tauxRupture}>
+                        {kpi.tauxRupture <= compareKpi.tauxRupture ? '▼' : '▲'}
+                        {' '}{Math.abs(Math.round((kpi.tauxRupture - compareKpi.tauxRupture) * 1000) / 10).toFixed(1)} pts
+                      </ChartStatDelta>
+                    )}
                   </ChartStatValueRow>
                 </ChartStatRow>
               </ChartStatsList>
@@ -1406,15 +1642,21 @@ export function HomePage() {
               <PanelTitle>Répartition de vos achats</PanelTitle>
             </PanelHeader>
             <DonutInner>
-              <ChartDonut />
+              <ChartDonut main={donutData} compare={compareDonutData} />
               <DonutLegend>
-                {DONUT_SEGMENTS.map(({ label, color, percent }) => (
-                  <LegendItem key={label}>
-                    <LegendDot $color={color} />
-                    <LegendLabel>{label}</LegendLabel>
-                    <LegendPct>{percent}%</LegendPct>
-                  </LegendItem>
-                ))}
+                {donutData.map((seg, i) => {
+                  const cmpSeg = compareDonutData?.[i]
+                  return (
+                    <LegendItem key={seg.label}>
+                      <LegendDot $color={seg.color} />
+                      <LegendLabel>{seg.label}</LegendLabel>
+                      <LegendPct>{seg.percent}%</LegendPct>
+                      {cmpSeg && (
+                        <LegendPctCompare>vs {cmpSeg.percent}%</LegendPctCompare>
+                      )}
+                    </LegendItem>
+                  )
+                })}
               </DonutLegend>
             </DonutInner>
           </PanelCard>
@@ -1426,12 +1668,12 @@ export function HomePage() {
               <PanelSeeAll onClick={() => navigate('/fonds')}>Voir tout →</PanelSeeAll>
             </PanelHeader>
             <TopEdList>
-              {TOP_EDITEURS.map(({ rank, name, pct, amount }) => (
-                <TopEdRow key={rank}>
-                  <TopEdRank>{rank}</TopEdRank>
+              {topPublishers.map(({ name, pct, montant }, i) => (
+                <TopEdRow key={name}>
+                  <TopEdRank>{i + 1}</TopEdRank>
                   <TopEdName>{name}</TopEdName>
                   <TopEdPct>{pct}%</TopEdPct>
-                  <TopEdAmount>{amount}</TopEdAmount>
+                  <TopEdAmount>{fmtEur(montant)}</TopEdAmount>
                 </TopEdRow>
               ))}
             </TopEdList>
@@ -1520,10 +1762,10 @@ export function HomePage() {
                           authors={book.authors}
                           publisher={book.publisher}
                         />
-                        <UniverseBadge $bg={badge.bg} $text={badge.text}>
-                          {book.universe}
-                        </UniverseBadge>
                       </MiniCoverWrap>
+                      <UniverseBadge $bg={badge.bg} $text={badge.text}>
+                        {book.universe}
+                      </UniverseBadge>
                       <MiniTitle>{book.title}</MiniTitle>
                       <MiniAuthor>{book.authors[0]}</MiniAuthor>
                     </MiniCard>
@@ -1560,7 +1802,7 @@ export function HomePage() {
         <FooterBar>
           <IconInfo />
           <FooterText>
-            Les statistiques affichées couvrent la période du {fmtFrDate(prevMonthStart)} au {fmtFrDate(prevMonthEnd)} et seront mises à jour le {fmtFrDate(nextMonthFirst)}.
+            Les statistiques intègrent vos commandes passées via l'application et sont calculées en temps réel. L'historique de démonstration couvre la période du {fmtFrDate(new Date('2024-01-01'))} à aujourd'hui.
           </FooterText>
         </FooterBar>
 

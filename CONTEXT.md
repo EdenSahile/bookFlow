@@ -7,26 +7,16 @@
 ---
 
 ## État du build
-TS clean · 117/117 tests Vitest · dernière session 2026-04-27  
-Page "À paraître" autonome : route `/a-paraitre`, sidebar avant "Nouveautés", titre + sous-titre "Les titres seront enregistrés en notés", regroupement par programme.  
-BookCard "à paraître" : prix + stepper + "Ajouter au panier" + note "Le titre sera enregistré en notés".  
-NouveautesPage simplifiée : onglet "À paraître" supprimé.
+TS clean · 117/117 tests Vitest · dernière session 2026-04-28  
+Feature dashboard complète : sélecteur de période (6 presets + custom), comparaison (période préc. / N-1 / custom), 7 KPI cards dynamiques, graphique 2 courbes, donut 2 anneaux, top éditeurs dynamiques — tout calculé depuis `mockDashboard.ts` via `usePeriodFilter`.
 
 ---
 
 ## Session en cours
 
-### Feature : Fusion Paramètres + Newsletter
-
-- [x] T1 · `ParametresPage.tsx` — 3 sections : Notifications (toggles) · Newsletters (checkboxes + email) · Univers suivis (toggles) + un seul bouton "Enregistrer les préférences"
-- [x] T2 · `Sidebar.tsx` — retirer "Newsletter" de `infoItems`
-- [x] T3 · Vérification TypeScript
-
 ---
 
 ## Prochaines étapes
-
-Aucune tâche à venir.
 
 ---
 
