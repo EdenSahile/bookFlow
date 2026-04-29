@@ -6,6 +6,7 @@ import { BottomNav } from './BottomNav'
 import { Sidebar } from './Sidebar'
 import { BurgerMenu } from './BurgerMenu'
 import { DemoBanner } from '@/components/ui/DemoBanner'
+import { FeedbackWidget } from '@/components/ui/FeedbackWidget'
 import { AppFooter } from './AppFooter'
 import { useCart } from '@/contexts/CartContext'
 
@@ -56,6 +57,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </Main>
       <BottomNav />
       <AppFooter />
+      <FeedbackWidget />
     </LayoutRoot>
   )
 }
