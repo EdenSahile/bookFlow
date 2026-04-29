@@ -10,7 +10,7 @@ import { BookCover } from '@/components/catalogue/BookCover'
 import { usePeriodFilter, type CompareMode } from '@/hooks/usePeriodFilter'
 import { PeriodSelector } from '@/components/dashboard/PeriodSelector'
 import { ComparaisonToggle } from '@/components/dashboard/ComparaisonToggle'
-import { useDashboardConfig } from '@/hooks/useDashboardConfig'
+import { useDashboardConfig, type DashboardZone } from '@/hooks/useDashboardConfig'
 import { CustomizerDrawer } from '@/components/dashboard/CustomizerDrawer'
 import { computeKPIs, computeChartData, computeDonutData, computeTopPublishers, orderToDashboardOrders, fmtEur, type ChartPoint, type DonutSegment } from '@/data/mockDashboard'
 
@@ -1225,6 +1225,9 @@ export function HomePage() {
 
   const [customizerOpen, setCustomizerOpen] = useState(false)
   const dashConfig = useDashboardConfig()
+  const cardDragRef = useRef<{ zone: DashboardZone; id: string } | null>(null)
+  const [cardDrag, setCardDrag] = useState<{ zone: DashboardZone; id: string } | null>(null)
+  const [cardDrop, setCardDrop] = useState<{ zone: DashboardZone; id: string } | null>(null)
 
   const now = new Date()
   const hour = now.getHours()
@@ -1304,6 +1307,36 @@ export function HomePage() {
     el.addEventListener('scroll', updateNovArrows)
     return () => el.removeEventListener('scroll', updateNovArrows)
   }, [])
+
+  function handleDragStart(zone: DashboardZone, id: string) {
+    cardDragRef.current = { zone, id }
+    setCardDrag({ zone, id })
+  }
+
+  function handleDragOver(e: React.DragEvent, zone: DashboardZone, id: string) {
+    e.preventDefault()
+    if (cardDragRef.current?.zone === zone) setCardDrop({ zone, id })
+  }
+
+  function handleDrop(zone: DashboardZone, toId: string) {
+    const drag = cardDragRef.current
+    if (!drag || drag.zone !== zone) return
+    if (drag.id !== toId) {
+      const items = dashConfig.config[zone]
+      const fromIdx = items.findIndex(i => i.id === drag.id)
+      const toIdx   = items.findIndex(i => i.id === toId)
+      if (fromIdx !== -1 && toIdx !== -1) dashConfig.reorder(zone, fromIdx, toIdx)
+    }
+    cardDragRef.current = null
+    setCardDrag(null)
+    setCardDrop(null)
+  }
+
+  function handleDragEnd() {
+    cardDragRef.current = null
+    setCardDrag(null)
+    setCardDrop(null)
+  }
 
   function scrollNovBy(delta: number) {
     novelRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
