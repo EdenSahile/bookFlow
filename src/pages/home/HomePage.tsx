@@ -493,13 +493,19 @@ const KPIGrid = styled.div`
   }
 `
 
-const KPICard = styled.div`
+const KPICard = styled.div<{ $dragging?: boolean; $dropTarget?: boolean }>`
   background: white;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ $dropTarget, theme }) =>
+    $dropTarget ? theme.colors.navy : theme.colors.gray[200]};
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
+  opacity: ${({ $dragging }) => $dragging ? 0.4 : 1};
+  transition: opacity 0.1s, border-color 0.1s;
+
+  &:hover ${CardDragHandle} { opacity: 1; }
 `
 
 const KPITop = styled.div`
@@ -569,10 +575,16 @@ const ThreeColRow = styled.div<{ $count: number }>`
   }
 `
 
-const PanelCard = styled.div`
+const PanelCard = styled.div<{ $dragging?: boolean; $dropTarget?: boolean }>`
   background: white;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ $dropTarget, theme }) =>
+    $dropTarget ? theme.colors.navy : theme.colors.gray[200]};
   padding: 16px;
+  position: relative;
+  opacity: ${({ $dragging }) => $dragging ? 0.4 : 1};
+  transition: opacity 0.1s, border-color 0.1s;
+
+  &:hover ${CardDragHandle} { opacity: 1; }
 `
 
 const PanelHeader = styled.div`
