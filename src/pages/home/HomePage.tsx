@@ -14,8 +14,6 @@ import { useDashboardConfig } from '@/hooks/useDashboardConfig'
 import { CustomizerDrawer } from '@/components/dashboard/CustomizerDrawer'
 import { computeKPIs, computeChartData, computeDonutData, computeTopPublishers, orderToDashboardOrders, fmtEur, type ChartPoint, type DonutSegment } from '@/data/mockDashboard'
 
-const GREEN = theme.colors.success
-
 const nouveautes = MOCK_BOOKS
   .filter(b => b.type === 'nouveaute')
   .sort((a, b) => b.publicationDate.localeCompare(a.publicationDate))
@@ -40,15 +38,6 @@ function IconBooks() {
       strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-    </svg>
-  )
-}
-
-function IconStar() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   )
 }
@@ -1119,114 +1108,6 @@ const ShortcutChevron = styled.span`
   line-height: 1;
 `
 
-/* ── Shortcuts (old grid, kept for mobile bottom bar) ── */
-const ShortcutsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-`
-
-const ShortcutCard = styled(Link)`
-  background: ${({ theme }) => theme.colors.gray[100]};
-  border: 0.5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.md};
-  padding: 12px;
-  text-align: center;
-  text-decoration: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  transition: border-color 0.15s;
-
-  &:hover {
-    border-color: ${GREEN};
-  }
-`
-
-const ShortcutLabel = styled.span`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-`
-
-/* ── Nouveautés ── */
-const NouveautesSection = styled.section`
-  width: 100%;
-`
-
-const SectionHeader = styled.div`
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`
-
-const SectionTitle = styled.h2`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 15px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.navy};
-`
-
-const SeeAllLink = styled(Link)`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
-  font-weight: 500;
-  color: ${GREEN};
-  text-decoration: none;
-  &:hover { text-decoration: underline; }
-`
-
-/* max-width = 4 cards × 230px + 3 gaps × 20px = 980px */
-const CarouselWrapper = styled.div`
-  position: relative;
-  max-width: calc(4 * 230px + 3 * 20px);
-`
-
-const CardScroll = styled.div`
-  display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  padding: 8px 4px 16px;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
-`
-
-const CardSlot = styled.div`
-  flex-shrink: 0;
-  width: 230px;
-`
-
-const ArrowBtn = styled.button<{ $side: 'left' | 'right'; $visible: boolean }>`
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  ${({ $side }) => $side === 'left' ? 'left: -18px;' : 'right: -18px;'}
-  z-index: 2;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: ${({ theme }) => theme.colors.navy};
-  transition: box-shadow 0.15s, opacity 0.15s;
-  opacity: ${({ $visible }) => $visible ? 1 : 0};
-  pointer-events: ${({ $visible }) => $visible ? 'auto' : 'none'};
-
-  &:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
-`
-
 /* ── KPI trend helper ── */
 function compareModeShort(mode: CompareMode): string {
   if (mode === 'previous') return 'période préc.'
@@ -1284,12 +1165,7 @@ export function HomePage() {
   const { totalItems: cartCount } = useCart()
   const { userOrders } = useOrders()
   const navigate = useNavigate()
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft,  setCanScrollLeft]  = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
-
   const novelRef = useRef<HTMLDivElement>(null)
-  const [canNovLeft,  setCanNovLeft]  = useState(false)
   const [canNovRight, setCanNovRight] = useState(true)
 
   const [customizerOpen, setCustomizerOpen] = useState(false)
@@ -1360,31 +1236,9 @@ export function HomePage() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  /* Mise à jour des flèches au scroll */
-  function updateArrows() {
-    const el = scrollRef.current
-    if (!el) return
-    setCanScrollLeft(el.scrollLeft > 4)
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
-  }
-
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    updateArrows()
-    el.addEventListener('scroll', updateArrows)
-    return () => el.removeEventListener('scroll', updateArrows)
-  }, [])
-
-  function scrollBy(delta: number) {
-    scrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
-    setTimeout(updateArrows, 50)
-  }
-
   function updateNovArrows() {
     const el = novelRef.current
     if (!el) return
-    setCanNovLeft(el.scrollLeft > 4)
     setCanNovRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
   }
 
