@@ -398,7 +398,7 @@ export function FeedbackWidget() {
           ) : (
             <PanelBody>
               <InfoBanner>
-                Votre feedback sera envoyé par email au développeur du site.
+                Votre feedback sera envoyé par email au développeur du site. Envoi anonyme — aucun nom ni coordonnée collectés.
               </InfoBanner>
 
               <PageLabel>
