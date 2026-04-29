@@ -1591,7 +1591,19 @@ export function HomePage() {
             .filter(c => c.visible)
             .map(c => {
               if (c.id === 'panel-evolution') return (
-                <PanelCard key={c.id}>
+                <PanelCard
+                  key={c.id}
+                  $dragging={cardDrag?.id === c.id}
+                  $dropTarget={cardDrop?.id === c.id}
+                  draggable
+                  onDragStart={() => handleDragStart('mainPanels', c.id)}
+                  onDragOver={e => handleDragOver(e, 'mainPanels', c.id)}
+                  onDrop={() => handleDrop('mainPanels', c.id)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <CardDragHandle title="Déplacer" aria-label="Déplacer ce panneau">
+                    <IconGrip />
+                  </CardDragHandle>
                   <PanelHeader>
                     <PanelTitle>
                       Évolution des commandes
@@ -1663,7 +1675,19 @@ export function HomePage() {
                 </PanelCard>
               )
               if (c.id === 'panel-donut') return (
-                <PanelCard key={c.id}>
+                <PanelCard
+                  key={c.id}
+                  $dragging={cardDrag?.id === c.id}
+                  $dropTarget={cardDrop?.id === c.id}
+                  draggable
+                  onDragStart={() => handleDragStart('mainPanels', c.id)}
+                  onDragOver={e => handleDragOver(e, 'mainPanels', c.id)}
+                  onDrop={() => handleDrop('mainPanels', c.id)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <CardDragHandle title="Déplacer" aria-label="Déplacer ce panneau">
+                    <IconGrip />
+                  </CardDragHandle>
                   <PanelHeader>
                     <PanelTitle>Répartition de vos achats</PanelTitle>
                   </PanelHeader>
@@ -1688,7 +1712,19 @@ export function HomePage() {
                 </PanelCard>
               )
               if (c.id === 'panel-editeurs') return (
-                <PanelCard key={c.id}>
+                <PanelCard
+                  key={c.id}
+                  $dragging={cardDrag?.id === c.id}
+                  $dropTarget={cardDrop?.id === c.id}
+                  draggable
+                  onDragStart={() => handleDragStart('mainPanels', c.id)}
+                  onDragOver={e => handleDragOver(e, 'mainPanels', c.id)}
+                  onDrop={() => handleDrop('mainPanels', c.id)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <CardDragHandle title="Déplacer" aria-label="Déplacer ce panneau">
+                    <IconGrip />
+                  </CardDragHandle>
                   <PanelHeader>
                     <PanelTitle>Top éditeurs</PanelTitle>
                     <PanelSeeAll onClick={() => navigate('/fonds')}>Voir tout →</PanelSeeAll>
@@ -1720,7 +1756,19 @@ export function HomePage() {
             .filter(c => c.visible)
             .map(c => {
               if (c.id === 'panel-edi') return (
-                <PanelCard key={c.id}>
+                <PanelCard
+                  key={c.id}
+                  $dragging={cardDrag?.id === c.id}
+                  $dropTarget={cardDrop?.id === c.id}
+                  draggable
+                  onDragStart={() => handleDragStart('bottomPanels', c.id)}
+                  onDragOver={e => handleDragOver(e, 'bottomPanels', c.id)}
+                  onDrop={() => handleDrop('bottomPanels', c.id)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <CardDragHandle title="Déplacer" aria-label="Déplacer ce panneau">
+                    <IconGrip />
+                  </CardDragHandle>
                   <PanelHeader>
                     <PanelTitle>Suivi des flux EDI</PanelTitle>
                   </PanelHeader>
@@ -1768,7 +1816,19 @@ export function HomePage() {
                 </PanelCard>
               )
               if (c.id === 'panel-nouveautes') return (
-                <PanelCard key={c.id}>
+                <PanelCard
+                  key={c.id}
+                  $dragging={cardDrag?.id === c.id}
+                  $dropTarget={cardDrop?.id === c.id}
+                  draggable
+                  onDragStart={() => handleDragStart('bottomPanels', c.id)}
+                  onDragOver={e => handleDragOver(e, 'bottomPanels', c.id)}
+                  onDrop={() => handleDrop('bottomPanels', c.id)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <CardDragHandle title="Déplacer" aria-label="Déplacer ce panneau">
+                    <IconGrip />
+                  </CardDragHandle>
                   <PanelHeader>
                     <PanelTitle>Nouveautés du mois</PanelTitle>
                     <PanelSeeAll onClick={() => navigate('/nouveautes')}>Voir tout →</PanelSeeAll>
@@ -1807,7 +1867,19 @@ export function HomePage() {
                 </PanelCard>
               )
               if (c.id === 'panel-raccourcis') return (
-                <PanelCard key={c.id}>
+                <PanelCard
+                  key={c.id}
+                  $dragging={cardDrag?.id === c.id}
+                  $dropTarget={cardDrop?.id === c.id}
+                  draggable
+                  onDragStart={() => handleDragStart('bottomPanels', c.id)}
+                  onDragOver={e => handleDragOver(e, 'bottomPanels', c.id)}
+                  onDrop={() => handleDrop('bottomPanels', c.id)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <CardDragHandle title="Déplacer" aria-label="Déplacer ce panneau">
+                    <IconGrip />
+                  </CardDragHandle>
                   <PanelHeader>
                     <PanelTitle>Raccourcis</PanelTitle>
                   </PanelHeader>
