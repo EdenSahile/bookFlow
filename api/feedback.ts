@@ -8,8 +8,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { message, page } = req.body as { message?: string; page?: string }
 
-  if (!message || typeof message !== 'string' || message.trim().length < 10) {
-    return res.status(400).json({ error: 'Message trop court (min. 10 caractères)' })
+  if (!message || typeof message !== 'string' || message.trim().length === 0) {
+    return res.status(400).json({ error: 'Message vide' })
   }
   if (message.trim().length > 500) {
     return res.status(400).json({ error: 'Message trop long (max. 500 caractères)' })
