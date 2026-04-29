@@ -12,6 +12,7 @@ import { ComparaisonToggle } from '@/components/dashboard/ComparaisonToggle'
 import { useDashboardConfig, type DashboardZone } from '@/hooks/useDashboardConfig'
 import { CustomizerDrawer } from '@/components/dashboard/CustomizerDrawer'
 import { computeKPIs, computeChartData, computeDonutData, computeTopPublishers, orderToDashboardOrders, fmtEur, type ChartPoint, type DonutSegment } from '@/data/mockDashboard'
+import { exportDashboardCSV } from '@/lib/exportCSV'
 
 const nouveautes = MOCK_BOOKS
   .filter(b => b.type === 'nouveaute')
@@ -159,6 +160,17 @@ function IconBarChart() {
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="6" y1="20" x2="6" y2="14" />
       <line x1="2" y1="20" x2="22" y2="20" />
+    </svg>
+  )
+}
+
+function IconDownload() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   )
 }
@@ -1304,12 +1316,10 @@ export function HomePage() {
     [periodFilter.orders],
   )
 
-  const nbEnvoyees  = kpi.nbCommandes - Math.round(kpi.nbCommandes * kpi.tauxRupture)
-  const nbAnnulees  = Math.round(kpi.nbCommandes * kpi.tauxRupture)
-  const cmpEnvoyees = compareKpi
-    ? compareKpi.nbCommandes - Math.round(compareKpi.nbCommandes * compareKpi.tauxRupture)
-    : null
-  const cmpAnnulees = compareKpi ? Math.round(compareKpi.nbCommandes * compareKpi.tauxRupture) : null
+  const nbEnvoyees  = kpi.nbActive
+  const nbAnnulees  = kpi.nbCancelled
+  const cmpEnvoyees = compareKpi ? compareKpi.nbActive    : null
+  const cmpAnnulees = compareKpi ? compareKpi.nbCancelled : null
 
   /* Raccourci / → focus champ de recherche du header */
   useEffect(() => {
@@ -1411,6 +1421,14 @@ export function HomePage() {
     },
   }
 
+  const totalActionCount = dashConfig.config.actionCards
+    .filter(c => c.visible)
+    .reduce((sum, c) => {
+      const def = actionCardDefs[c.id]
+      if (!def || def.empty) return sum
+      return sum + (typeof def.count === 'number' ? def.count : 0)
+    }, 0)
+
   const kpiCardDefs: Record<string, KpiCardDef> = {
     'kpi-commandes': {
       icon: <IconCart />,
@@ -1445,7 +1463,7 @@ export function HomePage() {
     'kpi-panier-moyen': {
       icon: <IconBarChart />,
       iconBg: '#EDE9FE', iconColor: '#7C3AED',
-      label: 'Panier moyen',
+      label: 'Panier moyen (hors annulées)',
       value: fmtEur(kpi.panierMoyen),
       trend: compareKpi
         ? <KpiTrendLine current={kpi.panierMoyen} compare={compareKpi.panierMoyen} mode={periodFilter.compareMode} />
@@ -1543,7 +1561,7 @@ export function HomePage() {
             <ActionsLeft>
               <ActionsTitleRow>
                 <ActionsTitle>Actions en attente</ActionsTitle>
-                <ActionsBadge>10</ActionsBadge>
+                <ActionsBadge>{totalActionCount}</ActionsBadge>
               </ActionsTitleRow>
               <ActionsSubtitle>Ce sont des éléments qui nécessitent votre attention.</ActionsSubtitle>
             </ActionsLeft>
@@ -1617,6 +1635,11 @@ export function HomePage() {
                 customCompareEnd={periodFilter.customCompareEnd}
                 setCustomCompareEnd={periodFilter.setCustomCompareEnd}
               />
+              <CustomizeBtn type="button" onClick={() =>
+                exportDashboardCSV(kpi, periodFilter.orders, periodFilter.period, periodFilter.preset)
+              }>
+                <IconDownload /> Exporter CSV
+              </CustomizeBtn>
               <CustomizeBtn type="button" onClick={() => setCustomizerOpen(true)}>
                 <IconLayout /> Personnaliser
               </CustomizeBtn>
