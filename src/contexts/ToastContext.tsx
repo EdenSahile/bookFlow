@@ -1,9 +1,14 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { ToastBox, type ToastType } from '@/components/ui/Toast'
+import { ToastBox, ToastActionBtn, type ToastType } from '@/components/ui/Toast'
+
+export interface ToastAction {
+  label: string
+  onClick: () => void
+}
 
 interface ToastContextValue {
-  showToast: (message: string, type?: ToastType) => void
+  showToast: (message: string, type?: ToastType, action?: ToastAction) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -12,15 +17,16 @@ interface ToastState {
   id: number
   message: string
   type: ToastType
+  action?: ToastAction
   leaving: boolean
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null)
 
-  const showToast = useCallback((message: string, type: ToastType = 'success') => {
+  const showToast = useCallback((message: string, type: ToastType = 'success', action?: ToastAction) => {
     const id = Date.now()
-    setToast({ id, message, type, leaving: false })
+    setToast({ id, message, type, action, leaving: false })
 
     const duration = type === 'error' ? 4800 : 2800
     setTimeout(() => setToast(t => t?.id === id ? { ...t, leaving: true } : t), duration)
@@ -31,8 +37,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {toast && createPortal(
-        <ToastBox $leaving={toast.leaving} $type={toast.type}>
-          {toast.type === 'error' ? '⚠ ' : '✓ '}{toast.message}
+        <ToastBox $leaving={toast.leaving} $type={toast.type} $hasAction={!!toast.action}>
+          <span>{toast.type === 'error' ? '⚠ ' : '✓ '}{toast.message}</span>
+          {toast.action && (
+            <ToastActionBtn onClick={() => { toast.action!.onClick(); setToast(null) }}>
+              {toast.action.label}
+            </ToastActionBtn>
+          )}
         </ToastBox>,
         document.body
       )}

@@ -12,7 +12,7 @@ const slideUp = keyframes`
 
 export type ToastType = 'success' | 'error'
 
-export const ToastBox = styled.div<{ $leaving: boolean; $type: ToastType }>`
+export const ToastBox = styled.div<{ $leaving: boolean; $type: ToastType; $hasAction?: boolean }>`
   position: fixed;
   top: 72px;
   left: 50%;
@@ -27,9 +27,26 @@ export const ToastBox = styled.div<{ $leaving: boolean; $type: ToastType }>`
   padding: 12px 24px;
   border-radius: ${({ theme }) => theme.radii.full};
   white-space: nowrap;
-  pointer-events: none;
+  pointer-events: ${({ $hasAction }) => $hasAction ? 'auto' : 'none'};
   max-width: 90vw;
   text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0;
 
   animation: ${({ $leaving }) => css`${$leaving ? slideUp : slideDown} .25s ease forwards`};
+`
+
+export const ToastActionBtn = styled.button`
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0 0 0 12px;
+  opacity: 0.9;
+  white-space: nowrap;
+  &:hover { opacity: 1; }
 `
