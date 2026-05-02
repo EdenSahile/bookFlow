@@ -1174,10 +1174,19 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
   }
 
   function handleSearchKey(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' && (search.trim() || activeCount > 0)) {
-      navigate(`/recherche?${buildParams(search)}`)
+    if (e.key !== 'Enter') return
+    const trimmed = search.trim()
+    if (!trimmed && activeCount === 0) return
+
+    const byIsbn = MOCK_BOOKS.find(b => b.isbn === trimmed)
+    if (byIsbn) {
+      navigate(`/livre/${byIsbn.id}`)
       setSearch('')
+      return
     }
+
+    navigate(`/recherche?${buildParams(search)}`)
+    setSearch('')
   }
 
   return (
