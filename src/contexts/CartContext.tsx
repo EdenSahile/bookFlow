@@ -167,10 +167,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setTransmissionModeState(loadTransmissionMode(user?.codeClient))
   }, [key, user?.codeClient])
 
-  const setItems   = (fn: (prev: CartItem[]) => CartItem[]) =>
+  const setItems = useCallback((fn: (prev: CartItem[]) => CartItem[]) =>
     setCart(c => ({ ...c, items: fn(c.items) }))
-  const setOpGroups = (fn: (prev: OPCartGroup[]) => OPCartGroup[]) =>
+  , [])
+
+  const setOpGroups = useCallback((fn: (prev: OPCartGroup[]) => OPCartGroup[]) =>
     setCart(c => ({ ...c, opGroups: fn(c.opGroups) }))
+  , [])
 
   /* Persistance localStorage — clé par utilisateur (skip si non connecté) */
   useEffect(() => {
@@ -183,8 +186,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     () => user?.remisesParUnivers
       ? Object.fromEntries(Object.entries(user.remisesParUnivers).map(([k, v]) => [k, v / 100]))
       : REMISE_RATES,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user?.remisesParUnivers]
+    [user]
   )
 
   const itemsTotal    = items.reduce((sum, i) => sum + i.quantity, 0)
@@ -205,35 +207,40 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [removeFromCart])
 
   const addToCart = useCallback((book: Book, qty = 1, opts: AddToCartOptions = {}) => {
-    if (totalItems >= CART_LIMIT) {
-      showToast(
-        `Limite de démonstration atteinte (${CART_LIMIT} articles max). Veuillez vider votre panier pour continuer.`,
-        'error'
-      )
-      return
-    }
     const { ebookOption, enReliquat } = opts
-    setItems(prev => {
-      const key = ebookOption ? `${book.id}::${ebookOption.isbnEbook}` : book.id
-      const existing = prev.find(i =>
+    setCart(prev => {
+      const currentTotal =
+        prev.items.reduce((s, i) => s + i.quantity, 0) +
+        prev.opGroups.reduce((s, op) =>
+          s + op.books.reduce((ss, b) => ss + b.quantity, 0), 0)
+      if (currentTotal >= CART_LIMIT) {
+        showToast(
+          `Limite de démonstration atteinte (${CART_LIMIT} articles max). Veuillez vider votre panier pour continuer.`,
+          'error'
+        )
+        return prev
+      }
+      const itemKey = ebookOption ? `${book.id}::${ebookOption.isbnEbook}` : book.id
+      const existing = prev.items.find(i =>
         ebookOption
           ? i.book.id === book.id && i.ebookOption?.isbnEbook === ebookOption.isbnEbook
           : i.book.id === book.id && !i.ebookOption
       )
-      if (existing)
-        return prev.map(i => {
-          const iKey = i.ebookOption ? `${i.book.id}::${i.ebookOption.isbnEbook}` : i.book.id
-          return iKey === key ? { ...i, quantity: i.quantity + qty } : i
-        })
-      return [...prev, {
-        book,
-        quantity: qty,
-        ebookOption,
-        statut: book.statut,
-        enReliquat: enReliquat ?? false,
-      }]
+      const newItems = existing
+        ? prev.items.map(i => {
+            const iKey = i.ebookOption ? `${i.book.id}::${i.ebookOption.isbnEbook}` : i.book.id
+            return iKey === itemKey ? { ...i, quantity: i.quantity + qty } : i
+          })
+        : [...prev.items, {
+            book,
+            quantity: qty,
+            ebookOption,
+            statut: book.statut,
+            enReliquat: enReliquat ?? false,
+          }]
+      return { ...prev, items: newItems }
     })
-  }, [totalItems, showToast])
+  }, [showToast])
 
   /* ── OPs ── */
   const removeOP = useCallback((opId: string) =>
@@ -242,16 +249,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addOPToCart = useCallback((group: Omit<OPCartGroup, 'id'>) => {
     const opCount = group.books.reduce((s, { quantity }) => s + quantity, 0)
-    if (totalItems + opCount > CART_LIMIT) {
-      showToast(
-        `Limite de démonstration atteinte (${CART_LIMIT} articles max). Veuillez vider votre panier pour continuer.`,
-        'error'
-      )
-      return
-    }
-    const id = `op-${group.serieId}-${Date.now()}`
-    setOpGroups(prev => [...prev, { ...group, id }])
-  }, [totalItems, showToast])
+    setCart(prev => {
+      const currentTotal =
+        prev.items.reduce((s, i) => s + i.quantity, 0) +
+        prev.opGroups.reduce((s, op) =>
+          s + op.books.reduce((ss, b) => ss + b.quantity, 0), 0)
+      if (currentTotal + opCount > CART_LIMIT) {
+        showToast(
+          `Limite de démonstration atteinte (${CART_LIMIT} articles max). Veuillez vider votre panier pour continuer.`,
+          'error'
+        )
+        return prev
+      }
+      const id = `op-${group.serieId}-${Date.now()}`
+      return { ...prev, opGroups: [...prev.opGroups, { ...group, id }] }
+    })
+  }, [showToast])
 
   const clearCart = useCallback(() => setCart({ items: [], opGroups: [] }), [])
 
