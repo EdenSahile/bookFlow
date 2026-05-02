@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import { NavLink } from 'react-router-dom'
+import { useCart } from '@/contexts/CartContext'
 
 /* ── Icons SVG inline ── */
 function HomeIcon() {
@@ -45,26 +46,6 @@ function BookIcon() {
   )
 }
 
-function TrendingIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <polyline
-        points="3,17 8,12 12,15 18,6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <polyline
-        points="14,6 18,6 18,10"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
 
 function GridIcon() {
   return (
@@ -73,6 +54,16 @@ function GridIcon() {
       <rect x="12" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
       <rect x="3" y="12" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
       <rect x="12" y="12" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  )
+}
+
+function CartIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="21" r="1"/>
+      <circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
     </svg>
   )
 }
@@ -124,24 +115,62 @@ const TabLabel = styled.span`
   letter-spacing: 0.02em;
 `
 
-/* ── Component ── */
-const tabs = [
-  { to: '/', label: 'Accueil', icon: <HomeIcon />, end: true },
-  { to: '/nouveautes', label: 'Nouveautés', icon: <StarIcon /> },
-  { to: '/fonds', label: 'Fonds', icon: <BookIcon /> },
-  { to: '/top-ventes', label: 'Top Ventes', icon: <TrendingIcon /> },
-  { to: '/selections', label: 'Sélections', icon: <GridIcon /> },
-]
+const CartTabWrap = styled.span`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+`
 
+const CartBadge = styled.span`
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+`
+
+/* ── Component ── */
 export function BottomNav() {
+  const { totalItems } = useCart()
+
   return (
     <Nav aria-label="Navigation principale">
-      {tabs.map(({ to, label, icon, end }) => (
-        <StyledNavLink key={to} to={to} end={end}>
-          {icon}
-          <TabLabel>{label}</TabLabel>
-        </StyledNavLink>
-      ))}
+      <StyledNavLink to="/" end>
+        <HomeIcon />
+        <TabLabel>Accueil</TabLabel>
+      </StyledNavLink>
+      <StyledNavLink to="/nouveautes">
+        <StarIcon />
+        <TabLabel>Nouveautés</TabLabel>
+      </StyledNavLink>
+      <StyledNavLink to="/fonds">
+        <BookIcon />
+        <TabLabel>Fonds</TabLabel>
+      </StyledNavLink>
+      <StyledNavLink to="/panier">
+        <CartTabWrap>
+          <CartIcon />
+          {totalItems > 0 && (
+            <CartBadge>{totalItems > 99 ? '99+' : totalItems}</CartBadge>
+          )}
+        </CartTabWrap>
+        <TabLabel>Panier</TabLabel>
+      </StyledNavLink>
+      <StyledNavLink to="/selections">
+        <GridIcon />
+        <TabLabel>Sélections</TabLabel>
+      </StyledNavLink>
     </Nav>
   )
 }
