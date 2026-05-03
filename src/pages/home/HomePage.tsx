@@ -189,12 +189,6 @@ function IconGrip() {
   )
 }
 
-function fmtFrDate(date: Date): string {
-  const day = date.getDate()
-  const month = date.toLocaleDateString('fr-FR', { month: 'long' })
-  const year = date.getFullYear()
-  return `${day === 1 ? '1er' : day} ${month} ${year}`
-}
 
 /* ── Page layout ── */
 const Page = styled.div`
