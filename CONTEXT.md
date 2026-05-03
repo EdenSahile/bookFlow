@@ -27,7 +27,7 @@ Objectif : faire correspondre exactement l'app aux mockups HTML validés
 - [x] Task 3 — `Sidebar` : sticky full-height + brand FlowDiff PRO en haut
 - [x] Task 4 — `Header` : topbar blanche, logo masqué desktop, couleurs light
 - [x] Task 5 — `DemoBanner` : sticky dans le flux (plus fixed)
-- [ ] Task 6 — `AppFooter` : dans le flux MainColumn (plus fixed)
+- [x] Task 6 — `AppFooter` : dans le flux MainColumn (plus fixed)
 - [ ] Task 7 — `HomePage` : greeting-sub, section labels, PanelCard/ActionsBox styles, reminder card
 - [ ] Task 8 — `FondsPage` : page header view-toggle, SVG search icon, ResultsCount style
 
