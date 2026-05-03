@@ -2,10 +2,6 @@ import styled from 'styled-components'
 import { NavLink } from 'react-router-dom'
 
 const FooterBar = styled.footer`
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   height: ${({ theme }) => theme.layout.footerHeight};
   background: ${({ theme }) => theme.colors.white};
   border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
@@ -13,16 +9,11 @@ const FooterBar = styled.footer`
   align-items: center;
   justify-content: space-between;
   padding: 0 ${({ theme }) => theme.spacing.lg};
-  z-index: 90;
+  flex-shrink: 0;
 
-  /* Caché sur mobile — BottomNav gère le bas */
+  /* Masqué sur mobile — BottomNav gère le bas */
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
     display: none;
-  }
-
-  /* Décalé du sidebar sur desktop */
-  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    left: ${({ theme }) => theme.layout.sidebarWidth};
   }
 `
 
