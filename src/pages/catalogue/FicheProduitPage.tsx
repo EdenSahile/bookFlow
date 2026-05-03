@@ -3,14 +3,11 @@ import { createPortal } from 'react-dom'
 import { useParams, useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { getBookById, MOCK_BOOKS } from '@/data/mockBooks'
-import { slugifyAuthor } from '@/lib/slugify'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/contexts/ToastContext'
-import { useWishlist } from '@/contexts/WishlistContext'
 import { useRdv } from '@/contexts/RdvContext'
 import { ListPickerPopover } from '@/components/catalogue/ListPickerPopover'
-import { StockStatus } from '@/components/ui/StockStatus'
 import { StockAlertModal } from '@/components/ui/StockAlertModal'
 import { theme } from '@/lib/theme'
 
@@ -33,11 +30,11 @@ const LOREM_LONG =
 const LOREM_P2 =
   'Fusce fermentum. Nullam varius, turpis molestie dictum semper, metus arcu convallis lorem, quis dignissim diam lorem id nunc. Nulla aliquet porttitor quam. Donec at purus ut velit iaculis condimentum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi mattis ullamcorper velit. Phasellus gravida semper nisi. Nullam vel sem. Pellentesque ut neque. Pellentesque habitant morbi tristique senectus.'
 
-const UNIVERSE_COLOR: Record<string, string> = {
-  'Littérature':     '#1C3252',
-  'BD/Mangas':       '#C04A00',
-  'Jeunesse':        '#1565C0',
-  'Adulte-pratique': '#1E7045',
+const UNIVERSE_STYLES: Record<string, { bg: string; color: string }> = {
+  'Littérature':     { bg: '#E8EDF3', color: '#1C3252' },
+  'BD/Mangas':       { bg: '#FDEBD0', color: '#C04A00' },
+  'Jeunesse':        { bg: '#F5E8F8', color: '#7B2D8B' },
+  'Adulte-pratique': { bg: '#E6F4EC', color: '#1E7045' },
 }
 
 /* ══ Animations ══ */
@@ -82,454 +79,6 @@ const BackButton = styled.button`
   &:hover { opacity: 1; transform: translateX(-2px); }
 `
 
-const Wrap = styled.div`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.radii.xl};
-  box-shadow: 0 6px 32px rgba(28,58,95,0.11), 0 1px 4px rgba(28,58,95,0.06);
-  overflow: hidden;
-  border: 1px solid rgba(28,58,95,0.07);
-`
-
-const Body = styled.div`
-  display: flex;
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    flex-direction: column;
-  }
-`
-
-/* ── Colonne couverture ── */
-const CoverCol = styled.div`
-  width: 230px;
-  flex-shrink: 0;
-  background: linear-gradient(180deg, #F2EFE8 0%, #EDE9E2 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 36px 22px 28px;
-  gap: 22px;
-  border-right: 1px solid #E5E0D8;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #E5E0D8;
-    padding: 24px 20px 20px;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 20px;
-  }
-`
-
-const CoverShadow = styled.div`
-  border-radius: ${({ theme }) => theme.radii.md};
-  box-shadow: 6px 10px 28px rgba(28,58,95,0.25);
-  overflow: hidden;
-  flex-shrink: 0;
-`
-
-const SecondaryActions = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    flex: 1;
-  }
-`
-
-const SecBtn = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  padding: 9px 12px;
-  background: rgba(255,255,255,0.75);
-  border: 1px solid rgba(28,58,95,0.12);
-  border-radius: ${({ theme }) => theme.radii.lg};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.navy};
-  cursor: pointer;
-  transition: background .15s, border-color .15s, transform .1s;
-  text-align: left;
-
-  &:hover {
-    background: #fff;
-    border-color: rgba(28,58,95,0.25);
-    transform: translateX(2px);
-  }
-`
-
-/* ── Colonne info ── */
-const InfoCol = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-`
-
-const InfoTop = styled.div`
-  padding: 28px 30px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`
-
-const BadgeRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  flex-wrap: wrap;
-`
-
-const UniverseBadge = styled.span<{ $color: string }>`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 11px;
-  border-radius: ${({ theme }) => theme.radii.xl};
-  background: ${({ $color }) => $color}18;
-  border: 1px solid ${({ $color }) => $color}35;
-  font-size: 11px;
-  font-weight: 700;
-  color: ${({ $color }) => $color};
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  &::before {
-    content: '';
-    display: inline-block;
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: ${({ $color }) => $color};
-  }
-`
-
-const TypeBadge = styled.span<{ $type: string }>`
-  padding: 4px 11px;
-  border-radius: ${({ theme }) => theme.radii.xl};
-  font-size: 11px;
-  font-weight: 700;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  background: ${({ $type }) =>
-    $type === 'nouveaute' ? '#FEF5E0' :
-    $type === 'a-paraitre' ? '#EEE8FF' : '#E8F5EE'};
-  color: ${({ $type }) =>
-    $type === 'nouveaute' ? '#B8740A' :
-    $type === 'a-paraitre' ? '#5B33C1' : '#1E7045'};
-`
-
-const BookTitle = styled.h1`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 24px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.navy};
-  line-height: 1.22;
-  letter-spacing: -0.01em;
-`
-
-const BookAuthors = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  font-weight: 500;
-  font-style: italic;
-`
-
-const MetaGrid = styled.dl`
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 24px;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  background: ${({ theme }) => theme.colors.gray[50]};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  padding: 14px 16px;
-`
-
-const MetaDt = styled.dt`
-  color: ${({ theme }) => theme.colors.gray[400]};
-  font-weight: 600;
-  white-space: nowrap;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-`
-
-const MetaDd = styled.dd`
-  color: ${({ theme }) => theme.colors.navy};
-  margin: 0;
-  font-weight: 500;
-`
-
-const Divider = styled.div`
-  height: 1px;
-  background: #EDE9E2;
-  margin: 0 30px;
-`
-
-const FormatSection = styled.div`
-  padding: 20px 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`
-
-const SectionLabel = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.10em;
-  color: ${({ theme }) => theme.colors.gray[400]};
-  margin: 0;
-`
-
-const FormatPills = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-`
-
-const FormatPill = styled.button<{ $active: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 13px 18px;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  border: 2px solid ${({ $active, theme }) => $active ? theme.colors.navy : '#E0DBD4'};
-  background: ${({ $active }) => $active ? '#EEF2FA' : '#FAFAF8'};
-  cursor: pointer;
-  transition: border-color .18s, background .18s, transform .12s;
-  min-width: 148px;
-  text-align: left;
-  box-shadow: ${({ $active }) => $active ? '0 2px 8px rgba(28,58,95,0.12)' : 'none'};
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.navy};
-    background: ${({ $active }) => $active ? '#EEF2FA' : '#F2EEE8'};
-    transform: translateY(-1px);
-  }
-  &:active { transform: translateY(0); }
-`
-
-const PillLabel = styled.span`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.navy};
-`
-
-const PillDesc = styled.span`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.gray[400]};
-`
-
-const PillPrice = styled.span<{ $active: boolean }>`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 16px;
-  font-weight: 800;
-  margin-top: 5px;
-  color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[600]};
-  letter-spacing: -0.01em;
-`
-
-const ContentSection = styled.div`
-  padding: 0 30px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-`
-
-const AccordionItem = styled.div`border-top: 1px solid #EDE9E2;`
-
-const AccordionToggle = styled.button<{ $open: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 14px 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: ${({ $open, theme }) => $open ? theme.colors.navy : theme.colors.gray[400]};
-  transition: color .15s;
-  &:hover { color: ${({ theme }) => theme.colors.navy}; }
-`
-
-const AccordionChevron = styled.span<{ $open: boolean }>`
-  display: inline-block;
-  transition: transform .2s ease;
-  transform: ${({ $open }) => $open ? 'rotate(180deg)' : 'rotate(0deg)'};
-  font-size: 10px;
-  opacity: 0.5;
-`
-
-const AccordionBody = styled.div<{ $open: boolean }>`
-  display: ${({ $open }) => $open ? 'block' : 'none'};
-  padding-bottom: 16px;
-`
-
-const Description = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  line-height: 1.75;
-  margin: 0;
-`
-
-/* ── Footer commande ── */
-const Footer = styled.div`
-  padding: 18px 30px;
-  border-top: 2px solid #EDE9E2;
-  background: linear-gradient(0deg, #FAFAF8, #fff);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-`
-
-const PriceBlock = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-`
-
-const PriceTTC = styled.span`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 32px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.navy};
-  letter-spacing: -0.02em;
-`
-
-const PriceCaption = styled.span`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.gray[400]};
-  font-weight: 500;
-`
-
-const OrderRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  flex-wrap: wrap;
-`
-
-const QtyControl = styled.div`
-  display: flex;
-  align-items: center;
-  border: 2px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  overflow: hidden;
-  background: ${({ theme }) => theme.colors.gray[50]};
-`
-
-const QtyBtn = styled.button`
-  width: 40px; height: 44px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.navy};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background .1s;
-  &:hover   { background: ${({ theme }) => theme.colors.gray[200]}; }
-  &:disabled{ opacity: .3; cursor: not-allowed; }
-`
-
-const QtyValue = styled.span`
-  min-width: 48px;
-  text-align: center;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 17px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.navy};
-`
-
-const AddBtn = styled.button<{ $added: boolean }>`
-  flex: 1;
-  min-width: 200px;
-  height: 48px;
-  border: none;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  background: ${({ $added, theme }) => $added ? theme.colors.primaryHover : theme.colors.primary};
-  color: #fdfdfd;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background .2s, transform .1s, box-shadow .2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  letter-spacing: 0.01em;
-  &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.primaryHover};
-    transform: translateY(-1px);
-  }
-  &:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
-  &:active:not(:disabled) { transform: scale(0.98); }
-`
-
-/* ── Footer À paraître ── */
-const ParaitreFooter = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
-`
-
-const ParaitreNotice = styled.div`
-  background: #FFF3E0;
-  border: 1px solid #E65100;
-  border-left: 4px solid #E65100;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  padding: 12px 16px;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  color: #C84B00;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  line-height: 1.5;
-`
-
-const ContactRepBtn = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  background: ${({ theme }) => theme.colors.navy};
-  color: #fdfdfd;
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background .15s, transform .1s, box-shadow .15s;
-  box-shadow: 0 4px 14px rgba(28,58,95,0.25);
-  &:hover {
-    background: ${({ theme }) => theme.colors.navyHover};
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(28,58,95,0.30);
-  }
-  &:active { transform: scale(0.98); }
-`
-
 const NotFoundBox = styled.div`
   text-align: center;
   padding: ${({ theme }) => theme.spacing['3xl']};
@@ -537,7 +86,6 @@ const NotFoundBox = styled.div`
   color: ${({ theme }) => theme.colors.gray[600]};
 `
 
-/* ── Section eyebrow ── */
 const SectionEyebrow = styled.p`
   font-size: 10px;
   font-weight: 700;
@@ -559,39 +107,503 @@ const SectionEyebrow = styled.p`
   }
 `
 
-/* ── Price card ── */
-const PriceCard = styled.div`
+/* ── Breadcrumb ── */
+const BreadcrumbNav = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+`
+
+const BreadcrumbLink = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  cursor: pointer;
+  transition: color .12s;
+  &:hover { color: ${({ theme }) => theme.colors.navy}; }
+`
+
+const BreadcrumbSep = styled.span`
+  color: ${({ theme }) => theme.colors.gray[200]};
+`
+
+const BreadcrumbCurrent = styled.span`
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-weight: 500;
+`
+
+/* ── Layout 2 colonnes ── */
+const BookLayout = styled.div`
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 28px;
+  align-items: start;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    grid-template-columns: 1fr;
+  }
+`
+
+/* ── Colonne gauche sticky ── */
+const CoverColNew = styled.div`
+  position: sticky;
+  top: 94px;
+`
+
+const CoverFrame = styled.div`
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(42,42,40,.15), 0 2px 8px rgba(42,42,40,.08);
+  position: relative;
+`
+
+const CoverBadgeDetail = styled.span`
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: rgba(212,168,67,.15);
+  color: ${({ theme }) => theme.colors.accent};
+  border: 1px solid rgba(212,168,67,.4);
+  z-index: 1;
+`
+
+const CoverActionsRow = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+`
+
+const CoverActionBtn = styled.button`
+  flex: 1;
+  height: 30px;
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  padding: 14px 16px 10px;
+  border: 1.5px solid rgba(42,42,40,.12);
+  border-radius: 7px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11.5px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: border-color .15s, color .15s;
+  &:hover { border-color: ${({ theme }) => theme.colors.navy}; color: ${({ theme }) => theme.colors.navy}; }
+`
+
+const MetaBox = styled.div`
+  margin-top: 10px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid rgba(42,42,40,.07);
+  border-radius: 8px;
+  overflow: hidden;
+`
+
+const MetaRowItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(42,42,40,.06);
+  gap: 1px;
+  &:last-child { border-bottom: none; }
+`
+
+const MetaLabelEl = styled.span`
+  font-size: 9px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  text-transform: uppercase;
+  letter-spacing: .07em;
+`
+
+const MetaValueEl = styled.span`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  overflow-wrap: break-word;
+  word-break: break-word;
+  strong { color: ${({ theme }) => theme.colors.gray[800]}; font-weight: 600; }
+`
+
+/* ── Colonne droite ── */
+const DetailCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`
+
+const BookUniverseBadge = styled.span<{ $bg: string; $color: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: ${({ $bg }) => $bg};
+  color: ${({ $color }) => $color};
+  margin-bottom: 6px;
+  width: fit-content;
+`
+
+const BookTitleMain = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 22px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 4px;
+`
+
+const BookAuthorMain = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-weight: 400;
+  margin-bottom: 2px;
+  strong { font-weight: 600; color: ${({ theme }) => theme.colors.gray[800]}; }
+`
+
+const BookEditorMain = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-bottom: 12px;
+`
+
+/* ── Format selector ── */
+const FormatSelectorWrap = styled.div`
+  margin-bottom: 12px;
+`
+
+const FormatLabelEl = styled.div`
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin-bottom: 6px;
+`
+
+const FormatOptionsRow = styled.div`
+  display: flex;
+  gap: 6px;
+`
+
+const FormatBtnEl = styled.button<{ $active: boolean }>`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 7px 12px;
+  border-radius: 7px;
+  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : 'rgba(42,42,40,.12)'};
+  background: ${({ $active, theme }) => $active ? 'rgba(45,58,74,.06)' : theme.colors.white};
+  cursor: pointer;
+  box-shadow: ${({ $active }) => $active ? '0 0 0 1px #2D3A4A' : 'none'};
+  text-align: left;
+  transition: border-color .15s, background .15s;
+  &:hover { border-color: ${({ theme }) => theme.colors.navy}; }
+`
+
+const FormatNameEl = styled.span<{ $active: boolean }>`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12.5px;
+  font-weight: 600;
+  color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[800]};
+`
+
+const FormatPriceEl = styled.span<{ $active: boolean }>`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11.5px;
+  color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[400]};
+  font-weight: ${({ $active }) => $active ? '500' : '400'};
+  margin-top: 1px;
+`
+
+/* ── Zone prix ── */
+const PriceZone = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid rgba(42,42,40,.07);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+`
+
+const PriceRowEl = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+`
+
+const PricePublicEl = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 20px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+  letter-spacing: -.01em;
+`
+
+const PricePublicLabelEl = styled.span`
+  font-size: 11.5px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+`
+
+const PriceDividerEl = styled.div`
+  height: 1px;
+  background: rgba(42,42,40,.07);
+  margin: 10px 0;
+`
+
+const StockZoneEl = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+`
+
+const StockIndicatorEl = styled.span<{ $statut?: string }>`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11.5px;
+  font-weight: 600;
+  background: ${({ $statut }) =>
+    $statut === 'disponible'   ? 'rgba(46,125,50,.08)' :
+    $statut === 'sur_commande' ? 'rgba(91,122,158,.1)' :
+    $statut === 'en_reimp'     ? 'rgba(160,112,64,.1)' : 'rgba(46,125,50,.08)'};
+  color: ${({ $statut }) =>
+    $statut === 'disponible'   ? '#2E7D32' :
+    $statut === 'sur_commande' ? '#5B7A9E' :
+    $statut === 'en_reimp'     ? '#A07040' : '#2E7D32'};
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+`
+
+const StockDispoDetailEl = styled.span`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+`
+
+const OrderZoneEl = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+const QtyStepperLg = styled.div`
+  display: flex;
+  align-items: center;
+  border: 1.5px solid rgba(42,42,40,.15);
+  border-radius: 7px;
+  overflow: hidden;
+  flex-shrink: 0;
+`
+
+const QtyBtnLg = styled.button`
+  width: 32px;
+  height: 36px;
+  background: ${({ theme }) => theme.colors.gray[50]};
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .1s;
+  &:hover { background: rgba(42,42,40,.08); }
+  &:disabled { opacity: .35; cursor: not-allowed; }
+`
+
+const QtyInputLg = styled.input`
+  width: 42px;
+  height: 36px;
+  border: none;
+  border-left: 1px solid rgba(42,42,40,.12);
+  border-right: 1px solid rgba(42,42,40,.12);
+  background: ${({ theme }) => theme.colors.white};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+  &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; }
+`
+
+const AddBtnMain = styled.button<{ $added: boolean }>`
+  height: 36px;
+  padding: 0 18px;
+  background: ${({ $added, theme }) => $added ? '#2E7D32' : theme.colors.navy};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 7px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex: 1;
+  &:hover:not(:disabled) { background: ${({ theme }) => theme.colors.primaryHover}; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+`
+
+const EpuiseNoticeEl = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-style: italic;
+  margin: 8px 0 0;
+`
+
+const ParaitreNoticeEl = styled.div`
+  background: #FFF3E0;
+  border: 1px solid #E65100;
+  border-left: 4px solid #E65100;
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 10px 14px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  color: #C84B00;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+`
+
+/* ── Actions secondaires horizontales ── */
+const SecondaryActionsHoriz = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+`
+
+const SecBtnHoriz = styled.button`
+  flex: 1;
+  min-width: 120px;
+  height: 30px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid rgba(42,42,40,.12);
+  border-radius: 7px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11.5px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: border-color .15s, color .15s;
+  &:hover { border-color: ${({ theme }) => theme.colors.navy}; color: ${({ theme }) => theme.colors.navy}; }
+`
+
+/* ── Synopsis ── */
+const SynopsisBlock = styled.div`
+  margin-bottom: 14px;
+`
+
+const SynopsisText = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 14px;
+  line-height: 1.6;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-style: italic;
+`
+
+/* ── Infos commande ── */
+const OrderInfoBlockNew = styled.div`
+  background: ${({ theme }) => theme.colors.accentLight};
+  border: 1px solid rgba(212,168,67,.2);
+  border-radius: 8px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 `
 
-/* ── Order info block ── */
-const OrderInfoBlock = styled.div`
-  background: ${({ theme }) => theme.colors.accentLight};
-  border: 1px solid rgba(212, 168, 67, 0.2);
-  border-radius: ${({ theme }) => theme.radii.md};
-  padding: 10px 12px;
+const OrderInfoRowEl = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
   color: ${({ theme }) => theme.colors.gray[600]};
-  line-height: 1.5;
-
   strong { font-weight: 700; color: ${({ theme }) => theme.colors.gray[800]}; }
 `
 
-/* ── Similar books strip ── */
-const SimilarSection = styled.section`
-  margin-top: 40px;
-  padding-top: 28px;
-  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+const OrderInfoIconEl = styled.span`
+  color: ${({ theme }) => theme.colors.accent};
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 `
 
-const SimilarGrid = styled.div`
+/* ── Similar books ── */
+const SimilarSectionNew = styled.section`
+  margin-top: 28px;
+`
+
+const SimilarHeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(42,42,40,.1);
+`
+
+const SimilarTitleEl = styled.h2`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 14px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+`
+
+const SimilarLinkEl = styled.button`
+  background: none;
+  border: none;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12.5px;
+  color: ${({ theme }) => theme.colors.accent};
+  font-weight: 500;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
+`
+
+const SimilarGridNew = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
@@ -601,39 +613,74 @@ const SimilarGrid = styled.div`
   }
 `
 
-const SimilarCard = styled.article`
-  cursor: pointer;
-  transition: transform 0.15s;
-  &:hover { transform: translateY(-2px); }
-`
-
-const SimilarCover = styled.div`
-  aspect-ratio: 2/3;
-  background: ${({ theme }) => theme.colors.gray[100]};
-  border-radius: ${({ theme }) => theme.radii.sm};
+const SimilarCardNew = styled.article`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid rgba(42,42,40,.07);
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(42,42,40,.18);
+    box-shadow: 0 4px 14px rgba(42,42,40,.09);
+  }
 `
 
-const SimilarTitle = styled.p`
-  font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11px;
+const SimilarCoverNew = styled.div`
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+`
+
+const SimilarBodyNew = styled.div`
+  padding: 7px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+`
+
+const SimilarUniverseBadgeEl = styled.span<{ $bg: string; $color: string }>`
+  display: inline-flex;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 9px;
   font-weight: 600;
+  width: fit-content;
+  background: ${({ $bg }) => $bg};
+  color: ${({ $color }) => $color};
+`
+
+const SimilarTitleTextEl = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11.5px;
+  font-weight: 700;
   color: ${({ theme }) => theme.colors.gray[800]};
   line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 `
 
-const SimilarAuthor = styled.p`
+const SimilarAuthorTextEl = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 10px;
+  font-size: 10.5px;
   color: ${({ theme }) => theme.colors.gray[400]};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`
+
+const SimilarPriceEl = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+  margin-top: 3px;
 `
 
 /* ══════════════════════════════════════════════════════
@@ -662,8 +709,6 @@ const ModalBox = styled.div`
   max-height: 90vh;
   overflow: hidden;
 `
-
-/* ─── Modal PDF ─── */
 
 const PdfModal = styled(ModalBox)`
   width: 100%;
@@ -731,7 +776,6 @@ const PdfPage = styled.div`
   font-family: Georgia, serif;
 `
 
-/* Page 0 — Argumentaire */
 const ArgHeader = styled.div`
   text-align: center;
   border-bottom: 2px solid ${({ theme }) => theme.colors.navy};
@@ -819,7 +863,6 @@ const ArgMetaValue = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
-/* ── Cart zone dans la modal ── */
 const PdfCartZone = styled.div`
   display: flex;
   align-items: center;
@@ -849,7 +892,40 @@ const PdfAddBtn = styled.button<{ $added: boolean }>`
   }
 `
 
-/* Pages intérieures */
+const QtyControlModal = styled.div`
+  display: flex;
+  align-items: center;
+  border: 2px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  overflow: hidden;
+  background: ${({ theme }) => theme.colors.gray[50]};
+`
+
+const QtyBtnModal = styled.button`
+  width: 40px; height: 44px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .1s;
+  &:hover   { background: ${({ theme }) => theme.colors.gray[200]}; }
+  &:disabled{ opacity: .3; cursor: not-allowed; }
+`
+
+const QtyValueModal = styled.span`
+  min-width: 48px;
+  text-align: center;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 17px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.navy};
+`
+
 const InteriorPageNum = styled.p`
   text-align: center;
   font-size: 10px;
@@ -929,8 +1005,6 @@ const PageDot = styled.span<{ $active: boolean }>`
   background: ${({ $active, theme }) => $active ? theme.colors.navy : '#D5CFC7'};
   transition: all 0.2s ease;
 `
-
-/* ─── Modal Vidéo ─── */
 
 const VideoModal = styled(ModalBox)`
   width: 100%;
@@ -1075,16 +1149,6 @@ const YtOpenBtn = styled.a`
   &:hover { background: #CC0000; }
 `
 
-function IconCart() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-    </svg>
-  )
-}
-
 /* ══ Composant ══ */
 
 export function FicheProduitPage() {
@@ -1092,20 +1156,17 @@ export function FicheProduitPage() {
   const navigate      = useNavigate()
   const { addToCart } = useCart()
   const { showToast } = useToast()
-  const { isInAnyList } = useWishlist()
   const { addToRdv, isInRdv } = useRdv()
 
-  const [qty, setQty]             = useState(1)
-  const [added, setAdded]         = useState(false)
-  const [pdfQty, setPdfQty]       = useState(1)
-  const [pdfAdded, setPdfAdded]   = useState(false)
-  const [formatId, setFormatId]   = useState<FormatId>('broche')
-  const [resumeOpen, setResumeOpen] = useState(true)
+  const [qty, setQty]           = useState(1)
+  const [added, setAdded]       = useState(false)
+  const [pdfQty, setPdfQty]     = useState(1)
+  const [pdfAdded, setPdfAdded] = useState(false)
+  const [formatId, setFormatId] = useState<FormatId>('broche')
   const [listAnchor, setListAnchor] = useState<DOMRect | null>(null)
   const [alertOpen, setAlertOpen]   = useState(false)
   const listBtnRef = useRef<HTMLButtonElement>(null)
 
-  /* Modals */
   const [pagesOpen, setPagesOpen] = useState(false)
   const [pageIdx, setPageIdx]     = useState(0)
   const [videoOpen, setVideoOpen] = useState(false)
@@ -1125,8 +1186,8 @@ export function FicheProduitPage() {
   }
 
   const formats: PhysicalFormat[] = [
-    { id: 'broche', label: 'Broché',  description: 'Format standard',  priceTTC: book.priceTTC },
-    { id: 'poche',  label: 'Poche',   description: 'Format poche',     priceTTC: Math.round(book.priceTTC * 0.62 * 100) / 100 },
+    { id: 'broche', label: 'Broché', description: 'Format standard', priceTTC: book.priceTTC },
+    { id: 'poche',  label: 'Poche',  description: 'Format poche',    priceTTC: Math.round(book.priceTTC * 0.62 * 100) / 100 },
   ]
 
   const selectedFormat = formats.find(f => f.id === formatId)!
@@ -1134,16 +1195,10 @@ export function FicheProduitPage() {
   const isEpuise       = book.statut === 'epuise'
   const needsConfirm   = book.statut === 'sur_commande' || book.statut === 'en_reimp'
   const isOrderable    = !isAParaitre && !isEpuise
-  const uvColor        = UNIVERSE_COLOR[book.universe] ?? theme.colors.navy
-  const typeLabel      = book.type === 'nouveaute' ? 'Nouveauté' : book.type === 'fonds' ? 'Fonds' : 'À paraître'
 
   const formattedDate = new Date(book.publicationDate).toLocaleDateString('fr-FR', {
     year: 'numeric', month: 'long', day: 'numeric',
   })
-
-  const descriptionText = book.description
-    ? `${book.description}\n\n${LOREM_LONG}`
-    : LOREM_LONG
 
   const performAdd = (enReliquat: boolean) => {
     const ratio = selectedFormat.priceTTC / book.priceTTC
@@ -1159,10 +1214,7 @@ export function FicheProduitPage() {
 
   const handleAdd = () => {
     if (isEpuise) return
-    if (needsConfirm) {
-      setAlertOpen(true)
-      return
-    }
+    if (needsConfirm) { setAlertOpen(true); return }
     performAdd(false)
   }
 
@@ -1188,7 +1240,6 @@ export function FicheProduitPage() {
 
   const TOTAL_PAGES = 3
 
-  /* ── Pages intérieures : rendu d'une page selon son index ── */
   function renderPdfPage(index: number) {
     if (!book) return null
     if (index === 0) {
@@ -1198,9 +1249,7 @@ export function FicheProduitPage() {
             <ArgLabel>Argumentaire commercial</ArgLabel>
             <ArgTitle>{book.title}</ArgTitle>
             <ArgAuthor>{book.authors.join(', ')}</ArgAuthor>
-            <ArgPublisher>
-              {book.publisher}{book.collection ? ` · ${book.collection}` : ''}
-            </ArgPublisher>
+            <ArgPublisher>{book.publisher}{book.collection ? ` · ${book.collection}` : ''}</ArgPublisher>
           </ArgHeader>
           <ArgBody>
             <ArgSection>
@@ -1241,21 +1290,16 @@ export function FicheProduitPage() {
         </PdfPage>
       )
     }
-
     if (index === 1) {
       return (
         <PdfPage>
           <InteriorPageNum>— PAGE 1 —</InteriorPageNum>
           <InteriorChapter>Chapitre I</InteriorChapter>
-          <InteriorParagraph>
-            <InteriorDrop>L</InteriorDrop>
-            {LOREM_LONG}
-          </InteriorParagraph>
+          <InteriorParagraph><InteriorDrop>L</InteriorDrop>{LOREM_LONG}</InteriorParagraph>
           <InteriorParagraph>{LOREM_P2}</InteriorParagraph>
         </PdfPage>
       )
     }
-
     return (
       <PdfPage>
         <InteriorPageNum>— PAGE 2 —</InteriorPageNum>
@@ -1268,221 +1312,306 @@ export function FicheProduitPage() {
 
   const fakeYtUrl = `https://www.youtube.com/watch?v=bookflow-${book.isbn.slice(-6)}`
 
+  const uvStyle        = UNIVERSE_STYLES[book.universe] ?? { bg: '#E8EDF3', color: '#1C3252' }
+  const sectionLabel   = book.type === 'a-paraitre' ? 'À paraître' : book.type === 'nouveaute' ? 'Nouveautés' : 'Fonds'
+  const sectionPath    = book.type === 'fonds' ? '/fonds' : '/nouveautes'
+  const showCoverBadge = book.selection || book.type === 'nouveaute' || book.type === 'a-paraitre'
+  const coverBadgeLabel =
+    book.selection ? 'SÉLECTION' : book.type === 'nouveaute' ? 'NOUVEAUTÉ' : 'À PARAÎTRE'
+  const stockLabel =
+    book.statut === 'disponible'   ? 'Disponible immédiatement' :
+    book.statut === 'sur_commande' ? 'Sur commande' :
+    book.statut === 'en_reimp'     ? 'En réimpression' : 'Disponible'
+  const similar = MOCK_BOOKS.filter(b => b.universe === book.universe && b.id !== book.id).slice(0, 7)
+
   return (
     <Page>
-      <BackButton onClick={() => navigate(-1)}>← Retour</BackButton>
+      <BreadcrumbNav aria-label="Fil d'Ariane">
+        <BreadcrumbLink onClick={() => navigate('/')}>Accueil</BreadcrumbLink>
+        <BreadcrumbSep>›</BreadcrumbSep>
+        <BreadcrumbLink onClick={() => navigate(sectionPath)}>{sectionLabel}</BreadcrumbLink>
+        <BreadcrumbSep>›</BreadcrumbSep>
+        <BreadcrumbLink onClick={() => navigate(`${sectionPath}?universe=${encodeURIComponent(book.universe)}`)}>
+          {book.universe}
+        </BreadcrumbLink>
+        <BreadcrumbSep>›</BreadcrumbSep>
+        <BreadcrumbCurrent>{book.title}</BreadcrumbCurrent>
+      </BreadcrumbNav>
 
-      <Wrap>
-        <Body>
+      <BookLayout>
 
-          {/* ── Couverture ── */}
-          <CoverCol>
-            <CoverShadow>
-              <BookCover isbn={book.isbn} alt={book.title} width={168} height={242} universe={book.universe} authors={book.authors} publisher={book.publisher} />
-            </CoverShadow>
+        {/* ── Colonne gauche ── */}
+        <CoverColNew>
+          <CoverFrame>
+            <BookCover
+              isbn={book.isbn}
+              alt={book.title}
+              width={160}
+              height={240}
+              universe={book.universe}
+              authors={book.authors}
+              publisher={book.publisher}
+            />
+            {showCoverBadge && <CoverBadgeDetail>{coverBadgeLabel}</CoverBadgeDetail>}
+          </CoverFrame>
 
-            <SecondaryActions>
-              {isAParaitre && (
-                <>
-                  <SecBtn onClick={() => { setPagesOpen(true); setPageIdx(0) }}>
-                    🖼 Pages intérieures
-                  </SecBtn>
-                  <SecBtn onClick={() => setVideoOpen(true)}>
-                    ▶️ Bande annonce
-                  </SecBtn>
-                </>
-              )}
-              <SecBtn onClick={() => navigate(`/auteur/${slugifyAuthor(book.authors[0])}`)}>
-                📚 Parutions de l'auteur
-              </SecBtn>
-              <SecBtn
-                ref={listBtnRef}
-                onClick={() => {
-                  if (listBtnRef.current) setListAnchor(listBtnRef.current.getBoundingClientRect())
-                }}
-                aria-label="Ajouter à une liste"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24"
-                  fill={book && isInAnyList(book.id) ? theme.colors.accent : 'none'}
-                  stroke={book && isInAnyList(book.id) ? theme.colors.accent : 'currentColor'}
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
-                {book && isInAnyList(book.id) ? 'Dans une liste' : 'Ajouter à une liste'}
-              </SecBtn>
-            </SecondaryActions>
-          </CoverCol>
+          <CoverActionsRow>
+            <CoverActionBtn onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: book.title, text: book.authors.join(', ') })
+              } else {
+                navigator.clipboard.writeText(window.location.href)
+                showToast('Lien copié')
+              }
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+              Partager
+            </CoverActionBtn>
+          </CoverActionsRow>
 
-          {/* ── Infos ── */}
-          <InfoCol>
-            <InfoTop>
-              <BadgeRow>
-                <UniverseBadge $color={uvColor}>{book.universe}</UniverseBadge>
-                <TypeBadge $type={book.type}>{typeLabel}</TypeBadge>
-              </BadgeRow>
+          <MetaBox>
+            <MetaRowItem>
+              <MetaLabelEl>ISBN</MetaLabelEl>
+              <MetaValueEl style={{ fontSize: 13 }}><strong>{book.isbn}</strong></MetaValueEl>
+            </MetaRowItem>
+            <MetaRowItem>
+              <MetaLabelEl>Éditeur</MetaLabelEl>
+              <MetaValueEl>{book.publisher}</MetaValueEl>
+            </MetaRowItem>
+            <MetaRowItem>
+              <MetaLabelEl>Parution</MetaLabelEl>
+              <MetaValueEl>{formattedDate}</MetaValueEl>
+            </MetaRowItem>
+            {book.pages && (
+              <MetaRowItem>
+                <MetaLabelEl>Pages</MetaLabelEl>
+                <MetaValueEl>{book.pages} pages</MetaValueEl>
+              </MetaRowItem>
+            )}
+            <MetaRowItem>
+              <MetaLabelEl>Format</MetaLabelEl>
+              <MetaValueEl>{book.format}</MetaValueEl>
+            </MetaRowItem>
+            <MetaRowItem>
+              <MetaLabelEl>EAN</MetaLabelEl>
+              <MetaValueEl>{book.isbn}</MetaValueEl>
+            </MetaRowItem>
+            {book.collection && (
+              <MetaRowItem>
+                <MetaLabelEl>Collection</MetaLabelEl>
+                <MetaValueEl>{book.collection}</MetaValueEl>
+              </MetaRowItem>
+            )}
+          </MetaBox>
+        </CoverColNew>
 
-              <BookTitle>{book.title}</BookTitle>
-              <BookAuthors>{book.authors.join(', ')}</BookAuthors>
+        {/* ── Colonne droite ── */}
+        <DetailCol>
+          <BookUniverseBadge $bg={uvStyle.bg} $color={uvStyle.color}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            {book.universe}
+          </BookUniverseBadge>
 
-              <MetaGrid>
-                <MetaDt>Éditeur</MetaDt>
-                <MetaDd>{book.publisher}{book.collection ? ` — ${book.collection}` : ''}</MetaDd>
-                <MetaDt>ISBN</MetaDt>
-                <MetaDd><code style={{ fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.02em' }}>{book.isbn}</code></MetaDd>
-                {book.pages && <><MetaDt>Pages</MetaDt><MetaDd>{book.pages} p.</MetaDd></>}
-                <MetaDt>Parution</MetaDt>
-                <MetaDd>{formattedDate}</MetaDd>
-                {book.programme && <><MetaDt>Programme</MetaDt><MetaDd>{book.programme}</MetaDd></>}
-                {book.statut && !isAParaitre && (
-                  <>
-                    <MetaDt>Disponibilité</MetaDt>
-                    <MetaDd><StockStatus statut={book.statut} delaiReimp={book.delaiReimp} /></MetaDd>
-                  </>
-                )}
-              </MetaGrid>
-              {isEpuise && (
-                <p style={{ margin: '8px 0 0', fontSize: 13, color: '#555550', fontStyle: 'italic' }}>
-                  Cet ouvrage n'est plus disponible.
-                </p>
-              )}
-            </InfoTop>
+          <BookTitleMain>{book.title}</BookTitleMain>
+          <BookAuthorMain>Par <strong>{book.authors.join(', ')}</strong></BookAuthorMain>
+          <BookEditorMain>
+            {book.publisher}
+            {book.collection ? ` · ${book.collection}` : ''}
+            {' · '}{new Date(book.publicationDate).getFullYear()}
+          </BookEditorMain>
 
-            <Divider />
+          {isOrderable && (
+            <FormatSelectorWrap>
+              <FormatLabelEl>Format</FormatLabelEl>
+              <FormatOptionsRow>
+                {formats.map(f => (
+                  <FormatBtnEl key={f.id} $active={formatId === f.id} onClick={() => setFormatId(f.id)}>
+                    <FormatNameEl $active={formatId === f.id}>{f.label}</FormatNameEl>
+                    <FormatPriceEl $active={formatId === f.id}>{f.priceTTC.toFixed(2)} € TTC</FormatPriceEl>
+                  </FormatBtnEl>
+                ))}
+              </FormatOptionsRow>
+            </FormatSelectorWrap>
+          )}
 
-            {/* Format — uniquement pour titres commandables */}
+          <PriceZone>
+            <PriceRowEl>
+              <PricePublicEl>{selectedFormat.priceTTC.toFixed(2)} €</PricePublicEl>
+              <PricePublicLabelEl>TTC</PricePublicLabelEl>
+            </PriceRowEl>
+
+            {(isOrderable || isEpuise) && <PriceDividerEl />}
+
             {isOrderable && (
               <>
-                <FormatSection>
-                  <SectionEyebrow>Format</SectionEyebrow>
-                  <FormatPills>
-                    {formats.map(f => (
-                      <FormatPill key={f.id} $active={formatId === f.id} onClick={() => setFormatId(f.id)}>
-                        <PillLabel>{f.label}</PillLabel>
-                        <PillDesc>{f.description}</PillDesc>
-                        <PillPrice $active={formatId === f.id}>{f.priceTTC.toFixed(2)} €</PillPrice>
-                      </FormatPill>
-                    ))}
-                  </FormatPills>
-                </FormatSection>
-                <Divider />
+                <StockZoneEl>
+                  <StockIndicatorEl $statut={book.statut}>{stockLabel}</StockIndicatorEl>
+                  <StockDispoDetailEl>· Livraison 1–3 jours ouvrés</StockDispoDetailEl>
+                </StockZoneEl>
+                <OrderZoneEl>
+                  <QtyStepperLg>
+                    <QtyBtnLg onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="Diminuer">−</QtyBtnLg>
+                    <QtyInputLg
+                      type="number"
+                      value={qty}
+                      min={1}
+                      onChange={e => { const n = parseInt(e.target.value); if (n >= 1) setQty(n) }}
+                      aria-label="Quantité"
+                    />
+                    <QtyBtnLg onClick={() => setQty(q => q + 1)} aria-label="Augmenter">+</QtyBtnLg>
+                  </QtyStepperLg>
+                  <AddBtnMain
+                    $added={added}
+                    onClick={handleAdd}
+                    aria-label="Ajouter au panier"
+                    style={
+                      book.statut === 'sur_commande' ? { background: '#506680' } :
+                      book.statut === 'en_reimp'     ? { background: '#B65A00' } :
+                      undefined
+                    }
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    {added ? '✓ Ajouté au panier !' : `Ajouter${qty > 1 ? ` ${qty} ex.` : ''} au panier`}
+                  </AddBtnMain>
+                </OrderZoneEl>
               </>
             )}
 
-            {/* ── Accordéon Résumé uniquement ── */}
-            <ContentSection>
-              <AccordionItem>
-                <AccordionToggle $open={resumeOpen} onClick={() => setResumeOpen(o => !o)}>
-                  <span>Résumé</span>
-                  <AccordionChevron $open={resumeOpen}>▼</AccordionChevron>
-                </AccordionToggle>
-                <AccordionBody $open={resumeOpen}>
-                  <Description>{descriptionText}</Description>
-                </AccordionBody>
-              </AccordionItem>
-            </ContentSection>
+            {isEpuise && <EpuiseNoticeEl>Cet ouvrage n'est plus disponible.</EpuiseNoticeEl>}
 
-          </InfoCol>
-        </Body>
-
-        {/* ── Footer ── */}
-        <Footer>
-          <PriceCard>
-            <PriceBlock>
-              <PriceTTC>{selectedFormat.priceTTC.toFixed(2)} €</PriceTTC>
-              <PriceCaption>Prix TTC{isOrderable ? ` — ${selectedFormat.label}` : ''}</PriceCaption>
-            </PriceBlock>
-            {isOrderable && (
-              <OrderInfoBlock>
-                Livraison habituelle sous <strong>1 à 3 jours ouvrés</strong>. Remise personnalisée appliquée automatiquement.
-              </OrderInfoBlock>
-            )}
-          </PriceCard>
-
-          {isAParaitre ? (
-            <ParaitreFooter>
-              <ParaitreNotice>
+            {isAParaitre && (
+              <ParaitreNoticeEl>
                 🚫 <span>Ce titre n'est pas encore commandable. La commande s'effectue via votre représentant commercial.</span>
-              </ParaitreNotice>
-              <ContactRepBtn onClick={handleContactRep}>
-                ✉️ Contacter mon représentant
-              </ContactRepBtn>
-            </ParaitreFooter>
-          ) : isEpuise ? (
-            <OrderRow>
-              <AddBtn
-                $added={false}
-                disabled
-                aria-disabled="true"
-                aria-label="Épuisé"
-                onClick={e => e.preventDefault()}
-                style={{ background: '#C9C9C2', color: '#6B6B68', cursor: 'not-allowed', flex: 1 }}
-              >
-                <IconCart /> Épuisé — indisponible
-              </AddBtn>
-            </OrderRow>
-          ) : (
-            <OrderRow>
-              <QtyControl>
-                <QtyBtn onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="Diminuer">−</QtyBtn>
-                <QtyValue>{qty}</QtyValue>
-                <QtyBtn onClick={() => setQty(q => q + 1)} aria-label="Augmenter">+</QtyBtn>
-              </QtyControl>
-              <AddBtn
-                $added={added}
-                onClick={handleAdd}
-                aria-label="Ajouter au panier"
-                style={
-                  book.statut === 'sur_commande' ? { background: '#506680' } :
-                  book.statut === 'en_reimp'     ? { background: '#B65A00' } :
-                                                    undefined
-                }
-              >
-                {added ? '✓ Ajouté au panier !' : <><IconCart /> Ajouter {qty > 1 ? `${qty} ex. ` : ''}au panier</>}
-              </AddBtn>
-            </OrderRow>
-          )}
-        </Footer>
-      </Wrap>
+              </ParaitreNoticeEl>
+            )}
+          </PriceZone>
 
-      {(() => {
-        const similar = MOCK_BOOKS
-          .filter(b => b.universe === book.universe && b.id !== book.id)
-          .slice(0, 7)
-        if (similar.length === 0) return null
-        return (
-          <SimilarSection>
-            <SectionEyebrow>Dans la même thématique</SectionEyebrow>
-            <SimilarGrid>
-              {similar.map(b => (
-                <SimilarCard key={b.id} onClick={() => navigate(`/livre/${b.id}`)}>
-                  <SimilarCover>
-                    <BookCover
-                      isbn={b.isbn}
-                      alt={b.title}
-                      width={120}
-                      height={180}
-                      universe={b.universe}
-                      authors={b.authors}
-                      publisher={b.publisher}
-                    />
-                  </SimilarCover>
-                  <SimilarTitle>{b.title}</SimilarTitle>
-                  <SimilarAuthor>{b.authors[0]}</SimilarAuthor>
-                </SimilarCard>
-              ))}
-            </SimilarGrid>
-          </SimilarSection>
-        )
-      })()}
+          <SecondaryActionsHoriz>
+            <SecBtnHoriz
+              ref={listBtnRef}
+              onClick={() => {
+                if (listBtnRef.current) setListAnchor(listBtnRef.current.getBoundingClientRect())
+              }}
+              aria-label="Ajouter à une liste"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Ajouter à une liste
+            </SecBtnHoriz>
+            <SecBtnHoriz onClick={() => { setPagesOpen(true); setPageIdx(0) }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Fiche produit PDF
+            </SecBtnHoriz>
+            {isAParaitre && (
+              <SecBtnHoriz onClick={() => setVideoOpen(true)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Bande annonce
+              </SecBtnHoriz>
+            )}
+            <SecBtnHoriz onClick={handleContactRep}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+              Contacter le représentant
+            </SecBtnHoriz>
+          </SecondaryActionsHoriz>
+
+          <SynopsisBlock>
+            <SectionEyebrow>Quatrième de couverture</SectionEyebrow>
+            <SynopsisText>{book.description ? `${book.description} ${LOREM_LONG}` : LOREM_LONG}</SynopsisText>
+          </SynopsisBlock>
+
+          {!isAParaitre && !isEpuise && (
+            <OrderInfoBlockNew>
+              <OrderInfoRowEl>
+                <OrderInfoIconEl>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="1" y="3" width="15" height="13"/>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                  </svg>
+                </OrderInfoIconEl>
+                <span>Livraison habituelle <strong>1–3 jours ouvrés</strong> · Possible jusqu'au <strong>vendredi 16h</strong></span>
+              </OrderInfoRowEl>
+              <OrderInfoRowEl>
+                <OrderInfoIconEl>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                </OrderInfoIconEl>
+                <span>Commande passée avant 16h : expédition <strong>le jour même</strong></span>
+              </OrderInfoRowEl>
+            </OrderInfoBlockNew>
+          )}
+
+          {isAParaitre && (
+            <div style={{ marginTop: 12 }}>
+              <SecBtnHoriz
+                onClick={handleContactRep}
+                style={{ width: '100%', height: 38, fontSize: 13, fontWeight: 600, background: theme.colors.navy, color: '#fff', border: 'none', borderRadius: 7, justifyContent: 'center' }}
+              >
+                ✉️ Contacter mon représentant
+              </SecBtnHoriz>
+            </div>
+          )}
+        </DetailCol>
+      </BookLayout>
+
+      {similar.length > 0 && (
+        <SimilarSectionNew>
+          <SimilarHeaderRow>
+            <SimilarTitleEl>Vous aimerez aussi</SimilarTitleEl>
+            <SimilarLinkEl onClick={() => navigate(`${sectionPath}?universe=${encodeURIComponent(book.universe)}`)}>
+              Voir tout en {book.universe} →
+            </SimilarLinkEl>
+          </SimilarHeaderRow>
+          <SimilarGridNew>
+            {similar.map(b => {
+              const bStyle = UNIVERSE_STYLES[b.universe] ?? { bg: '#E8EDF3', color: '#1C3252' }
+              return (
+                <SimilarCardNew key={b.id} onClick={() => navigate(`/livre/${b.id}`)}>
+                  <SimilarCoverNew>
+                    <BookCover isbn={b.isbn} alt={b.title} width={120} height={180} universe={b.universe} authors={b.authors} publisher={b.publisher} />
+                  </SimilarCoverNew>
+                  <SimilarBodyNew>
+                    <SimilarUniverseBadgeEl $bg={bStyle.bg} $color={bStyle.color}>{b.universe}</SimilarUniverseBadgeEl>
+                    <SimilarTitleTextEl>{b.title}</SimilarTitleTextEl>
+                    <SimilarAuthorTextEl>{b.authors[0]}</SimilarAuthorTextEl>
+                    <SimilarPriceEl>{b.priceTTC.toFixed(2)} €</SimilarPriceEl>
+                  </SimilarBodyNew>
+                </SimilarCardNew>
+              )
+            })}
+          </SimilarGridNew>
+        </SimilarSectionNew>
+      )}
 
       {needsConfirm && book.statut && (
         <StockAlertModal
           open={alertOpen}
           statut={book.statut}
-          onConfirm={() => {
-            setAlertOpen(false)
-            performAdd(book.statut === 'en_reimp')
-          }}
+          onConfirm={() => { setAlertOpen(false); performAdd(book.statut === 'en_reimp') }}
           onCancel={() => setAlertOpen(false)}
         />
       )}
@@ -1493,64 +1622,36 @@ export function FicheProduitPage() {
       {pagesOpen && createPortal(
         <ModalOverlay onClick={() => setPagesOpen(false)}>
           <PdfModal onClick={e => e.stopPropagation()}>
-
             <PdfHeader>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <PdfHeaderTitle>📄 Pages intérieures</PdfHeaderTitle>
-                <PdfPageIndicator>
-                  {pageIdx === 0 ? 'Argumentaire' : `Page intérieure ${pageIdx}`}
-                </PdfPageIndicator>
+                <PdfPageIndicator>{pageIdx === 0 ? 'Argumentaire' : `Page intérieure ${pageIdx}`}</PdfPageIndicator>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <PdfPageIndicator>{pageIdx + 1} / {TOTAL_PAGES}</PdfPageIndicator>
                 <ModalCloseBtn onClick={() => setPagesOpen(false)} aria-label="Fermer">✕</ModalCloseBtn>
               </div>
             </PdfHeader>
-
-            <PdfPageWrap>
-              {renderPdfPage(pageIdx)}
-            </PdfPageWrap>
-
+            <PdfPageWrap>{renderPdfPage(pageIdx)}</PdfPageWrap>
             <PdfNav>
-              {/* Spacer gauche pour centrer les flèches */}
               <div style={{ flex: 1 }} />
-
-              {/* Navigation centrale */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <NavArrow
-                  $disabled={pageIdx === 0}
-                  disabled={pageIdx === 0}
-                  onClick={() => setPageIdx(i => Math.max(0, i - 1))}
-                  aria-label="Page précédente"
-                >
-                  ‹
-                </NavArrow>
-
+                <NavArrow $disabled={pageIdx === 0} disabled={pageIdx === 0} onClick={() => setPageIdx(i => Math.max(0, i - 1))} aria-label="Page précédente">‹</NavArrow>
                 <PageDots>
                   {Array.from({ length: TOTAL_PAGES }).map((_, i) => (
                     <PageDot key={i} $active={pageIdx === i} onClick={() => setPageIdx(i)} style={{ cursor: 'pointer' }} />
                   ))}
                 </PageDots>
-
-                <NavArrow
-                  $disabled={pageIdx === TOTAL_PAGES - 1}
-                  disabled={pageIdx === TOTAL_PAGES - 1}
-                  onClick={() => setPageIdx(i => Math.min(TOTAL_PAGES - 1, i + 1))}
-                  aria-label="Page suivante"
-                >
-                  ›
-                </NavArrow>
+                <NavArrow $disabled={pageIdx === TOTAL_PAGES - 1} disabled={pageIdx === TOTAL_PAGES - 1} onClick={() => setPageIdx(i => Math.min(TOTAL_PAGES - 1, i + 1))} aria-label="Page suivante">›</NavArrow>
               </div>
-
-              {/* Zone RDV à droite */}
               <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
                 {isAParaitre && (
                   <PdfCartZone>
-                    <QtyControl>
-                      <QtyBtn onClick={() => setPdfQty(q => Math.max(1, q - 1))} disabled={pdfQty <= 1} aria-label="Diminuer">−</QtyBtn>
-                      <QtyValue style={{ minWidth: 36, fontSize: 15 }}>{pdfQty}</QtyValue>
-                      <QtyBtn onClick={() => setPdfQty(q => q + 1)} aria-label="Augmenter">+</QtyBtn>
-                    </QtyControl>
+                    <QtyControlModal>
+                      <QtyBtnModal onClick={() => setPdfQty(q => Math.max(1, q - 1))} disabled={pdfQty <= 1} aria-label="Diminuer">−</QtyBtnModal>
+                      <QtyValueModal style={{ minWidth: 36, fontSize: 15 }}>{pdfQty}</QtyValueModal>
+                      <QtyBtnModal onClick={() => setPdfQty(q => q + 1)} aria-label="Augmenter">+</QtyBtnModal>
+                    </QtyControlModal>
                     <PdfAddBtn
                       $added={pdfAdded || isInRdv(book.id)}
                       onClick={handlePdfRdv}
@@ -1562,7 +1663,6 @@ export function FicheProduitPage() {
                 )}
               </div>
             </PdfNav>
-
           </PdfModal>
         </ModalOverlay>,
         document.body
@@ -1574,12 +1674,10 @@ export function FicheProduitPage() {
       {videoOpen && createPortal(
         <ModalOverlay onClick={() => setVideoOpen(false)}>
           <VideoModal onClick={e => e.stopPropagation()}>
-
             <VideoHeader>
               <PdfHeaderTitle>▶️ Bande annonce</PdfHeaderTitle>
               <ModalCloseBtn onClick={() => setVideoOpen(false)} aria-label="Fermer">✕</ModalCloseBtn>
             </VideoHeader>
-
             <VideoBody>
               <VideoThumb>
                 <YtBrand>
@@ -1589,34 +1687,29 @@ export function FicheProduitPage() {
                 <PlayBtn className="play-btn" />
                 <VideoThumbnailText>{book.title} — Bande annonce officielle</VideoThumbnailText>
               </VideoThumb>
-
               <VideoInfo>
                 <VideoTitle>{book.title} — Bande annonce</VideoTitle>
-
                 <VideoUrlRow>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>🔗</span>
                   <VideoUrl>{fakeYtUrl}</VideoUrl>
                 </VideoUrlRow>
-
                 <YtOpenBtn href={fakeYtUrl} target="_blank" rel="noopener noreferrer">
                   <span>▶</span> Ouvrir sur YouTube
                 </YtOpenBtn>
               </VideoInfo>
             </VideoBody>
-
           </VideoModal>
         </ModalOverlay>,
         document.body
       )}
 
-    {listAnchor && book && (
-      <ListPickerPopover
-        book={book}
-        anchorRect={listAnchor}
-        onClose={() => setListAnchor(null)}
-      />
-    )}
-
+      {listAnchor && book && (
+        <ListPickerPopover
+          book={book}
+          anchorRect={listAnchor}
+          onClose={() => setListAnchor(null)}
+        />
+      )}
     </Page>
   )
 }
