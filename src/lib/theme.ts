@@ -72,7 +72,7 @@ export const theme = {
   },
   layout: {
     sidebarWidth:        '220px',
-    headerHeight:        '68px',
+    headerHeight:        '56px',
     mobileHeaderHeight:  '112px',
     bottomNavHeight:     '64px',
     demoBannerHeight:    '34px',
