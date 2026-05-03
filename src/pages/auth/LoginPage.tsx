@@ -279,7 +279,7 @@ export function LoginPage() {
             </a>
           </AuthLink>
 
-          <DemoBanner position="bottom" />
+          <DemoBanner />
         </FormPanelInner>
       </FormPanel>
 

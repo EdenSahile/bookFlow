@@ -1,9 +1,7 @@
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 
-const bannerBase = css`
-  position: fixed;
-  left: 0;
-  right: 0;
+const BannerWrap = styled.aside`
+  position: sticky;
   z-index: 98;
   height: ${({ theme }) => theme.layout.demoBannerHeight};
   display: flex;
@@ -12,6 +10,7 @@ const bannerBase = css`
   gap: 8px;
   padding: 0 16px;
   background: ${({ theme }) => theme.colors.accentLight};
+  border-bottom: 1px solid rgba(201, 168, 76, 0.35);
   color: ${({ theme }) => theme.colors.gray[600]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 11.5px;
@@ -20,23 +19,15 @@ const bannerBase = css`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-`
+  flex-shrink: 0;
 
-const BannerTop = styled.aside`
-  ${bannerBase}
+  /* Collé sous le header mobile */
   top: ${({ theme }) => theme.layout.mobileHeaderHeight};
-  border-bottom: 1px solid rgba(201, 168, 76, 0.35);
 
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    /* Collé sous le topbar desktop */
     top: ${({ theme }) => theme.layout.headerHeight};
-    left: ${({ theme }) => theme.layout.sidebarWidth};
   }
-`
-
-const BannerBottom = styled.aside`
-  ${bannerBase}
-  bottom: 0;
-  border-top: 1px solid rgba(201, 168, 76, 0.35);
 `
 
 const Dot = styled.span`
@@ -48,16 +39,11 @@ const Dot = styled.span`
   flex-shrink: 0;
 `
 
-interface DemoBannerProps {
-  position?: 'top' | 'bottom'
-}
-
-export function DemoBanner({ position = 'top' }: DemoBannerProps) {
-  const Banner = position === 'bottom' ? BannerBottom : BannerTop
+export function DemoBanner() {
   return (
-    <Banner role="note" aria-label="Site de démonstration">
+    <BannerWrap role="note" aria-label="Site de démonstration">
       <Dot aria-hidden="true" />
       Site de démonstration — Toutes les données affichées sont fictives et créées à des fins pédagogiques uniquement.
-    </Banner>
+    </BannerWrap>
   )
 }
