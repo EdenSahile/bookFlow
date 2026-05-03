@@ -775,6 +775,179 @@ const NavActions = styled.div`
 `
 
 /* ══════════════════════════════════════════════════════
+   LAYOUT 2 COLONNES (step panier)
+══════════════════════════════════════════════════════ */
+const TwoColLayout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const ItemsCol = styled.div``
+
+const RecapCol = styled.div`
+  position: sticky;
+  top: calc(${({ theme }) => theme.layout.headerHeight} + 16px);
+`
+
+const UniverseGroupLabel = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin-bottom: 10px;
+  margin-top: 20px;
+
+  &:first-child { margin-top: 0; }
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: ${({ theme }) => theme.colors.gray[200]};
+  }
+`
+
+const RecapSideCard = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  overflow: hidden;
+  margin-bottom: 12px;
+`
+
+const RecapSideHeader = styled.div`
+  padding: 14px 18px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`
+
+const RecapSideTitle = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.gray[800]};
+`
+
+const RecapSideCount = styled.span`
+  font-size: 11.5px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+`
+
+const RecapSideBody = styled.div`
+  padding: 14px 18px;
+`
+
+const RecapSideRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+`
+
+const RecapSideDiscount = styled(RecapSideRow)`
+  color: ${({ theme }) => theme.colors.success};
+  font-weight: 600;
+`
+
+const RecapSideDivider = styled.hr`
+  border: none;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  margin: 10px 0;
+`
+
+const RecapSideTotalLine = styled.div`
+  background: ${({ theme }) => theme.colors.primaryLight};
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 -18px -14px;
+`
+
+const RecapSideTotalLabel = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.navy};
+`
+
+const RecapSideTotalValue = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 22px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.navy};
+`
+
+const ValidateBtn = styled.button`
+  width: 100%;
+  height: 52px;
+  background: ${({ theme }) => theme.colors.navy};
+  color: #fff;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+  margin-bottom: 10px;
+
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`
+
+const EDIHint = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  padding: 8px 0;
+
+  a {
+    color: ${({ theme }) => theme.colors.navy};
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+`
+
+const EDIHintIcon = styled.div`
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.primaryLight};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: ${({ theme }) => theme.colors.navy};
+  font-size: 15px;
+  font-weight: 700;
+`
+
+/* ══════════════════════════════════════════════════════
    TYPE & HELPERS
 ══════════════════════════════════════════════════════ */
 type Page = 'cart' | CheckoutStep | 'success'
@@ -1276,8 +1449,17 @@ export function CartPage() {
   /* ════════════════════════════════════════════════════════
      PANIER PRINCIPAL
   ════════════════════════════════════════════════════════ */
+
+  /* Grouper les items par univers */
+  const itemsByUniverse = items.reduce<Record<string, typeof items>>((acc, item) => {
+    const u = item.book.universe
+    if (!acc[u]) acc[u] = []
+    acc[u].push(item)
+    return acc
+  }, {})
+
   return (
-    <Page>
+    <Page style={{ maxWidth: '1160px' }}>
       <ConfirmDialog
         open={confirm.open}
         title={confirm.open ? confirm.title : ''}
@@ -1306,45 +1488,15 @@ export function CartPage() {
         {' · '}{totalItems} article{totalItems > 1 ? 's' : ''}
       </ClientCode>
 
-      {/* ── Résumé financier ── */}
-      <SummaryCard>
-        <SummaryTitle>Récapitulatif</SummaryTitle>
-        <SummaryRow>
-          <SummaryLabel>Montant HT</SummaryLabel>
-          <SummaryValue>{fmt(montantHT)}</SummaryValue>
-        </SummaryRow>
-        <SummaryRow>
-          <SummaryLabel>
-            Remise{' '}
-            {hasMultiRates
-              ? <RemiseBadge>variable / thématique</RemiseBadge>
-              : <RemiseBadge>−{remisePct.toFixed(1)}%</RemiseBadge>
-            }
-          </SummaryLabel>
-          <SummaryValue>− {fmt(remiseHT)}</SummaryValue>
-        </SummaryRow>
-        <SummaryRow>
-          <SummaryLabel>Net HT</SummaryLabel>
-          <SummaryValue>{fmt(netHT)}</SummaryValue>
-        </SummaryRow>
-        <SummaryRow>
-          <SummaryLabel>TVA 5,5%</SummaryLabel>
-          <SummaryValue>{fmt(tva)}</SummaryValue>
-        </SummaryRow>
-        <SummaryRow $total>
-          <SummaryLabel>Total TTC</SummaryLabel>
-          <SummaryValue>{fmt(totalTTC)}</SummaryValue>
-        </SummaryRow>
-      </SummaryCard>
-
-      {/* ══ 1. TITRES INDIVIDUELS ══ */}
-      {items.length > 0 && (
-        <Section>
-          <SectionTitle>
-            {items.length} titre{items.length > 1 ? 's' : ''} à l'unité
-          </SectionTitle>
-
-          {items.map((item) => {
+      <TwoColLayout>
+        <ItemsCol>
+          {/* ══ 1. TITRES INDIVIDUELS — groupés par univers ══ */}
+          {items.length > 0 && (
+            <Section>
+              {Object.entries(itemsByUniverse).map(([universe, universeItems]) => (
+                <div key={universe}>
+                  <UniverseGroupLabel>{universe}</UniverseGroupLabel>
+                  {universeItems.map((item) => {
             const { book, quantity, ebookOption } = item
             const key       = getItemKey(item)
             const isEbook   = !!ebookOption
@@ -1424,12 +1576,14 @@ export function CartPage() {
                   </ItemFooter>
                 </ItemInfo>
               </ItemCard>
-            )
-          })}
+              )
+            })}
+          </div>
+          ))}
         </Section>
       )}
 
-      {/* ══ 2. OPÉRATIONS PROMOTIONNELLES ══ */}
+          {/* ══ 2. OPÉRATIONS PROMOTIONNELLES ══ */}
       {opGroups.length > 0 && (
         <Section>
           <SectionTitle>
@@ -1550,44 +1704,90 @@ export function CartPage() {
         </Section>
       )}
 
-      {/* ── Livraison ── */}
-      <Section>
-        <DeliveryCard>
-          <SectionTitle style={{ marginBottom: '16px' }}>Date de livraison</SectionTitle>
-          <RadioGroup>
-            <RadioLabel>
-              <input type="radio" name="delivery" value="standard"
-                checked={delivery === 'standard'} onChange={() => setDelivery('standard')} />
-              Délai habituel (1–3 jours ouvrés)
-            </RadioLabel>
-            <RadioLabel>
-              <input type="radio" name="delivery" value="specific"
-                checked={delivery === 'specific'} onChange={() => setDelivery('specific')} />
-              Date spécifique
-            </RadioLabel>
-            {delivery === 'specific' && (
-              <DatePickerWrap>
-                <DatePickerLabel htmlFor="delivery-date">Date souhaitée</DatePickerLabel>
-                <DatePicker
-                  value={specificDate}
-                  onChange={setSpecific}
-                  min={today}
-                  placeholder="JJ/MM/AAAA"
-                />
-              </DatePickerWrap>
-            )}
-          </RadioGroup>
-        </DeliveryCard>
-      </Section>
+          {/* ── Livraison ── */}
+          <Section>
+            <DeliveryCard>
+              <SectionTitle style={{ marginBottom: '16px' }}>Date de livraison</SectionTitle>
+              <RadioGroup>
+                <RadioLabel>
+                  <input type="radio" name="delivery" value="standard"
+                    checked={delivery === 'standard'} onChange={() => setDelivery('standard')} />
+                  Délai habituel (1–3 jours ouvrés)
+                </RadioLabel>
+                <RadioLabel>
+                  <input type="radio" name="delivery" value="specific"
+                    checked={delivery === 'specific'} onChange={() => setDelivery('specific')} />
+                  Date spécifique
+                </RadioLabel>
+                {delivery === 'specific' && (
+                  <DatePickerWrap>
+                    <DatePickerLabel htmlFor="delivery-date">Date souhaitée</DatePickerLabel>
+                    <DatePicker
+                      value={specificDate}
+                      onChange={setSpecific}
+                      min={today}
+                      placeholder="JJ/MM/AAAA"
+                    />
+                  </DatePickerWrap>
+                )}
+              </RadioGroup>
+            </DeliveryCard>
+          </Section>
+        </ItemsCol>
 
-      {/* ── Action ── */}
-      <Button
-        variant="primary" size="lg" fullWidth
-        onClick={() => setPage('recap')}
-        disabled={delivery === 'specific' && !specificDate}
-      >
-          Valider ma commande
-        </Button>
+        {/* ── Récapitulatif sidebar ── */}
+        <RecapCol>
+          <RecapSideCard>
+            <RecapSideHeader>
+              <RecapSideTitle>Récapitulatif</RecapSideTitle>
+              <RecapSideCount>{totalItems} article{totalItems > 1 ? 's' : ''}</RecapSideCount>
+            </RecapSideHeader>
+            <RecapSideBody>
+              <RecapSideRow>
+                <span>Montant HT</span>
+                <span>{fmt(montantHT)}</span>
+              </RecapSideRow>
+              {remisePct > 0 && (
+                <RecapSideDiscount>
+                  <span>
+                    Remise{' '}
+                    {hasMultiRates
+                      ? <RemiseBadge style={{ background: 'rgba(0,0,0,0.08)', border: 'none', color: 'inherit' }}>variable</RemiseBadge>
+                      : <span>−{remisePct.toFixed(1)}%</span>
+                    }
+                  </span>
+                  <span>− {fmt(remiseHT)}</span>
+                </RecapSideDiscount>
+              )}
+              <RecapSideRow>
+                <span>Net HT</span>
+                <span>{fmt(netHT)}</span>
+              </RecapSideRow>
+              <RecapSideRow>
+                <span>TVA 5,5%</span>
+                <span>{fmt(tva)}</span>
+              </RecapSideRow>
+              <RecapSideDivider />
+              <RecapSideTotalLine>
+                <RecapSideTotalLabel>Total TTC</RecapSideTotalLabel>
+                <RecapSideTotalValue>{fmt(totalTTC)}</RecapSideTotalValue>
+              </RecapSideTotalLine>
+            </RecapSideBody>
+          </RecapSideCard>
+
+          <ValidateBtn
+            onClick={() => setPage('recap')}
+            disabled={delivery === 'specific' && !specificDate}
+          >
+            Valider la commande
+          </ValidateBtn>
+
+          <EDIHint>
+            <EDIHintIcon>⇄</EDIHintIcon>
+            <span>Commande EDI disponible via <a onClick={() => navigate('/edi')}>Dilicom</a></span>
+          </EDIHint>
+        </RecapCol>
+      </TwoColLayout>
     </Page>
   )
 }
