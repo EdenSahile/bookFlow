@@ -11,25 +11,24 @@ import { AppFooter } from './AppFooter'
 import { useCart } from '@/contexts/CartContext'
 
 const LayoutRoot = styled.div`
+  display: flex;
   min-height: 100vh;
   background-color: ${({ theme }) => theme.colors.gray[50]};
 `
 
-const Main = styled.main`
-  padding-top: calc(
-    ${({ theme }) => theme.layout.mobileHeaderHeight} +
-    ${({ theme }) => theme.layout.demoBannerHeight}
-  );
-  padding-bottom: ${({ theme }) => theme.layout.bottomNavHeight};
-  min-height: 100vh;
+const MainColumn = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+`
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    padding-top: calc(
-      ${({ theme }) => theme.layout.headerHeight} +
-      ${({ theme }) => theme.layout.demoBannerHeight}
-    );
-    padding-left: ${({ theme }) => theme.layout.sidebarWidth};
-    padding-bottom: ${({ theme }) => theme.layout.footerHeight};
+const PageContent = styled.main`
+  flex: 1;
+
+  /* Mobile : espace pour la BottomNav */
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
+    padding-bottom: ${({ theme }) => theme.layout.bottomNavHeight};
   }
 `
 
@@ -46,17 +45,19 @@ export function AppLayout({ children }: AppLayoutProps) {
     <LayoutRoot>
       <Sidebar />
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-      <Header
-        cartCount={totalItems}
-        onBurgerClick={() => setMenuOpen(true)}
-        onCartClick={() => navigate('/panier')}
-      />
-      <DemoBanner />
-      <Main>
-        {children}
-      </Main>
+      <MainColumn>
+        <Header
+          cartCount={totalItems}
+          onBurgerClick={() => setMenuOpen(true)}
+          onCartClick={() => navigate('/panier')}
+        />
+        <DemoBanner />
+        <PageContent>
+          {children}
+        </PageContent>
+        <AppFooter />
+      </MainColumn>
       <BottomNav />
-      <AppFooter />
       <FeedbackWidget />
     </LayoutRoot>
   )
