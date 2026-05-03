@@ -8,6 +8,7 @@ import { MOCK_BOOKS } from '@/data/mockBooks'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { usePeriodFilter, type CompareMode } from '@/hooks/usePeriodFilter'
 import { PeriodSelector } from '@/components/dashboard/PeriodSelector'
+import { theme } from '@/lib/theme'
 import { ComparaisonToggle } from '@/components/dashboard/ComparaisonToggle'
 import { useDashboardConfig, type DashboardZone } from '@/hooks/useDashboardConfig'
 import { CustomizerDrawer } from '@/components/dashboard/CustomizerDrawer'
@@ -261,7 +262,7 @@ function IconCalendar() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-      style={{ color: '#6B6B68', flexShrink: 0 }}>
+      style={{ color: theme.colors.gray[400], flexShrink: 0 }}>
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
@@ -274,7 +275,7 @@ function IconInfo() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-      style={{ flexShrink: 0, color: '#6B6B68', marginTop: 1 }}>
+      style={{ flexShrink: 0, color: theme.colors.gray[400], marginTop: 1 }}>
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="16" x2="12" y2="12" />
       <line x1="12" y1="8" x2="12.01" y2="8" />
@@ -508,14 +509,20 @@ const KPICard = styled.div<{ $dragging?: boolean; $dropTarget?: boolean }>`
   background: white;
   border: 1px solid ${({ $dropTarget, theme }) =>
     $dropTarget ? theme.colors.navy : theme.colors.gray[200]};
-  padding: 16px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  padding: 18px 16px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   position: relative;
   opacity: ${({ $dragging }) => $dragging ? 0.4 : 1};
-  transition: opacity 0.1s, border-color 0.1s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
+  transition: opacity 0.1s, border-color 0.1s, transform 0.15s, box-shadow 0.15s;
 
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.09), 0 6px 20px rgba(0,0,0,.07);
+  }
   &:hover ${CardDragHandle} { opacity: 1; }
 `
 
@@ -551,11 +558,16 @@ const KPIValue = styled.div`
 `
 
 const KPITrend = styled.div<{ $up: boolean }>`
-  font-size: 12px;
-  color: ${({ $up }) => $up ? '#16a34a' : '#DC2626'};
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: ${({ $up }) => $up ? '#16a34a' : '#DC2626'};
+  background: ${({ $up }) => $up ? '#E6F2EC' : '#FDECEA'};
+  padding: 2px 7px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  align-self: flex-start;
 `
 
 const KPILink = styled.button`
@@ -596,6 +608,45 @@ const PanelCard = styled.div<{ $dragging?: boolean; $dropTarget?: boolean }>`
   transition: opacity 0.1s, border-color 0.1s;
 
   &:hover ${CardDragHandle} { opacity: 1; }
+`
+
+const PanelEyebrow = styled.p`
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 2px;
+`
+
+const FAB = styled.button`
+  position: fixed;
+  bottom: calc(${({ theme }) => theme.layout.bottomNavHeight} + 16px);
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.navy};
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(45,58,74,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+  z-index: 100;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    display: none;
+  }
+
+  &:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(45,58,74,0.45);
+  }
 `
 
 const PanelHeader = styled.div`
@@ -674,7 +725,7 @@ function ChartEvolution({
         )
       })}
       {comparePoly && (
-        <polyline points={comparePoly} fill="none" stroke="#C9A84C" strokeWidth="1.2"
+        <polyline points={comparePoly} fill="none" stroke={theme.colors.accent} strokeWidth="1.2"
           strokeDasharray="4 2" strokeLinejoin="round" strokeLinecap="round" opacity="0.75" />
       )}
       {mainPoly && (
@@ -1705,10 +1756,13 @@ export function HomePage() {
                     <IconGrip />
                   </CardDragHandle>
                   <PanelHeader>
-                    <PanelTitle>
-                      Évolution des commandes
-                      <IconCalendar />
-                    </PanelTitle>
+                    <div>
+                      <PanelEyebrow>Statistiques</PanelEyebrow>
+                      <PanelTitle>
+                        Évolution des commandes
+                        <IconCalendar />
+                      </PanelTitle>
+                    </div>
                   </PanelHeader>
                   {compareChartData && (
                     <ChartLegend>
@@ -1717,7 +1771,7 @@ export function HomePage() {
                         Période sélectionnée
                       </ChartLegendItem>
                       <ChartLegendItem>
-                        <ChartLegendLine $color="#C9A84C" $dashed />
+                        <ChartLegendLine $color={theme.colors.accent} $dashed />
                         {compareModeShort(periodFilter.compareMode)}
                       </ChartLegendItem>
                     </ChartLegend>
@@ -1934,7 +1988,10 @@ export function HomePage() {
                     <IconGrip />
                   </CardDragHandle>
                   <PanelHeader>
-                    <PanelTitle>Nouveautés du mois</PanelTitle>
+                    <div>
+                      <PanelEyebrow>Catalogue</PanelEyebrow>
+                      <PanelTitle>Nouveautés du mois</PanelTitle>
+                    </div>
                     <PanelSeeAll onClick={() => navigate('/nouveautes')}>Voir tout →</PanelSeeAll>
                   </PanelHeader>
                   <NovelPanelWrap>
@@ -1985,7 +2042,10 @@ export function HomePage() {
                     <IconGrip />
                   </CardDragHandle>
                   <PanelHeader>
-                    <PanelTitle>Raccourcis</PanelTitle>
+                    <div>
+                      <PanelEyebrow>Navigation rapide</PanelEyebrow>
+                      <PanelTitle>Raccourcis</PanelTitle>
+                    </div>
                   </PanelHeader>
                   <ShortcutList>
                     {([
@@ -2031,6 +2091,9 @@ export function HomePage() {
         />
 
       </Content>
+
+      <FAB aria-label="Nouvelle commande rapide" onClick={() => navigate('/fonds')}>＋</FAB>
+
     </Page>
   )
 }

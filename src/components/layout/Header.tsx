@@ -144,7 +144,7 @@ const SearchIconWrap = styled.span`
   display: flex;
   align-items: center;
   pointer-events: none;
-  color: #555;
+  color: ${({ theme }) => theme.colors.gray[600]};
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
     color: rgba(255,255,255,0.7);
@@ -159,13 +159,13 @@ const SearchInput = styled.input`
   background: transparent;
   border: none;
   border-radius: 0;
-  color: #111;
+  color: ${({ theme }) => theme.colors.gray[800]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   outline: none;
   appearance: none;
 
-  &::placeholder { color: #555; font-size: 13px; }
+  &::placeholder { color: ${({ theme }) => theme.colors.gray[600]}; font-size: 13px; }
   &::-webkit-search-cancel-button { display: none; }
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
@@ -181,14 +181,14 @@ const SearchGroup = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  background: #dcdcdc;
+  background: ${({ theme }) => theme.colors.gray[200]};
   border-radius: ${({ theme }) => theme.radii.md};
   overflow: hidden;
   flex: 1;
   max-width: 520px;
   transition: background 0.15s;
 
-  &:focus-within { background: #e8e8e8; }
+  &:focus-within { background: ${({ theme }) => theme.colors.gray[100]}; }
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
     background: rgba(255,255,255,0.18);
@@ -219,7 +219,7 @@ const FilterIconBtn = styled.button<{ $active: boolean }>`
   background: ${({ $active }) => $active ? 'rgba(35,47,62,0.10)' : 'transparent'};
   border: none;
   cursor: pointer;
-  color: ${({ $active }) => $active ? '#232f3e' : '#555'};
+  color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[600]};
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -410,7 +410,7 @@ const ApplyBtn = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: background .12s;
-  &:hover { background: #25477A; }
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
 
@@ -486,14 +486,14 @@ const CartBtn = styled.button<{ $hasItems: boolean }>`
     background: ${GOLD};
     border: 1.5px solid ${GOLD};
     color: ${theme.colors.navy};
-    box-shadow: 0 2px 8px rgba(201,168,76,0.35);
-    &:hover { background: #d4b05a; border-color: #d4b05a; box-shadow: 0 4px 14px rgba(201,168,76,0.45); }
-    &:active { background: #b8962e; border-color: #b8962e; }
+    box-shadow: 0 2px 8px rgba(212,168,67,0.35);
+    &:hover { background: #E0B84A; border-color: #E0B84A; box-shadow: 0 4px 14px rgba(212,168,67,0.45); }
+    &:active { background: #B8922E; border-color: #B8922E; }
   ` : `
     background: transparent;
-    border: 1.5px solid rgba(201,168,76,0.5);
+    border: 1.5px solid rgba(212,168,67,0.5);
     color: ${GOLD};
-    &:hover { background: rgba(201,168,76,0.12); border-color: ${GOLD}; }
+    &:hover { background: rgba(212,168,67,0.12); border-color: ${GOLD}; }
   `}
 
   &:focus-visible { outline: 2px solid ${GOLD}; outline-offset: 2px; }
@@ -535,7 +535,7 @@ const ListsBtn = styled.button<{ $hasLists: boolean }>`
   }
 
   ${({ $hasLists }) => $hasLists && `
-    border-color: rgba(201,168,76,0.5);
+    border-color: rgba(212,168,67,0.5);
     color: ${GOLD};
     &:hover { border-color: ${GOLD}; }
   `}
@@ -637,8 +637,8 @@ const ListRow = styled.div`
 const ListRowIcon = styled.div`
   width: 34px; height: 34px;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: rgba(201,168,76,0.12);
-  border: 1px solid rgba(201,168,76,0.3);
+  background: rgba(212,168,67,0.12);
+  border: 1px solid rgba(212,168,67,0.3);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 `
@@ -800,7 +800,7 @@ const BookRowAddedBy = styled.span`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 10px;
   color: #3d2f00;
-  background: rgba(201,168,76,0.20);
+  background: rgba(212,168,67,0.20);
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 1px 7px;
   margin-top: 2px;
@@ -846,7 +846,7 @@ const BookRowCartBtn = styled.button`
   flex-shrink: 0;
   transition: background 0.12s;
 
-  &:hover { background: #25477A; }
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
 const DetailFooter = styled.div`
@@ -872,7 +872,7 @@ const AddAllBtn = styled.button`
   gap: 6px;
   transition: background 0.15s;
 
-  &:hover { background: #25477A; }
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
 const ExportCsvBtn = styled.button`

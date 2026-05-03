@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
-import { getBookById } from '@/data/mockBooks'
+import { getBookById, MOCK_BOOKS } from '@/data/mockBooks'
 import { slugifyAuthor } from '@/lib/slugify'
 import { BookCover } from '@/components/catalogue/BookCover'
 import { useCart } from '@/contexts/CartContext'
@@ -537,6 +537,105 @@ const NotFoundBox = styled.div`
   color: ${({ theme }) => theme.colors.gray[600]};
 `
 
+/* ── Section eyebrow ── */
+const SectionEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    width: 14px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+    flex-shrink: 0;
+  }
+`
+
+/* ── Price card ── */
+const PriceCard = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  padding: 14px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`
+
+/* ── Order info block ── */
+const OrderInfoBlock = styled.div`
+  background: ${({ theme }) => theme.colors.accentLight};
+  border: 1px solid rgba(212, 168, 67, 0.2);
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 10px 12px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  line-height: 1.5;
+
+  strong { font-weight: 700; color: ${({ theme }) => theme.colors.gray[800]}; }
+`
+
+/* ── Similar books strip ── */
+const SimilarSection = styled.section`
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+`
+
+const SimilarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+`
+
+const SimilarCard = styled.article`
+  cursor: pointer;
+  transition: transform 0.15s;
+  &:hover { transform: translateY(-2px); }
+`
+
+const SimilarCover = styled.div`
+  aspect-ratio: 2/3;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  overflow: hidden;
+  margin-bottom: 6px;
+`
+
+const SimilarTitle = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`
+
+const SimilarAuthor = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
 /* ══════════════════════════════════════════════════════
    MODALS
 ══════════════════════════════════════════════════════ */
@@ -647,7 +746,7 @@ const ArgLabel = styled.p`
   letter-spacing: 0.18em;
   color: #B5AFA7;
   margin-bottom: 16px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgTitle = styled.h2`
@@ -668,7 +767,7 @@ const ArgAuthor = styled.p`
 const ArgPublisher = styled.p`
   font-size: 12px;
   color: #B5AFA7;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgBody = styled.div`
@@ -688,7 +787,7 @@ const ArgSectionTitle = styled.p`
   letter-spacing: 0.14em;
   color: #B5AFA7;
   margin-bottom: 8px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgMeta = styled.div`
@@ -710,14 +809,14 @@ const ArgMetaLabel = styled.span`
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #B5AFA7;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgMetaValue = styled.span`
   font-size: 13px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.navy};
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 /* ── Cart zone dans la modal ── */
@@ -756,7 +855,7 @@ const InteriorPageNum = styled.p`
   font-size: 10px;
   color: #B5AFA7;
   margin-bottom: 28px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   letter-spacing: 0.08em;
 `
 
@@ -867,7 +966,7 @@ const VideoThumbnailText = styled.div`
   bottom: 16px;
   left: 16px;
   right: 16px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: 600;
   color: rgba(255,255,255,0.85);
@@ -1254,7 +1353,7 @@ export function FicheProduitPage() {
             {isOrderable && (
               <>
                 <FormatSection>
-                  <SectionLabel>Format</SectionLabel>
+                  <SectionEyebrow>Format</SectionEyebrow>
                   <FormatPills>
                     {formats.map(f => (
                       <FormatPill key={f.id} $active={formatId === f.id} onClick={() => setFormatId(f.id)}>
@@ -1287,10 +1386,17 @@ export function FicheProduitPage() {
 
         {/* ── Footer ── */}
         <Footer>
-          <PriceBlock>
-            <PriceTTC>{selectedFormat.priceTTC.toFixed(2)} €</PriceTTC>
-            <PriceCaption>Prix TTC{isOrderable ? ` — ${selectedFormat.label}` : ''}</PriceCaption>
-          </PriceBlock>
+          <PriceCard>
+            <PriceBlock>
+              <PriceTTC>{selectedFormat.priceTTC.toFixed(2)} €</PriceTTC>
+              <PriceCaption>Prix TTC{isOrderable ? ` — ${selectedFormat.label}` : ''}</PriceCaption>
+            </PriceBlock>
+            {isOrderable && (
+              <OrderInfoBlock>
+                Livraison habituelle sous <strong>1 à 3 jours ouvrés</strong>. Remise personnalisée appliquée automatiquement.
+              </OrderInfoBlock>
+            )}
+          </PriceCard>
 
           {isAParaitre ? (
             <ParaitreFooter>
@@ -1337,6 +1443,37 @@ export function FicheProduitPage() {
           )}
         </Footer>
       </Wrap>
+
+      {(() => {
+        const similar = MOCK_BOOKS
+          .filter(b => b.universe === book.universe && b.id !== book.id)
+          .slice(0, 7)
+        if (similar.length === 0) return null
+        return (
+          <SimilarSection>
+            <SectionEyebrow>Dans la même thématique</SectionEyebrow>
+            <SimilarGrid>
+              {similar.map(b => (
+                <SimilarCard key={b.id} onClick={() => navigate(`/livre/${b.id}`)}>
+                  <SimilarCover>
+                    <BookCover
+                      isbn={b.isbn}
+                      alt={b.title}
+                      width={120}
+                      height={180}
+                      universe={b.universe}
+                      authors={b.authors}
+                      publisher={b.publisher}
+                    />
+                  </SimilarCover>
+                  <SimilarTitle>{b.title}</SimilarTitle>
+                  <SimilarAuthor>{b.authors[0]}</SimilarAuthor>
+                </SimilarCard>
+              ))}
+            </SimilarGrid>
+          </SimilarSection>
+        )
+      })()}
 
       {needsConfirm && book.statut && (
         <StockAlertModal
