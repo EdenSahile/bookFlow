@@ -25,9 +25,12 @@ const FORMATS = ['Poche', 'Grand format', 'Broché', 'Relié', 'Numérique']
 
 /* ── Header bar ── */
 const HeaderBar = styled.header`
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: ${({ theme }) => theme.layout.headerHeight};
+  /* Mobile : dark comme avant */
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: ${({ theme }) => theme.layout.mobileHeaderHeight};
   background-color: ${({ theme }) => theme.colors.navy};
   border-bottom: 1px solid rgba(255,255,255,0.10);
   display: flex;
@@ -35,12 +38,19 @@ const HeaderBar = styled.header`
   padding: 0 ${({ theme }) => theme.spacing.md};
   gap: 12px;
   z-index: 100;
+  flex-wrap: wrap;
+  padding: 14px ${({ theme }) => theme.spacing.md};
+  gap: 8px 0;
+  align-items: center;
 
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    flex-wrap: wrap;
-    height: auto;
-    padding: 14px ${({ theme }) => theme.spacing.md};
-    gap: 8px 0;
+  /* Desktop : blanc */
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background-color: ${({ theme }) => theme.colors.white};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    height: ${({ theme }) => theme.layout.headerHeight};
+    flex-wrap: nowrap;
+    padding: 0 ${({ theme }) => theme.spacing.md};
+    gap: 12px;
     align-items: center;
   }
 `
@@ -50,15 +60,11 @@ const LogoWrap = styled.div`
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  order: 1;
 
+  /* Desktop : masqué — le logo est dans la sidebar */
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    width: ${({ theme }) => theme.layout.sidebarWidth};
-    padding-left: 4px;
-    flex-shrink: 0;
-  }
-
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    order: 1;
+    display: none;
   }
 `
 
@@ -144,11 +150,10 @@ const SearchIconWrap = styled.span`
   display: flex;
   align-items: center;
   pointer-events: none;
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: rgba(255,255,255,0.7);
 
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    color: rgba(255,255,255,0.7);
-    left: 11px;
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    color: ${({ theme }) => theme.colors.gray[400]};
   }
 `
 
@@ -158,21 +163,18 @@ const SearchInput = styled.input`
   padding: 9px 10px 9px 34px;
   background: transparent;
   border: none;
-  border-radius: 0;
-  color: ${({ theme }) => theme.colors.gray[800]};
+  color: #fff;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   outline: none;
   appearance: none;
 
-  &::placeholder { color: ${({ theme }) => theme.colors.gray[600]}; font-size: 13px; }
+  &::placeholder { color: rgba(255,255,255,0.6); font-size: 13px; }
   &::-webkit-search-cancel-button { display: none; }
 
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    color: #fff;
-    font-size: 14px;
-    padding: 9px 10px 9px 36px;
-    &::placeholder { color: rgba(255,255,255,0.6); }
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    color: ${({ theme }) => theme.colors.gray[800]};
+    &::placeholder { color: ${({ theme }) => theme.colors.gray[400]}; }
   }
 `
 
@@ -181,31 +183,41 @@ const SearchGroup = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.gray[200]};
+  background: rgba(255,255,255,0.18);
   border-radius: ${({ theme }) => theme.radii.md};
   overflow: hidden;
   flex: 1;
   max-width: 520px;
   transition: background 0.15s;
 
-  &:focus-within { background: ${({ theme }) => theme.colors.gray[100]}; }
+  &:focus-within { background: rgba(255,255,255,0.24); }
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    background: rgba(255,255,255,0.18);
     max-width: none;
     width: 100%;
-    &:focus-within { background: rgba(255,255,255,0.24); }
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background: ${({ theme }) => theme.colors.gray[50]};
+    border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+    border-radius: 20px;
+    max-width: 480px;
+
+    &:focus-within {
+      background: ${({ theme }) => theme.colors.gray[50]};
+      border-color: #b0a898;
+    }
   }
 `
 
 const SearchGroupDivider = styled.span`
   width: 1px;
   height: 18px;
-  background: rgba(0,0,0,0.14);
+  background: rgba(255,255,255,0.22);
   flex-shrink: 0;
 
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    background: rgba(255,255,255,0.22);
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background: ${({ theme }) => theme.colors.gray[200]};
   }
 `
 
@@ -216,10 +228,10 @@ const FilterIconBtn = styled.button<{ $active: boolean }>`
   padding: 0 12px;
   height: 100%;
   min-height: 38px;
-  background: ${({ $active }) => $active ? 'rgba(35,47,62,0.10)' : 'transparent'};
+  background: ${({ $active }) => $active ? 'rgba(255,255,255,0.12)' : 'transparent'};
   border: none;
   cursor: pointer;
-  color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[600]};
+  color: rgba(255,255,255,0.75);
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -227,12 +239,12 @@ const FilterIconBtn = styled.button<{ $active: boolean }>`
   white-space: nowrap;
   transition: background 0.15s;
 
-  &:hover { background: rgba(35,47,62,0.08); }
+  &:hover { background: rgba(255,255,255,0.08); }
 
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.mobile} - 1px)) {
-    color: ${({ $active }) => $active ? '#fff' : 'rgba(255,255,255,0.75)'};
-    min-height: 40px;
-    &:hover { background: rgba(255,255,255,0.08); }
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[400]};
+    background: ${({ $active }) => $active ? 'rgba(35,47,62,0.08)' : 'transparent'};
+    &:hover { background: rgba(35,47,62,0.06); color: ${({ theme }) => theme.colors.navy}; }
   }
 `
 
@@ -416,7 +428,7 @@ const ApplyBtn = styled.button`
 
 /* ── Notifications ── */
 const NotifBtn = styled.button`
-  width: 36px; height: 36px;
+  width: 34px; height: 34px;
   border-radius: 50%;
   background: rgba(255,255,255,0.08);
   border: none;
@@ -427,8 +439,16 @@ const NotifBtn = styled.button`
   position: relative;
   flex-shrink: 0;
   transition: background 0.15s;
+  color: rgba(255,255,255,0.55);
 
   &:hover { background: rgba(255,255,255,0.14); }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background: transparent;
+    border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[400]};
+    &:hover { background: ${({ theme }) => theme.colors.gray[50]}; border-color: #b0a898; }
+  }
 `
 
 const NotifDot = styled.span`
@@ -441,7 +461,7 @@ const NotifDot = styled.span`
 `
 
 const HelpBtn = styled.button`
-  width: 36px; height: 36px;
+  width: 34px; height: 34px;
   border-radius: 50%;
   background: rgba(255,255,255,0.08);
   border: none;
@@ -451,8 +471,16 @@ const HelpBtn = styled.button`
   justify-content: center;
   flex-shrink: 0;
   transition: background 0.15s;
+  color: rgba(255,255,255,0.55);
 
   &:hover { background: rgba(255,255,255,0.14); }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background: transparent;
+    border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[400]};
+    &:hover { background: ${({ theme }) => theme.colors.gray[50]}; border-color: #b0a898; }
+  }
 `
 
 /* ── Panier ── */
@@ -466,64 +494,74 @@ const CartBtn = styled.button<{ $hasItems: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  height: 34px;
   padding: 0 14px;
   border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: background 0.15s;
+  white-space: nowrap;
 
-  @media (max-width: 479px) {
-    padding: 0 10px;
-    min-height: 36px;
-    gap: 4px;
-  }
-
+  /* Mobile : style doré si items, transparent sinon */
   ${({ $hasItems }) => $hasItems ? `
-    background: ${GOLD};
-    border: 1.5px solid ${GOLD};
-    color: ${theme.colors.navy};
+    background: #D4A843;
+    border: 1.5px solid #D4A843;
+    color: #232f3e;
     box-shadow: 0 2px 8px rgba(212,168,67,0.35);
-    &:hover { background: #E0B84A; border-color: #E0B84A; box-shadow: 0 4px 14px rgba(212,168,67,0.45); }
-    &:active { background: #B8922E; border-color: #B8922E; }
+    &:hover { background: #E0B84A; border-color: #E0B84A; }
   ` : `
     background: transparent;
     border: 1.5px solid rgba(212,168,67,0.5);
-    color: ${GOLD};
-    &:hover { background: rgba(212,168,67,0.12); border-color: ${GOLD}; }
+    color: #D4A843;
+    &:hover { background: rgba(212,168,67,0.12); }
   `}
 
-  &:focus-visible { outline: 2px solid ${GOLD}; outline-offset: 2px; }
+  /* Desktop : toujours navy/blanc comme le mockup */
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background: ${({ theme }) => theme.colors.navy};
+    border: none;
+    color: #fff;
+    box-shadow: none;
+
+    &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
+  }
 `
 
 const CartBadge = styled.span`
   background: ${({ theme }) => theme.colors.navy};
   color: #fff;
-  font-family: ${({ theme }) => theme.typography.fontFamilyMono};
   font-size: 10px;
   font-weight: 700;
   border-radius: ${({ theme }) => theme.radii.lg};
-  padding: 1px 7px;
+  padding: 1px 6px;
   line-height: 1.6;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background: ${({ theme }) => theme.colors.accent};
+    color: #2a2a00;
+  }
 `
 
 /* ── Bouton Listes ── */
 const ListsBtn = styled.button<{ $hasLists: boolean }>`
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 14px;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
   border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s;
+  transition: all .15s;
+  white-space: nowrap;
+
+  /* Mobile : style sombre */
   background: transparent;
   border: 1.5px solid rgba(255,255,255,0.25);
   color: rgba(255,255,255,0.75);
@@ -534,15 +572,22 @@ const ListsBtn = styled.button<{ $hasLists: boolean }>`
     color: #fff;
   }
 
-  ${({ $hasLists }) => $hasLists && `
-    border-color: rgba(212,168,67,0.5);
-    color: ${GOLD};
-    &:hover { border-color: ${GOLD}; }
-  `}
+  /* Desktop : style clair */
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[600]};
+    background: transparent;
 
-  @media (max-width: 479px) {
-    padding: 0 10px;
-    min-height: 36px;
+    &:hover {
+      border-color: ${({ theme }) => theme.colors.navy};
+      color: ${({ theme }) => theme.colors.navy};
+      background: transparent;
+    }
+
+    ${({ $hasLists }) => $hasLists && `
+      border-color: rgba(212,168,67,0.5);
+      color: #D4A843;
+    `}
   }
 `
 
@@ -919,7 +964,7 @@ function IconSliders() {
 function IconBell() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
       <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
     </svg>
@@ -929,7 +974,7 @@ function IconBell() {
 function IconHelp() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10"/>
       <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
       <line x1="12" y1="17" x2="12.01" y2="17"/>
