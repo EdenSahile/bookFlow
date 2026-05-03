@@ -647,7 +647,7 @@ const ArgLabel = styled.p`
   letter-spacing: 0.18em;
   color: #B5AFA7;
   margin-bottom: 16px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgTitle = styled.h2`
@@ -668,7 +668,7 @@ const ArgAuthor = styled.p`
 const ArgPublisher = styled.p`
   font-size: 12px;
   color: #B5AFA7;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgBody = styled.div`
@@ -688,7 +688,7 @@ const ArgSectionTitle = styled.p`
   letter-spacing: 0.14em;
   color: #B5AFA7;
   margin-bottom: 8px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgMeta = styled.div`
@@ -710,14 +710,14 @@ const ArgMetaLabel = styled.span`
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #B5AFA7;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const ArgMetaValue = styled.span`
   font-size: 13px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.navy};
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 /* ── Cart zone dans la modal ── */
@@ -756,7 +756,7 @@ const InteriorPageNum = styled.p`
   font-size: 10px;
   color: #B5AFA7;
   margin-bottom: 28px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   letter-spacing: 0.08em;
 `
 
@@ -867,7 +867,7 @@ const VideoThumbnailText = styled.div`
   bottom: 16px;
   left: 16px;
   right: 16px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
   font-weight: 600;
   color: rgba(255,255,255,0.85);
