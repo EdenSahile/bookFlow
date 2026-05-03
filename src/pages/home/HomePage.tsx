@@ -232,6 +232,12 @@ const GreetingTitle = styled.h1`
   margin: 0;
 `
 
+const GreetingSub = styled.p`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin: 2px 0 0;
+`
+
 const DateBlock = styled.div`
   display: flex;
   align-items: center;
@@ -271,18 +277,6 @@ function IconCalendar() {
   )
 }
 
-function IconInfo() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-      style={{ flexShrink: 0, color: theme.colors.gray[400], marginTop: 1 }}>
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="16" x2="12" y2="12" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
-    </svg>
-  )
-}
-
 /* ── Drag handles ── */
 const CardDragHandle = styled.div`
   position: absolute;
@@ -309,6 +303,7 @@ const CardDragHandle = styled.div`
 const ActionsBox = styled.section`
   background: #FEF2F2;
   border: 1px solid #FECACA;
+  border-radius: ${({ theme }) => theme.radii.md};
   padding: 16px 20px;
 `
 
@@ -602,11 +597,15 @@ const PanelCard = styled.div<{ $dragging?: boolean; $dropTarget?: boolean }>`
   background: white;
   border: 1px solid ${({ $dropTarget, theme }) =>
     $dropTarget ? theme.colors.navy : theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.md};
   padding: 16px;
   position: relative;
   opacity: ${({ $dragging }) => $dragging ? 0.4 : 1};
-  transition: opacity 0.1s, border-color 0.1s;
+  transition: opacity 0.1s, border-color 0.1s, box-shadow 0.15s;
 
+  &:hover {
+    box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
+  }
   &:hover ${CardDragHandle} { opacity: 1; }
 `
 
@@ -617,6 +616,25 @@ const PanelEyebrow = styled.p`
   text-transform: uppercase;
   color: ${({ theme }) => theme.colors.accent};
   margin: 0 0 2px;
+`
+
+const SectionLabel = styled.p`
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: ${({ theme }) => theme.colors.gray[200]};
+  }
 `
 
 const FAB = styled.button`
@@ -1165,22 +1183,53 @@ const EdiLink = styled.button`
   &:hover { text-decoration: underline; }
 `
 
-/* ── Footer info bar ── */
-const FooterBar = styled.div`
+const ReminderCard = styled.div`
+  background: ${({ theme }) => theme.colors.accentLight};
+  border: 1px solid rgba(212,168,67,.35);
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 14px 16px;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px 16px;
-  background: ${({ theme }) => theme.colors.gray[100]};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 4px;
+  align-items: center;
+  gap: 12px;
 `
 
-const FooterText = styled.p`
+const ReminderIcon = styled.span`
+  font-size: 20px;
+  flex-shrink: 0;
+`
+
+const ReminderText = styled.div`
+  flex: 1;
+
+  strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.navy};
+    display: block;
+  }
+
+  p {
+    font-size: 11px;
+    color: ${({ theme }) => theme.colors.gray[400]};
+    margin: 2px 0 0;
+  }
+`
+
+const ReminderBtn = styled.button`
+  background: ${({ theme }) => theme.colors.navy};
+  color: #fff;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 7px 14px;
   font-size: 12px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  margin: 0;
-  line-height: 1.5;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover ?? theme.colors.navy}; }
 `
 
 /* ── Shortcuts panel (step 9) ── */
@@ -1556,9 +1605,15 @@ export function HomePage() {
 
         {/* 1 — Greeting row */}
         <GreetingRow>
-          <GreetingTitle>
-            {greeting} {user?.nomLibrairie ?? 'Librairie'} 👋
-          </GreetingTitle>
+          <div>
+            <GreetingTitle>
+              {greeting} {user?.nomLibrairie ?? 'Librairie'} 👋
+            </GreetingTitle>
+            <GreetingSub>
+              Votre activité du mois de{' '}
+              {now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+            </GreetingSub>
+          </div>
           <DateBlock>
             <DateText>
               <DateLabel>{dateLabel}</DateLabel>
@@ -1737,6 +1792,7 @@ export function HomePage() {
           if (sectionId === 'mainPanels') return (
         <SectionWrap key="mainPanels">
           {sectionControls}
+          <SectionLabel>Analyse détaillée</SectionLabel>
         <ThreeColRow $count={dashConfig.config.mainPanels.filter(c => c.visible).length}>
           {dashConfig.config.mainPanels
             .filter(c => c.visible)
@@ -1909,6 +1965,7 @@ export function HomePage() {
           if (sectionId === 'bottomPanels') return (
         <SectionWrap key="bottomPanels">
           {sectionControls}
+          <SectionLabel>Flux &amp; opérations</SectionLabel>
         <ThreeColRow $count={dashConfig.config.bottomPanels.filter(c => c.visible).length}>
           {dashConfig.config.bottomPanels
             .filter(c => c.visible)
@@ -2073,13 +2130,17 @@ export function HomePage() {
           return null
         })}
 
-        {/* 10 — Footer info bar */}
-        <FooterBar>
-          <IconInfo />
-          <FooterText>
-            Les statistiques intègrent vos commandes passées via l'application et sont calculées en temps réel. L'historique de démonstration couvre la période du {fmtFrDate(new Date('2024-01-01'))} à aujourd'hui.
-          </FooterText>
-        </FooterBar>
+        {/* Reminder À paraître */}
+        <ReminderCard>
+          <ReminderIcon>📅</ReminderIcon>
+          <ReminderText>
+            <strong>Catalogue À paraître disponible</strong>
+            <p>Consultez les nouveaux titres prévus. Commandes auprès de votre représentant.</p>
+          </ReminderText>
+          <ReminderBtn onClick={() => navigate('/a-paraitre')}>
+            Voir le catalogue
+          </ReminderBtn>
+        </ReminderCard>
 
         <CustomizerDrawer
           open={customizerOpen}
