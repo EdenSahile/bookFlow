@@ -666,7 +666,7 @@ const OPSectionLabel = styled.div`
 const OPTable = styled.div`
   background: ${({ theme }) => theme.colors.white};
   border: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
-  border-radius: ${({ theme }) => theme.radii.lg};
+  border-radius: ${({ theme }) => theme.radii.xl};
   overflow: hidden;
 `
 
@@ -746,7 +746,8 @@ const OPTCell = styled.div<{ $bold?: boolean; $color?: string; $head?: boolean }
 const PLVQtyBlock = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
   background: ${({ theme }) => theme.colors.white};
-  border: 2px solid ${({ theme }) => theme.colors.primary};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
+  border-top: 3px solid ${({ theme }) => theme.colors.accent};
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 14px 16px;
   display: flex;
@@ -823,6 +824,8 @@ const DetailPage = styled.div`
   max-width: 720px;
   margin: 0 auto;
   padding-bottom: ${({ theme }) => theme.spacing['3xl']};
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
 const BackButton = styled.button`
@@ -868,6 +871,7 @@ const SerieHeaderInfo = styled.div`
 `
 
 const SerieHeaderTitle = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.xl};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.navy};
@@ -931,7 +935,7 @@ const AddAllButton = styled.button`
   transition: background 0.15s;
   flex-shrink: 0;
 
-  &:hover { background: #e6ac00; }
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
 /* Divider */
@@ -1018,7 +1022,7 @@ const BookRowMeta = styled.div`
 `
 
 const PriceBadge = styled.div`
-  background: ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.accentLight};
   color: ${({ theme }) => theme.colors.navy};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
@@ -1055,6 +1059,13 @@ function IconDot({ size = 7 }: { size?: number }) {
   )
 }
 
+function IconPLV() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+    </svg>
+  )
+}
 function IconBack() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
 }
@@ -1288,13 +1299,11 @@ export function SelectionsPage() {
     const offre = selectedSerie.offreCommerciale
     const qtyParTitre = offre ? offre.qtyParTitreParPLV * nbPLV : 0
     const totalTitres = offre ? serieBooks.length * qtyParTitre : 0
-    const totalPLVPrice = offre ? offre.prixPLV * nbPLV : 0
     // Nb cadeaux = total ouvrages / ratio (ex: 16 livres / 2 = 8 paires de chaussettes)
     const nbCadeaux = offre ? Math.floor(totalTitres / offre.ratioAchat) : 0
     const totalOuvragesHT = offre
       ? serieBooks.reduce((sum, book) => sum + book.priceTTC * qtyParTitre, 0)
       : 0
-    const totalOP = totalOuvragesHT + totalPLVPrice
 
     return (
       <DetailPage>
@@ -1407,8 +1416,8 @@ export function SelectionsPage() {
               {/* ── Sélection nombre de PLV — pilote tout ── */}
               <PLVQtyBlock>
                 <PLVQtyLeft>
-                  <PLVQtyTitle>🪧 Nombre de PLV</PLVQtyTitle>
-                  <PLVQtySub>{offre.descPLV} · {formatEur(offre.prixPLV)} / unité</PLVQtySub>
+                  <PLVQtyTitle><IconPLV /> Nombre de PLV</PLVQtyTitle>
+                  <PLVQtySub>{offre.descPLV}</PLVQtySub>
                 </PLVQtyLeft>
                 <PLVQtyRight>
                   <StepperRow>
@@ -1420,7 +1429,6 @@ export function SelectionsPage() {
                     />
                     <StepBtn onClick={() => setNbPLV(p => p + 1)} aria-label="Augmenter PLV">+</StepBtn>
                   </StepperRow>
-                  <PLVQtyTotal>{formatEur(totalPLVPrice)}</PLVQtyTotal>
                 </PLVQtyRight>
               </PLVQtyBlock>
 
@@ -1428,7 +1436,7 @@ export function SelectionsPage() {
               <OPAddBtn $added={opAdded} onClick={handleAddOP}>
                 {opAdded
                   ? <><IconCheck /> OP ajoutée — {totalTitres} titres · {nbCadeaux} cadeaux</>
-                  : <><IconCart /> Commander l'OP — {nbPLV} PLV · {formatEur(totalOP)}</>
+                  : <><IconCart /> Commander l'OP — {nbPLV} PLV · {formatEur(totalOuvragesHT)}</>
                 }
               </OPAddBtn>
 
