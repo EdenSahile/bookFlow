@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import { useAuth } from '@/hooks/useAuth'
 import { loginSchema, getZodErrors, type LoginInput } from '@/lib/authUtils'
@@ -118,7 +118,9 @@ function BlockedModal({ message, onClose }: { message: string; onClose: () => vo
 /* ── Page ── */
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
+  const from = (location.state as { from?: string } | null)?.from ?? '/'
 
   const [form, setForm] = useState<LoginInput>({ identifier: 'LIB001', password: 'Libraire123!' })
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginInput, string>>>({})
@@ -153,7 +155,7 @@ export function LoginPage() {
       return
     }
 
-    navigate('/')
+    navigate(from, { replace: true })
   }
 
   return (
