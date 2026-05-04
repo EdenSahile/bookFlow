@@ -7,9 +7,8 @@
 ---
 
 ## État du build
-TS clean · 161 tests passants · session 2026-05-03 (session 9)  
-**FicheProduitPage conformité maquette** ✅  
-**BookCard coverFirst "Product Shot" + coverFirst sur toutes les pages** ✅
+TS clean · 161 tests passants · session 2026-05-04  
+**Refonte design pages** : NouveautesPage, AParaitrePage, TopVentesPage, SelectionsPage, FlashInfosPage, HistoriquePage, MonComptePage, RecherchePage, AuteurPage ✅
 
 ---
 
@@ -18,17 +17,22 @@ TS clean · 161 tests passants · session 2026-05-03 (session 9)
 ### Refonte design des pages — cohérence avec HomePage / LoginPage / CartPage / FondsPage
 
 Pages de référence : HomePage, LoginPage, CartPage, FondsPage  
-Language design : Playfair Display pour les titres de section, Open Sans corps, navy + accent or, fond gray[50], cards lg border-radius, badges accent, pill filters navy.
+Language design : Open Sans corps (fontFamily), navy + accent or, fond gray[50], cards lg border-radius, badges accent, pill filters navy. Pas de Playfair ni DM Mono sauf si présent dans FondsPage.
 
 - [x] NouveautesPage
 - [x] AParaitrePage
 - [x] TopVentesPage
 - [x] SelectionsPage
-- [ ] FlashInfosPage
-- [ ] HistoriquePage
-- [ ] MonComptePage
-- [ ] RecherchePage
-- [ ] AuteurPage
+- [x] FlashInfosPage
+- [x] HistoriquePage
+- [x] MonComptePage
+- [x] RecherchePage
+- [x] AuteurPage
+- [ ] ContactPage
+- [ ] FacturationPage
+- [ ] ParametresPage
+- [ ] EDIPage
+- [ ] OfficesPage
 
 ---
 

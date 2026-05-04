@@ -55,14 +55,14 @@ const Avatar = styled.div`
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.accent};
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 24px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.navy};
+  color: #3d2f00;
   flex-shrink: 0;
 `
 
@@ -70,12 +70,22 @@ const AuthorInfo = styled.div``
 
 const AuthorLabel = styled.p`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.accent};
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
 `
 
 const AuthorName = styled.h1`

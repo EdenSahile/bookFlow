@@ -20,6 +20,7 @@ const fadeSlideIn = keyframes`
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 `
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
 
 /* ── Couleurs par statut — palette Forêt & Lin ── */
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; dot: string }> = {
@@ -31,15 +32,41 @@ const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; dot: string
 /* ── Styled ── */
 const Page = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
-const Title = styled.h1`
+const PageHeader = styled.div`
+  margin-bottom: 0;
+`
+
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
+`
+
+const PageTitle = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes['2xl']};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.navy};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  margin: 0;
 `
 
 /* ── Filtres ── */
@@ -111,6 +138,7 @@ const ResultCount = styled.div`
 const OrderCard = styled.div`
   background-color: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.radii.xl};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
   overflow: hidden;
 `
@@ -126,6 +154,7 @@ const OrderCardHeader = styled.div`
 `
 
 const OrderNumero = styled.div`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.navy};
@@ -305,8 +334,10 @@ const TotalLine = styled.div`
 `
 
 const TotalAmount = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   font-size: ${({ theme }) => theme.typography.sizes.md};
+  color: ${({ theme }) => theme.colors.navy};
 `
 
 const FooterRight = styled.div`
@@ -409,8 +440,8 @@ const ReturnDeadlineText = styled.div`
 `
 
 const ReturnInfoBanner = styled.div`
-  background: #FFF5F5;
-  border: 1px solid #F5C6C6;
+  background: ${({ theme }) => theme.colors.navyLight};
+  border-left: 3px solid ${({ theme }) => theme.colors.accent};
   border-radius: ${({ theme }) => theme.radii.md};
   padding: 10px 14px;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
@@ -421,7 +452,7 @@ const ReturnInfoBanner = styled.div`
 
 const ReturnInfoLine = styled.div`
   font-size: ${({ theme }) => theme.typography.sizes.xs};
-  color: ${({ theme }) => theme.colors.error};
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-weight: ${({ theme }) => theme.typography.weights.medium};
 `
 
@@ -439,22 +470,28 @@ const EmptyState = styled.div`
 `
 
 const TabsBar = styled.div`
-  display: flex; gap: 0;
-  border-bottom: 2px solid ${({ theme }) => theme.colors.gray[200]};
+  display: flex;
+  gap: 6px;
   margin-bottom: ${({ theme }) => theme.spacing.xl};
 `
 
 const TabBtn = styled.button<{ $active: boolean }>`
-  padding: 10px 20px;
-  background: none; border: none; cursor: pointer;
+  padding: 8px 18px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
+  background: ${({ $active, theme }) => $active ? theme.colors.navy : 'transparent'};
+  color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.gray[600]};
   font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-weight: ${({ $active, theme }) => $active ? theme.typography.weights.bold : theme.typography.weights.normal};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  color: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[600]};
-  border-bottom: 2px solid ${({ $active, theme }) => $active ? theme.colors.success : 'transparent'};
-  margin-bottom: -2px;
-  transition: color 0.15s;
-  &:hover { color: ${({ theme }) => theme.colors.navy}; }
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s ease;
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.navy};
+    color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.navy};
+  }
 `
 
 const TabBadge = styled.span`
@@ -477,9 +514,11 @@ const StatCard = styled.div`
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: ${({ theme }) => theme.spacing.md};
   text-align: center;
+  border-top: 3px solid ${({ theme }) => theme.colors.accent};
 `
 
 const StatValue = styled.div`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.xl};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.navy};
@@ -646,7 +685,10 @@ export function HistoriquePage() {
     <>
     <Page>
       <TitleRow>
-        <Title style={{ marginBottom: 0 }}>Mon historique</Title>
+        <PageHeader>
+          <PageEyebrow>Mon espace</PageEyebrow>
+          <PageTitle>Mon historique</PageTitle>
+        </PageHeader>
         {activeTab === 'commandes' && allOrders.length > 0 && (
           <ExportAllButton onClick={handleExportAll} title="Exporter toutes les commandes en CSV">
             <IconDownload />

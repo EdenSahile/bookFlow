@@ -87,6 +87,25 @@ const PageHeader = styled.div`
   margin-bottom: 24px;
 `
 
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
+`
+
 const ResultTitle = styled.h1`
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 20px;
@@ -178,6 +197,7 @@ const EmptyText = styled.p`font-size: 13px; line-height: 1.6;`
 const HorsCard = styled.div`
   background: ${({ theme }) => theme.colors.white};
   border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   overflow: hidden;
   max-width: 480px;
   margin: 0 auto;
@@ -273,7 +293,7 @@ const HorsPublisher = styled.p`
 `
 
 const HorsIsbn = styled.p`
-  font-family: monospace;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 11px;
   color: ${({ theme }) => theme.colors.gray[400]};
   margin-top: 4px;
@@ -485,6 +505,7 @@ export function RecherchePage() {
       <Page>
         <BackBtn onClick={() => navigate(-1)}>← Retour</BackBtn>
         <PageHeader>
+          <PageEyebrow>Recherche</PageEyebrow>
           <ResultTitle>ISBN {q}</ResultTitle>
           <ResultSub>Ce titre n'a pas été trouvé dans notre catalogue</ResultSub>
         </PageHeader>
@@ -498,6 +519,7 @@ export function RecherchePage() {
       <BackBtn onClick={() => navigate(-1)}>← Retour</BackBtn>
 
       <PageHeader>
+        <PageEyebrow>Recherche</PageEyebrow>
         <ResultTitle>
           {allResults.length > 0
             ? `${allResults.length} résultat${allResults.length > 1 ? 's' : ''}${q ? ` pour « ${q} »` : ''}`

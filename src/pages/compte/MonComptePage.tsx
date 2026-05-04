@@ -1,18 +1,47 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
+
+/* ── Animations ── */
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
 
 /* ── Styled ── */
 const Page = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
-const Title = styled.h1`
+const PageHeader = styled.div`
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`
+
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
+`
+
+const PageTitle = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes['2xl']};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.navy};
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
+  margin: 0;
 `
 
 const Card = styled.div`
@@ -112,8 +141,9 @@ const RemiseTile = styled.div`
   align-items: center;
   gap: 4px;
   padding: 10px 8px;
-  background-color: ${({ theme }) => theme.colors.gray[50]};
+  background-color: ${({ theme }) => theme.colors.white};
   border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top: 3px solid ${({ theme }) => theme.colors.accent};
   border-radius: ${({ theme }) => theme.radii.lg};
   text-align: center;
 `
@@ -155,7 +185,10 @@ export function MonComptePage() {
 
   return (
     <Page>
-      <Title>Mon compte</Title>
+      <PageHeader>
+        <PageEyebrow>Mon espace</PageEyebrow>
+        <PageTitle>Mon compte</PageTitle>
+      </PageHeader>
 
       <Card>
         <CardHeader>

@@ -9,6 +9,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { useRdv } from '@/contexts/RdvContext'
 import { ListPickerPopover } from '@/components/catalogue/ListPickerPopover'
 import { StockAlertModal } from '@/components/ui/StockAlertModal'
+import { slugifyAuthor } from '@/lib/slugify'
 import { theme } from '@/lib/theme'
 
 /* ── Formats physiques ── */
@@ -284,6 +285,26 @@ const BookEditorMain = styled.p`
   font-size: 12px;
   color: ${({ theme }) => theme.colors.gray[400]};
   margin-bottom: 12px;
+`
+
+const AuthorLinkBtn = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 12px;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.navy};
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: ${({ theme }) => theme.colors.accent};
+  transition: opacity .15s;
+  &:hover { opacity: 0.7; }
 `
 
 /* ── Format selector ── */
@@ -1395,10 +1416,6 @@ export function FicheProduitPage() {
               <MetaLabelEl>Format</MetaLabelEl>
               <MetaValueEl>{book.format}</MetaValueEl>
             </MetaRowItem>
-            <MetaRowItem>
-              <MetaLabelEl>EAN</MetaLabelEl>
-              <MetaValueEl>{book.isbn}</MetaValueEl>
-            </MetaRowItem>
             {book.collection && (
               <MetaRowItem>
                 <MetaLabelEl>Collection</MetaLabelEl>
@@ -1420,6 +1437,14 @@ export function FicheProduitPage() {
 
           <BookTitleMain>{book.title}</BookTitleMain>
           <BookAuthorMain>Par <strong>{book.authors.join(', ')}</strong></BookAuthorMain>
+          {book.authors[0] && (
+            <AuthorLinkBtn
+              onClick={() => navigate(`/auteur/${slugifyAuthor(book.authors[0])}`)}
+              aria-label={`Voir tous les ouvrages de ${book.authors[0]}`}
+            >
+              Tous les ouvrages de l'auteur →
+            </AuthorLinkBtn>
+          )}
           <BookEditorMain>
             {book.publisher}
             {book.collection ? ` · ${book.collection}` : ''}
