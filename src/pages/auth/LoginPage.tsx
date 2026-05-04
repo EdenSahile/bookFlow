@@ -279,9 +279,12 @@ export function LoginPage() {
             </a>
           </AuthLink>
 
-          <DemoBanner />
         </FormPanelInner>
       </FormPanel>
+
+      <div style={{ gridColumn: '1 / -1' }}>
+        <DemoBanner />
+      </div>
 
       {blockedMsg && <BlockedModal message={blockedMsg} onClose={() => setBlockedMsg(null)} />}
     </SplitPage>
