@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { MOCK_FACTURES, type Facture } from '@/data/mockFactures'
 import { openInvoicePDF } from '@/lib/invoicePdf'
@@ -9,28 +9,54 @@ import { DatePicker } from '@/components/ui/DatePicker'
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
+/* ── Animations ── */
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
+
 /* ── Styled ── */
 const Page = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
   max-width: 860px;
   margin: 0 auto;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
 const PageHeader = styled.div`
   margin-bottom: 24px;
 `
 
-const Title = styled.h1`
-  font-size: 1.375rem;
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
-  color: ${({ theme }) => theme.colors.navy};
-  letter-spacing: -0.4px;
-  margin-bottom: 4px;
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
 `
 
-const Subtitle = styled.p`
-  font-size: 0.875rem;
+const PageTitle = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes['2xl']};
+  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  color: ${({ theme }) => theme.colors.navy};
+  margin: 0 0 4px;
+`
+
+const PageSubtitle = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
   color: ${({ theme }) => theme.colors.gray[400]};
+  margin: 0;
 `
 
 /* ── Barre de filtres ── */
@@ -59,7 +85,8 @@ const DateLabel = styled.span`
 const SearchInput = styled.input`
   height: 38px;
   padding: 0 10px;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.colors.white};
   color: ${({ theme }) => theme.colors.gray[800]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -69,8 +96,8 @@ const SearchInput = styled.input`
 
   &::placeholder { color: ${({ theme }) => theme.colors.gray[400]}; }
   &:focus {
-    outline: 2px solid ${({ theme }) => theme.colors.navy};
-    outline-offset: -1px;
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.navy};
   }
 `
 
@@ -87,7 +114,8 @@ const ExportBtn = styled.button`
   gap: 6px;
   height: 38px;
   padding: 0 14px;
-  border: 1px solid ${({ theme }) => theme.colors.navy};
+  border: 1.5px solid ${({ theme }) => theme.colors.navy};
+  border-radius: ${({ theme }) => theme.radii.md};
   background: none;
   color: ${({ theme }) => theme.colors.navy};
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -95,7 +123,7 @@ const ExportBtn = styled.button`
   font-weight: ${({ theme }) => theme.typography.weights.semibold};
   cursor: pointer;
   white-space: nowrap;
-  letter-spacing: 0.2px;
+  transition: background .15s, color .15s;
 
   &:hover { background: ${({ theme }) => theme.colors.navy}; color: #fff; }
   &:active { opacity: 0.85; }
@@ -104,8 +132,10 @@ const ExportBtn = styled.button`
 /* ── Tableau ── */
 const TableWrapper = styled.div`
   overflow-x: auto;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   background: ${({ theme }) => theme.colors.white};
+  overflow: hidden;
 `
 
 const Table = styled.table`
@@ -507,8 +537,9 @@ export function FacturationPage() {
   return (
     <Page>
       <PageHeader>
-        <Title>Facturation</Title>
-        <Subtitle>Retrouvez l'ensemble de vos factures et téléchargez-les en PDF.</Subtitle>
+        <PageEyebrow>Mon espace</PageEyebrow>
+        <PageTitle>Facturation</PageTitle>
+        <PageSubtitle>Retrouvez l'ensemble de vos factures et téléchargez-les en PDF.</PageSubtitle>
       </PageHeader>
 
       {/* Filtres */}
