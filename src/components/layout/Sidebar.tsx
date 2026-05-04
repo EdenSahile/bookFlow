@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styled from 'styled-components'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { theme } from '@/lib/theme'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -222,7 +222,7 @@ export function Sidebar() {
       <SidebarContainer>
 
         {/* ── Brand ── */}
-        <SidebarBrand>
+        <SidebarBrand as={Link} to="/" style={{ textDecoration: 'none' }}>
           <BrandText>Flow<span>Diff</span></BrandText>
           <ProTag>PRO</ProTag>
         </SidebarBrand>
