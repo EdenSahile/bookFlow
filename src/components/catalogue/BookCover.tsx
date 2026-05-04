@@ -145,12 +145,16 @@ interface Props {
   fill?: boolean
 }
 
-const CoverImg = styled.img`
+const CoverImg = styled.img<{ $visible: boolean }>`
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
   display: block;
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  transition: opacity 0.25s ease;
 `
 
 function BookCoverBase({
@@ -165,47 +169,50 @@ function BookCoverBase({
   fill = false,
 }: Props) {
   const [imgFailed, setImgFailed] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
 
-  useEffect(() => { setImgFailed(false) }, [isbn])
+  useEffect(() => { setImgFailed(false); setImgLoaded(false) }, [isbn])
 
   const titleFs  = Math.max(8,  Math.round(height * 0.10))
   const authorFs = Math.max(7,  Math.round(height * 0.08))
   const pad      = Math.max(4,  Math.round(width  * 0.07))
   const pubLabel = [publisher || null, collection || null].filter(Boolean).join(' · ')
 
-  const openLibraryUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
-
-  if (!imgFailed) {
-    return (
-      <Wrapper $w={width} $h={height} $fill={fill}>
-        <CoverImg
-          src={openLibraryUrl}
-          alt={alt}
-          loading="lazy"
-          onError={() => setImgFailed(true)}
-          onLoad={(e) => {
-            const img = e.currentTarget
-            if (img.naturalWidth < 10 || img.naturalHeight < 10) setImgFailed(true)
-          }}
-        />
-      </Wrapper>
-    )
-  }
-
   const fallbackBg     = '#232f3e'
   const fallbackAccent = '#C9A84C'
+  const openLibraryUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
 
   return (
     <Wrapper $w={width} $h={height} $fill={fill}>
+      {/* Fallback always rendered underneath */}
       <Bg $bg={fallbackBg} />
       <Spine $accent={fallbackAccent} />
       {pubLabel && !fill && <PubBadge>{pubLabel}</PubBadge>}
-      <Deco universe="Littérature" accent={fallbackAccent} w={width} h={height} />
+      <Deco universe={universe} accent={fallbackAccent} w={width} h={height} />
       {!fill && (
         <TitleArea $pad={pad}>
           <TitleText $fs={titleFs}>{alt}</TitleText>
           {authors[0] && <AuthorText $fs={authorFs}>{authors[0]}</AuthorText>}
         </TitleArea>
+      )}
+
+      {/* Real cover fades in on top once loaded */}
+      {!imgFailed && (
+        <CoverImg
+          src={openLibraryUrl}
+          alt={alt}
+          loading="lazy"
+          $visible={imgLoaded}
+          onError={() => setImgFailed(true)}
+          onLoad={(e) => {
+            const img = e.currentTarget
+            if (img.naturalWidth < 10 || img.naturalHeight < 10) {
+              setImgFailed(true)
+            } else {
+              setImgLoaded(true)
+            }
+          }}
+        />
       )}
     </Wrapper>
   )
