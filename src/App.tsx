@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { ThemeProvider } from '@/providers/ThemeProvider'
@@ -39,6 +39,39 @@ const EDIPage          = lazy(() => import('@/pages/edi/EDIPage').then(m => ({ d
 const OfficesPage      = lazy(() => import('@/pages/offices/OfficesPage').then(m => ({ default: m.OfficesPage })))
 const AParaitrePage    = lazy(() => import('@/pages/a-paraitre/AParaitrePage').then(m => ({ default: m.AParaitrePage })))
 
+function usePrefetchPages() {
+  useEffect(() => {
+    const t = setTimeout(() => {
+      import('@/pages/home/HomePage')
+      import('@/pages/fonds/FondsPage')
+      import('@/pages/nouveautes/NouveautesPage')
+      import('@/pages/a-paraitre/AParaitrePage')
+      import('@/pages/top-ventes/TopVentesPage')
+      import('@/pages/selections/SelectionsPage')
+      import('@/pages/flash-infos/FlashInfosPage')
+      import('@/pages/cart/CartPage')
+      import('@/pages/catalogue/FicheProduitPage')
+      import('@/pages/search/RecherchePage')
+      import('@/pages/auteur/AuteurPage')
+      import('@/pages/compte/MonComptePage')
+      import('@/pages/historique/HistoriquePage')
+      import('@/pages/contact/ContactPage')
+      import('@/pages/parametres/ParametresPage')
+      import('@/pages/facturation/FacturationPage')
+      import('@/pages/edi/EDIPage')
+      import('@/pages/offices/OfficesPage')
+      import('@/pages/auth/LoginPage')
+      import('@/pages/auth/RegisterPage')
+      import('@/pages/auth/ForgotPasswordPage')
+      import('@/pages/aide/AidePage')
+      import('@/pages/cgv/CGVPage')
+      import('@/pages/newsletter/NewsletterPage')
+      import('@/pages/rdv/RdvPage')
+    }, 1000)
+    return () => clearTimeout(t)
+  }, [])
+}
+
 function ProtectedLayout() {
   return (
     <AppLayout>
@@ -50,6 +83,7 @@ function ProtectedLayout() {
 }
 
 export default function App() {
+  usePrefetchPages()
   return (
     <ThemeProvider>
       <BrowserRouter>
