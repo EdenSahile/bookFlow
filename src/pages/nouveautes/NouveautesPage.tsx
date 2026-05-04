@@ -6,6 +6,7 @@ import { UniverseFilter } from '@/components/catalogue/UniverseFilter'
 import { getBooksByType, searchBooks } from '@/data/mockBooks'
 import type { Universe } from '@/data/mockBooks'
 import { Input } from '@/components/ui/Input'
+import { mq } from '@/lib/responsive'
 
 type SortKey = 'pertinence' | 'titre' | 'prix_asc' | 'prix_desc'
 
@@ -154,18 +155,18 @@ const SortSelect = styled.select`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.md};
 
-  @media (min-width: 480px) {
+  ${mq.sm} {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  ${mq.md} {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  }
-
-  @media (min-width: 1024px) {
+  ${mq.lg} {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 `
