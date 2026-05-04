@@ -20,9 +20,9 @@ TS clean · 161 tests passants · session 2026-05-03 (session 9)
 Pages de référence : HomePage, LoginPage, CartPage, FondsPage  
 Language design : Playfair Display pour les titres de section, Open Sans corps, navy + accent or, fond gray[50], cards lg border-radius, badges accent, pill filters navy.
 
-- [ ] NouveautesPage — en cours (validation requise avant suite)
-- [ ] AParaitrePage
-- [ ] TopVentesPage
+- [x] NouveautesPage
+- [x] AParaitrePage
+- [x] TopVentesPage
 - [ ] SelectionsPage
 - [ ] FlashInfosPage
 - [ ] HistoriquePage

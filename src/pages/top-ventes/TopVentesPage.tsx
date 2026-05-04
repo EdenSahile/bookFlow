@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { theme } from '@/lib/theme'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { MOCK_BOOKS, type Book, type Universe } from '@/data/mockBooks'
 import { BookCard } from '@/components/catalogue/BookCard'
 import { BookCover } from '@/components/catalogue/BookCover'
@@ -71,6 +71,8 @@ function getSection(type: 'nouveaute' | 'fonds', universe: TabView) {
   return getRankedBooks(base)
 }
 
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
+
 /* ══════════════════════════════════════════════════════
    STYLED — PAGE
 ══════════════════════════════════════════════════════ */
@@ -79,41 +81,65 @@ const Page = styled.div`
   min-height: 100%;
   background: ${({ theme }) => theme.colors.gray[50]};
   padding-bottom: 40px;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
 const PageHeader = styled.div`
-  background: ${({ theme }) => theme.colors.navy};
-  padding: 20px 24px 16px;
+  padding: ${({ theme }) => theme.spacing.lg};
+  max-width: 1100px;
+  margin: 0 auto;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
+`
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    padding: 16px;
+const PageHeaderText = styled.div``
+
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
   }
 `
 
 const PageTitle = styled.h1`
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-  margin: 0;
+  font-size: ${({ theme }) => theme.typography.sizes['2xl']};
+  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  color: ${({ theme }) => theme.colors.navy};
+  margin: 0 0 4px;
 `
 
-const HeaderRight = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
+const PageSubtitle = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin: 0;
 `
 
 const PeriodSelector = styled.div`
   display: flex;
-  background: rgba(255,255,255,0.12);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: ${({ theme }) => theme.radii.xl};
   padding: 3px;
   gap: 2px;
+  flex-shrink: 0;
 `
 
 const PeriodBtn = styled.button<{ $active: boolean }>`
@@ -125,8 +151,8 @@ const PeriodBtn = styled.button<{ $active: boolean }>`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  background: ${({ $active }) => $active ? '#fff' : 'transparent'};
-  color: ${({ $active, theme }) => $active ? theme.colors.navy : 'rgba(255,255,255,0.75)'};
+  background: ${({ $active, theme }) => $active ? theme.colors.navy : 'transparent'};
+  color: ${({ $active, theme }) => $active ? '#fff' : theme.colors.gray[600]};
 `
 
 /* ══════════════════════════════════════════════════════
@@ -134,31 +160,48 @@ const PeriodBtn = styled.button<{ $active: boolean }>`
 ══════════════════════════════════════════════════════ */
 
 const TabBar = styled.div`
-  background: ${({ theme }) => theme.colors.primary};
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.md};
   display: flex;
-  overflow-x: auto;
-  padding: 6px 16px;
+  align-items: center;
   gap: 6px;
+  overflow-x: auto;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 `
 
+const FilterLabel = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 11px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  white-space: nowrap;
+`
+
 const Tab = styled.button<{ $active: boolean }>`
   flex-shrink: 0;
-  padding: 7px 16px;
-  border: none;
-  border-radius: ${({ theme }) => theme.radii.xl};
+  padding: 7px 13px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  border: 2px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
+  background: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.white};
+  color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.gray[600]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 13px;
-  font-weight: 600;
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-weight: ${({ $active, theme }) => $active ? theme.typography.weights.semibold : theme.typography.weights.normal};
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.12s;
   white-space: nowrap;
-  background: ${({ $active }) => $active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'};
-  color: ${({ $active }) => $active ? '#fff' : 'rgba(232,242,238,0.7)'};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.navy};
+    color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.navy};
+    transform: translateY(-1px);
+  }
+  &:active { transform: translateY(0); }
 `
 
 /* ══════════════════════════════════════════════════════
@@ -532,7 +575,7 @@ function TopSection({
 ══════════════════════════════════════════════════════ */
 
 export function TopVentesPage() {
-  const [period,    setPeriod] = useState<Period>('30j')
+  const [period,    setPeriod] = useState<Period>('30j')  // eslint-disable-line @typescript-eslint/no-unused-vars
   const [activeTab, setTab]    = useState<TabView>('tous')
   const { addToCart }          = useCart()
   const { showToast }          = useToast()
@@ -551,16 +594,19 @@ export function TopVentesPage() {
   return (
     <Page>
       <PageHeader>
-        <PageTitle>Top Ventes</PageTitle>
-        <HeaderRight>
-          <PeriodSelector>
-            <PeriodBtn $active={period === '30j'}   onClick={() => setPeriod('30j')}>30 jours</PeriodBtn>
-            <PeriodBtn $active={period === '3mois'} onClick={() => setPeriod('3mois')}>3 mois</PeriodBtn>
-          </PeriodSelector>
-        </HeaderRight>
+        <PageHeaderText>
+          <PageEyebrow>Catalogue</PageEyebrow>
+          <PageTitle>Top Ventes</PageTitle>
+          <PageSubtitle>Meilleures ventes du réseau par thématique</PageSubtitle>
+        </PageHeaderText>
+        <PeriodSelector>
+          <PeriodBtn $active={period === '30j'}   onClick={() => setPeriod('30j')}>30 jours</PeriodBtn>
+          <PeriodBtn $active={period === '3mois'} onClick={() => setPeriod('3mois')}>3 mois</PeriodBtn>
+        </PeriodSelector>
       </PageHeader>
 
       <TabBar>
+        <FilterLabel>Thématique</FilterLabel>
         <Tab $active={activeTab === 'tous'} onClick={() => setTab('tous')}>Tous</Tab>
         {UNIVERSES.map(u => (
           <Tab key={u} $active={activeTab === u} onClick={() => setTab(u)}>{u}</Tab>
