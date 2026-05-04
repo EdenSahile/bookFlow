@@ -1,7 +1,6 @@
 import { useState, useDeferredValue, useMemo } from 'react'
 import styled from 'styled-components'
 import { BookCard } from '@/components/catalogue/BookCard'
-import { BookCardRow } from '@/components/catalogue/BookCardRow'
 import { UniverseFilter } from '@/components/catalogue/UniverseFilter'
 import { getBooksByType, searchBooks } from '@/data/mockBooks'
 import type { Universe, StockStatut } from '@/data/mockBooks'
@@ -22,14 +21,29 @@ const Page = styled.div`
   margin: 0 auto;
 `
 
-const PageHeaderRow = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+const PageHeader = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `
 
-const PageHeaderText = styled.div``
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
+`
 
 const PageTitle = styled.h1`
   font-family: ${({ theme }) => theme.typography.fontFamily};
@@ -44,32 +58,6 @@ const PageSubtitle = styled.p`
   font-size: ${({ theme }) => theme.typography.sizes.sm};
   color: ${({ theme }) => theme.colors.gray[600]};
   margin: 0;
-`
-
-const ViewToggle = styled.div`
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  margin-top: 6px;
-`
-
-const ViewBtn = styled.button<{ $active: boolean }>`
-  width: 36px;
-  height: 36px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  border: 1px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
-  background: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.white};
-  color: ${({ $active, theme }) => $active ? '#fff' : theme.colors.gray[400]};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.navy};
-    color: ${({ $active, theme }) => $active ? '#fff' : theme.colors.navy};
-  }
 `
 
 const Controls = styled.div`
@@ -101,26 +89,6 @@ const FilterLabel = styled.span`
   letter-spacing: 0.06em;
   flex-shrink: 0;
   width: 80px;
-`
-
-const PageEyebrow = styled.p`
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.accent};
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &::before {
-    content: '';
-    width: 18px;
-    height: 1.5px;
-    background: ${({ theme }) => theme.colors.accent};
-    display: inline-block;
-  }
 `
 
 const ResultsBar = styled.div`
@@ -219,12 +187,6 @@ const Grid = styled.div`
   }
 `
 
-const ListStack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`
-
 const EmptyState = styled.div`
   text-align: center;
   padding: ${({ theme }) => theme.spacing['3xl']};
@@ -261,36 +223,13 @@ function IconSearch() {
   )
 }
 
-function IconGrid() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-    </svg>
-  )
-}
-
-function IconList() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-      <line x1="8" y1="18" x2="21" y2="18"/>
-      <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
-      <line x1="3" y1="18" x2="3.01" y2="18"/>
-    </svg>
-  )
-}
-
 type SortKey = 'pertinence' | 'titre' | 'prix_asc' | 'prix_desc'
-type ViewMode = 'grid' | 'list'
 
 export function FondsPage() {
   const [query, setQuery]       = useState('')
   const [universe, setUniverse] = useState<Universe | null>(null)
   const [statut, setStatut]     = useState<StockStatut | null>(null)
   const [sort, setSort]         = useState<SortKey>('pertinence')
-  const [view, setView]         = useState<ViewMode>('grid')
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const deferred = useDeferredValue(query)
 
   const sorted = useMemo(() => {
@@ -311,31 +250,11 @@ export function FondsPage() {
 
   return (
     <Page>
-      <PageHeaderRow>
-        <PageHeaderText>
-          <PageEyebrow>Catalogue</PageEyebrow>
-          <PageTitle>Fonds</PageTitle>
-          <PageSubtitle>Titres déjà parus, disponibles à la commande immédiate</PageSubtitle>
-        </PageHeaderText>
-        <ViewToggle>
-          <ViewBtn
-            $active={view === 'grid'}
-            onClick={() => setView('grid')}
-            aria-label="Vue grille"
-            title="Vue grille"
-          >
-            <IconGrid />
-          </ViewBtn>
-          <ViewBtn
-            $active={view === 'list'}
-            onClick={() => setView('list')}
-            aria-label="Vue liste"
-            title="Vue liste"
-          >
-            <IconList />
-          </ViewBtn>
-        </ViewToggle>
-      </PageHeaderRow>
+      <PageHeader>
+        <PageEyebrow>Catalogue</PageEyebrow>
+        <PageTitle>Fonds</PageTitle>
+        <PageSubtitle>Titres déjà parus, disponibles à la commande immédiate</PageSubtitle>
+      </PageHeader>
 
       <Controls>
         <SearchWrapper>
@@ -397,28 +316,11 @@ export function FondsPage() {
       </ResultsBar>
 
       {sorted.length > 0 ? (
-        view === 'grid' ? (
-          <Grid>
-            {sorted.map(book => (
-              <BookCard key={book.id} book={book} showType coverFirst />
-            ))}
-          </Grid>
-        ) : (
-          <ListStack>
-            {sorted.map(book => (
-              <BookCardRow
-                key={book.id}
-                book={book}
-                selected={selectedIds.has(book.id)}
-                onToggle={() => setSelectedIds(prev => {
-                  const next = new Set(prev)
-                  next.has(book.id) ? next.delete(book.id) : next.add(book.id)
-                  return next
-                })}
-              />
-            ))}
-          </ListStack>
-        )
+        <Grid>
+          {sorted.map(book => (
+            <BookCard key={book.id} book={book} showType coverFirst />
+          ))}
+        </Grid>
       ) : (
         <EmptyState>
           {deferred.trim()

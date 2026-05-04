@@ -8,30 +8,30 @@
 
 ## État du build
 TS clean · 161 tests passants · session 2026-05-03 (session 9)  
-**FicheProduitPage conformité maquette** ✅
+**FicheProduitPage conformité maquette** ✅  
+**BookCard coverFirst "Product Shot" + coverFirst sur toutes les pages** ✅
 
 ---
 
 ## Session en cours
 
-### Harmonisation des cards — layout `coverFirst` sur toutes les pages ✅
+### Refonte design des pages — cohérence avec HomePage / LoginPage / CartPage / FondsPage
 
-- [x] AParaitrePage — ajouter `coverFirst` + aligner minmax à 220px
-- [x] NouveautesPage — ajouter `coverFirst` + aligner minmax à 220px
-- [x] RecherchePage — ajouter `coverFirst` + aligner minmax à 220px
-- [x] AuteurPage — ajouter `coverFirst` + aligner minmax à 220px
-- [x] TopVentesPage — ajouter `coverFirst` (PodiumGrid, sans toucher à la structure)
+Pages de référence : HomePage, LoginPage, CartPage, FondsPage  
+Language design : Playfair Display pour les titres de section, Open Sans corps, navy + accent or, fond gray[50], cards lg border-radius, badges accent, pill filters navy.
 
-### Redesign BookCard coverFirst — layout "Product Shot" ✅
-
-- [x] BookCover : chargement image réelle via OpenLibrary API par ISBN, fallback SVG généré
-- [x] CoverZone : fond neutre `gray[50]`, hauteur 200px, livre centré
-- [x] Book3D : wrapper CSS `perspective + rotateY(-10deg)` + drop-shadow, hover animé
-- [x] Star wishlist : top-right de la CoverZone
-- [x] CFInfoSection : badge + titre + auteur + éditeur·année + séparateur + prix + qty + stock + CTA
-- [x] Fix BookCover : TitleArea déjà masqué en fill mode (pas de double affichage)
+- [ ] NouveautesPage — en cours (validation requise avant suite)
+- [ ] AParaitrePage
+- [ ] TopVentesPage
+- [ ] SelectionsPage
+- [ ] FlashInfosPage
+- [ ] HistoriquePage
+- [ ] MonComptePage
+- [ ] RecherchePage
+- [ ] AuteurPage
 
 ---
 
 ## Prochaines étapes
 
+Valider chaque page avant de passer à la suivante.
