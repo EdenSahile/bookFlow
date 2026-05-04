@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { MOCK_BOOKS, PRICE_RANGES, type Book, type Universe } from '@/data/mockBooks'
 import { BookCard } from '@/components/catalogue/BookCard'
+import { mq } from '@/lib/responsive'
 
 /* ══════════════════════════════════════════════════════
    UTILS
@@ -77,10 +78,14 @@ const fadeIn = keyframes`
 const spin = keyframes`to { transform: rotate(360deg); }`
 
 const Page = styled.div`
-  padding: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.md};
   max-width: 1100px;
   margin: 0 auto;
   animation: ${fadeIn} 0.25s ease;
+
+  ${mq.md} {
+    padding: ${({ theme }) => theme.spacing.lg};
+  }
 `
 
 const PageHeader = styled.div`
@@ -147,7 +152,8 @@ const FilterRow = styled.div`
 `
 
 const FilterChip = styled.button<{ $active: boolean }>`
-  padding: 5px 14px;
+  padding: 8px 14px;
+  min-height: 36px;
   border-radius: ${({ theme }) => theme.radii.xl};
   border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.gray[200]};
   background: ${({ $active, theme }) => $active ? theme.colors.navy : theme.colors.white};
@@ -163,8 +169,20 @@ const FilterChip = styled.button<{ $active: boolean }>`
 /* ── Grille résultats ── */
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.md};
+
+  ${mq.sm} {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  ${mq.md} {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  ${mq.lg} {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
 `
 
 /* ── États ── */
