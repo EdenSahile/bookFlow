@@ -1212,7 +1212,7 @@ export function FicheProduitPage() {
 
   const selectedFormat = formats.find(f => f.id === formatId)!
   const isAParaitre    = book.type === 'a-paraitre'
-  const isEpuise       = book.statut === 'epuise'
+  const isEpuise       = book.statut === 'epuise' || book.statut === 'rupture'
   const needsConfirm   = book.statut === 'sur_commande' || book.statut === 'en_reimp'
   const isOrderable    = !isAParaitre && !isEpuise
 
@@ -1341,7 +1341,8 @@ export function FicheProduitPage() {
   const stockLabel =
     book.statut === 'disponible'   ? 'Disponible immédiatement' :
     book.statut === 'sur_commande' ? 'Sur commande' :
-    book.statut === 'en_reimp'     ? 'En réimpression' : 'Disponible'
+    book.statut === 'en_reimp'     ? 'En réimpression' :
+    book.statut === 'rupture'      ? 'Rupture de stock' : 'Disponible'
   const similar = MOCK_BOOKS.filter(b => b.universe === book.universe && b.id !== book.id).slice(0, 7)
 
   return (
@@ -1511,7 +1512,13 @@ export function FicheProduitPage() {
               </>
             )}
 
-            {isEpuise && <EpuiseNoticeEl>Cet ouvrage n'est plus disponible.</EpuiseNoticeEl>}
+            {isEpuise && (
+              <EpuiseNoticeEl>
+                {book.statut === 'rupture'
+                  ? 'Cet ouvrage est temporairement en rupture de stock.'
+                  : 'Cet ouvrage n\'est plus disponible.'}
+              </EpuiseNoticeEl>
+            )}
 
             {isAParaitre && (
               <ParaitreNoticeEl>

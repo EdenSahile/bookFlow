@@ -12,6 +12,7 @@ const DISPO_OPTIONS: Array<{ value: StockStatut; label: string; color: string | 
   { value: 'stock_limite', label: 'Stock limité',     color: '#C17E00' },
   { value: 'sur_commande', label: 'Sur commande',     color: '#5B7A9E' },
   { value: 'en_reimp',     label: 'En réimpression',  color: '#A07040' },
+  { value: 'rupture',      label: 'Rupture',           color: '#C0392B' },
   { value: 'epuise',       label: 'Épuisé',           color: null },
 ]
 

@@ -10,6 +10,7 @@ const STATUT_CONFIG: Record<StockStatut, { label: string; color: string }> = {
   sur_commande: { label: 'Sur commande',    color: '#5B7A9E' },
   en_reimp:     { label: 'En réimpression', color: '#A07040' },
   epuise:       { label: 'Épuisé',          color: '#999999' },
+  rupture:      { label: 'Rupture',         color: '#C0392B' },
 }
 
 const STATUTS_WITH_TOOLTIP: ReadonlyArray<StockStatut> = ['sur_commande', 'en_reimp']

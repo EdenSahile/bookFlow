@@ -10,6 +10,7 @@ const STATUT_STYLES: Record<StockStatut, { bg: string; fg: string; border: strin
   sur_commande: { bg: '#E8EDF3', fg: '#1C3252', border: '#BCCADC' },   // Bleu/gris
   en_reimp:     { bg: '#FDEBD0', fg: '#B65A00', border: '#F5C58A' },   // Orange/gris
   epuise:       { bg: '#EAEAE6', fg: '#555550', border: '#C9C9C2' },   // Gris foncé
+  rupture:      { bg: '#FDECEA', fg: '#C0392B', border: '#F5C5C0' },  // Rouge
 }
 
 export const STATUT_LIBELLES: Record<StockStatut, string> = {
@@ -18,6 +19,7 @@ export const STATUT_LIBELLES: Record<StockStatut, string> = {
   sur_commande: '🔄 Sur commande — Délai 7-15 jours',
   en_reimp:     '🔁 En réimpression',
   epuise:       '❌ Épuisé',
+  rupture:      '⛔ Rupture de stock',
 }
 
 /* ──────────────────────────────────────

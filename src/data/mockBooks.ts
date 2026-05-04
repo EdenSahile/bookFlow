@@ -7,6 +7,7 @@ export type StockStatut =
   | 'sur_commande'
   | 'en_reimp'
   | 'epuise'
+  | 'rupture'
 
 export interface Book {
   id: string
@@ -1141,6 +1142,13 @@ const STOCK_OVERRIDES: Record<string, StockStatut> = {
   'f-lit-gatsby':      'en_reimp',        // Gatsby le Magnifique
   'f-lit-millenium':   'en_reimp',        // Millénium T.1
   'f-bd-onepiece':     'en_reimp',        // One Piece T.1
+
+  /* Rupture de stock */
+  'f-lit-vargas':      'rupture',         // Fred Vargas
+  'f-bd-nana':         'rupture',         // Nana
+  'n-lit-02':          'rupture',         // Nouveauté littérature
+  'n-bd-02':           'rupture',         // Nouveauté BD
+  'f-jes-01':          'rupture',         // Fonds jeunesse
 
   /* Épuisé */
   'f-bd-02':           'epuise',          // Astérix chez les Bretons

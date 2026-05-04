@@ -580,7 +580,7 @@ export function BookCard({ book, showType = false, coverFirst = false }: Props) 
   const rdvBtnRef = useRef<HTMLButtonElement>(null)
 
   const isAParaitre  = book.type === 'a-paraitre'
-  const isEpuise     = book.statut === 'epuise'
+  const isEpuise     = book.statut === 'epuise' || book.statut === 'rupture'
   const needsConfirm = book.statut === 'sur_commande' || book.statut === 'en_reimp'
   const isOrderable  = !isEpuise
   const catColors    = CATEGORY_COLORS[book.universe] ?? CATEGORY_COLORS['Autres']
@@ -870,9 +870,9 @@ export function BookCard({ book, showType = false, coverFirst = false }: Props) 
               {isEpuise ? (
                 <>
                   <AjouterBtn $epuise disabled aria-disabled="true" onClick={e => e.stopPropagation()}>
-                    <IconCart /> Épuisé
+                    <IconCart /> {book.statut === 'rupture' ? 'Rupture' : 'Épuisé'}
                   </AjouterBtn>
-                  <EpuiseNote>Cet ouvrage n'est plus disponible</EpuiseNote>
+                  <EpuiseNote>{book.statut === 'rupture' ? 'Temporairement indisponible' : 'Cet ouvrage n\'est plus disponible'}</EpuiseNote>
                 </>
               ) : (
                 <AjouterBtn onClick={handleAdd} $added={added} aria-label="Ajouter au panier">
