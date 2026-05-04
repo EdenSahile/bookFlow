@@ -208,7 +208,6 @@ export function LoginPage() {
             <Wordmark size="lg" showBaseline />
           </AuthLogo>
 
-          <FormEyebrow>Espace libraire</FormEyebrow>
           <AuthTitle>Connexion</AuthTitle>
           <AuthSubtitle>Accès réservé aux libraires professionnels.</AuthSubtitle>
 
