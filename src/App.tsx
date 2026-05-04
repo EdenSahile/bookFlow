@@ -10,6 +10,7 @@ import { EDIProvider } from '@/contexts/EDIContext'
 import { WishlistProvider } from '@/contexts/WishlistContext'
 import { RdvProvider } from '@/contexts/RdvContext'
 import { ToastProvider } from '@/contexts/ToastContext'
+import { OnboardingProvider } from '@/contexts/OnboardingContext'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AppLayout } from '@/components/layout/AppLayout'
 
@@ -95,6 +96,7 @@ export default function App() {
               <OrdersProvider>
               <EDIProvider>
               <ReturnsProvider>
+              <OnboardingProvider>
               <Suspense fallback={<PageSkeleton />}>
               <Routes>
                 {/* Routes publiques */}
@@ -131,6 +133,7 @@ export default function App() {
                 </Route>
               </Routes>
               </Suspense>
+              </OnboardingProvider>
               </ReturnsProvider>
               </EDIProvider>
               </OrdersProvider>

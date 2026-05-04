@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { TooltipInfo } from '@/components/ui/TooltipInfo'
 import styled from 'styled-components'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
@@ -1464,6 +1465,7 @@ type KpiCardDef = {
   iconBg: string
   iconColor: string
   label: string
+  tooltip?: string
   value: React.ReactNode
   trend?: React.ReactNode
   link?: React.ReactNode
@@ -1676,6 +1678,7 @@ export function HomePage() {
       icon: '📊',
       iconBg: '#EDE9FE', iconColor: '#7C3AED',
       label: 'Panier moyen (hors annulées)',
+      tooltip: 'Montant moyen par commande sur la période, hors commandes annulées.',
       value: fmtEur(kpi.panierMoyen),
       trend: compareKpi
         ? <KpiTrendLine current={kpi.panierMoyen} compare={compareKpi.panierMoyen} mode={periodFilter.compareMode} />
@@ -1695,6 +1698,7 @@ export function HomePage() {
       icon: '✕',
       iconBg: '#FDECEA', iconColor: '#C0392B',
       label: 'Taux de rupture',
+      tooltip: 'Pourcentage de références commandées non livrées par le distributeur.',
       value: `${(kpi.tauxRupture * 100).toFixed(1).replace('.', ',')} %`,
       trend: compareKpi
         ? <KpiTrendLine current={kpi.tauxRupture} compare={compareKpi.tauxRupture} mode={periodFilter.compareMode} invert />
@@ -1773,7 +1777,7 @@ export function HomePage() {
           if (sectionId === 'actions') return (
         <SectionWrap key="actions">
           {sectionControls}
-        <ActionsBox aria-label="Actions en attente">
+        <ActionsBox id="tour-actions" aria-label="Actions en attente">
           <ActionsHeader>
             <ActionsLeft>
               <ActionsTitleRow>
@@ -1835,7 +1839,7 @@ export function HomePage() {
           if (sectionId === 'kpi') return (
         <SectionWrap key="kpi">
           {sectionControls}
-        <BilanSection aria-label="Tableau de bord">
+        <BilanSection id="tour-dashboard" aria-label="Tableau de bord">
           <BilanHeader>
             <BilanTitle>Tableau de bord</BilanTitle>
             <DashboardControls>
@@ -1891,7 +1895,10 @@ export function HomePage() {
                       <KPIIconWrap $bg={def.iconBg} $color={def.iconColor}>
                         {def.icon}
                       </KPIIconWrap>
-                      <KPILabel>{def.label}</KPILabel>
+                      <KPILabel>
+                        {def.label}
+                        {def.tooltip && <TooltipInfo text={def.tooltip} />}
+                      </KPILabel>
                     </KPITop>
                     <KPIValue>{def.value}</KPIValue>
                     {def.trend}
@@ -2156,6 +2163,7 @@ export function HomePage() {
               )
               if (c.id === 'panel-nouveautes') return (
                 <PanelCard
+                  id="tour-nouveautes"
                   key={c.id}
                   $dragging={cardDrag?.id === c.id}
                   $dropTarget={cardDrop?.id === c.id}

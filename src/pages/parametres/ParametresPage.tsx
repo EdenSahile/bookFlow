@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { newsletterSchema } from '@/lib/formSchemas'
+import { useOnboarding } from '@/contexts/OnboardingContext'
 
 /* ── Types ── */
 type Universe = 'BD/Mangas' | 'Jeunesse' | 'Littérature' | 'Adulte-pratique'
@@ -235,6 +236,30 @@ const SaveButton = styled.button`
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 `
 
+const TourBtn = styled.button`
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  background-color: transparent;
+  color: ${({ theme }) => theme.colors.navy};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.accent};
+    color: ${({ theme }) => theme.colors.accent};
+  }
+`
+
 /* ── Toggle component ── */
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -253,6 +278,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 export function ParametresPage() {
   const { user } = useAuthContext()
   const { showToast } = useToast()
+  const { resetTour } = useOnboarding()
 
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS)
   const [selected, setSelected] = useState<Set<string>>(new Set(['nouveautes', 'flashinfos']))
@@ -362,6 +388,10 @@ export function ParametresPage() {
         >
           {saving ? 'Enregistrement…' : 'Enregistrer les préférences'}
         </SaveButton>
+
+        <TourBtn type="button" onClick={resetTour}>
+          ▶ Revoir le tour guidé
+        </TourBtn>
       </form>
     </Page>
   )

@@ -9,6 +9,7 @@ import { DemoBanner } from '@/components/ui/DemoBanner'
 import { FeedbackWidget } from '@/components/ui/FeedbackWidget'
 import { AppFooter } from './AppFooter'
 import { useCart } from '@/contexts/CartContext'
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
 
 const LayoutRoot = styled.div`
   display: flex;
@@ -59,6 +60,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </MainColumn>
       <BottomNav />
       <FeedbackWidget />
+      <OnboardingTour />
     </LayoutRoot>
   )
 }

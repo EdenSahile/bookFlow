@@ -1239,7 +1239,7 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
         </LogoWrap>
 
         <SearchContainer ref={containerRef}>
-          <SearchGroup>
+          <SearchGroup id="tour-search">
             <SearchIconWrap><IconSearch size={14} /></SearchIconWrap>
             <SearchInput
               id="header-search-input"
@@ -1293,6 +1293,7 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick, hasNotif = t
           </ListsBtn>
 
           <CartBtn
+            id="tour-cart"
             $hasItems={cartCount > 0}
             onClick={onCartClick}
             aria-label={`Panier — ${cartCount} article${cartCount !== 1 ? 's' : ''}`}

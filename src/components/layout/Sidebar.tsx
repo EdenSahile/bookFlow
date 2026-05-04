@@ -5,6 +5,7 @@ import { useAuthContext } from '@/contexts/AuthContext'
 import { theme } from '@/lib/theme'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { IconLogout } from '@/components/ui/icons'
+import { TooltipInfo } from '@/components/ui/TooltipInfo'
 
 const GOLD = theme.colors.accent
 
@@ -194,9 +195,9 @@ const accountItems = [
 ]
 
 const toolItems = [
-  { to: '/panier',  label: 'Panier'  },
-  { to: '/edi',     label: 'EDI'     },
-  { to: '/offices', label: 'Offices' },
+  { to: '/panier',  label: 'Panier',  tooltip: undefined },
+  { to: '/edi',     label: 'EDI',     tooltip: undefined },
+  { to: '/offices', label: 'Offices', tooltip: undefined },
 ]
 
 const infoItems = [
@@ -235,7 +236,7 @@ export function Sidebar() {
 
           <Divider />
           <SectionLabel>Catalogue</SectionLabel>
-          <nav aria-label="Catalogue">
+          <nav id="tour-catalogue" aria-label="Catalogue">
             {catalogueItems.map(({ to, label }) => (
               <StyledNavLink key={to} to={to}>{label}</StyledNavLink>
             ))}
@@ -252,8 +253,11 @@ export function Sidebar() {
           <Divider />
           <SectionLabel>Outils</SectionLabel>
           <nav aria-label="Outils">
-            {toolItems.map(({ to, label }) => (
-              <StyledNavLink key={to} to={to}>{label}</StyledNavLink>
+            {toolItems.map(({ to, label, tooltip }) => (
+              <StyledNavLink key={to} to={to} id={to === '/edi' ? 'tour-edi' : undefined}>
+                {label}
+                {tooltip && <TooltipInfo text={tooltip} onDark />}
+              </StyledNavLink>
             ))}
           </nav>
 
