@@ -1378,7 +1378,7 @@ export function FicheProduitPage() {
           <CoverActionsRow>
             <CoverActionBtn onClick={() => {
               if (navigator.share) {
-                navigator.share({ title: book.title, text: book.authors.join(', ') })
+                navigator.share({ title: book.title, text: book.authors.join(', '), url: window.location.href })
               } else {
                 navigator.clipboard.writeText(window.location.href)
                 showToast('Lien copié')
