@@ -127,7 +127,7 @@ export const MOCK_ORDERS: Record<string, Order[]> = {
     {
       id: 'ord-002',
       numero: 'CMD-2025-0187',
-      date: '2025-02-10',
+      date: '2025-05-02',
       status: 'livré',
       codeClient: 'LIB001',
       commandePar: 'Sophie Martin',
