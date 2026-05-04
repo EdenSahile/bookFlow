@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { newsletterSchema } from '@/lib/formSchemas'
@@ -35,36 +35,67 @@ const NEWSLETTERS = [
   { id: 'topventes',  title: 'Top Ventes',           desc: 'Classements hebdomadaires par univers' },
 ]
 
+/* ── Animations ── */
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
+
 /* ── Styled ── */
 const Page = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
   max-width: 540px;
   margin: 0 auto;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
-const Title = styled.h1`
+const PageHeader = styled.div`
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`
+
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
+`
+
+const PageTitle = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes['2xl']};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.navy};
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
+  margin: 0;
 `
 
 const Section = styled.div`
   background-color: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   overflow: hidden;
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `
 
 const SectionTitle = styled.div`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: ${({ theme }) => theme.typography.sizes.xs};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.gray[600]};
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
-  background-color: ${({ theme }) => theme.colors.gray[100]};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  background-color: ${({ theme }) => theme.colors.navyLight};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
 `
 
 const Row = styled.label`
@@ -263,7 +294,10 @@ export function ParametresPage() {
 
   return (
     <Page>
-      <Title>Paramètres</Title>
+      <PageHeader>
+        <PageEyebrow>Mon espace</PageEyebrow>
+        <PageTitle>Paramètres</PageTitle>
+      </PageHeader>
 
       <form onSubmit={handleSave}>
         {/* ── Notifications ── */}

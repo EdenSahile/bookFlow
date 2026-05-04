@@ -8,7 +8,7 @@
 
 ## État du build
 TS clean · 161 tests passants · session 2026-05-04  
-**Refonte design pages** : NouveautesPage, AParaitrePage, TopVentesPage, SelectionsPage, FlashInfosPage, HistoriquePage, MonComptePage, RecherchePage, AuteurPage, ContactPage, FacturationPage ✅
+**Refonte design pages** : NouveautesPage, AParaitrePage, TopVentesPage, SelectionsPage, FlashInfosPage, HistoriquePage, MonComptePage, RecherchePage, AuteurPage, ContactPage, FacturationPage, ParametresPage, EDIPage, OfficesPage ✅
 
 ---
 
@@ -30,9 +30,9 @@ Language design : Open Sans corps (fontFamily), navy + accent or, fond gray[50],
 - [x] AuteurPage
 - [x] ContactPage
 - [x] FacturationPage
-- [ ] ParametresPage
-- [ ] EDIPage
-- [ ] OfficesPage
+- [x] ParametresPage
+- [x] EDIPage
+- [x] OfficesPage
 
 ---
 

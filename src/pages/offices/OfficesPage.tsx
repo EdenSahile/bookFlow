@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import type { Universe } from '@/data/mockBooks'
 import { CURRENT_OFFICE } from '@/data/mockOffices'
 import { theme } from '@/lib/theme'
@@ -136,8 +136,24 @@ function IconXCircle() {
     </svg>
   )
 }
+function IconTrash() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  )
+}
+function IconRestore() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-5.01" />
+    </svg>
+  )
+}
 
 // ── Styled components ───────────────────────────────────────────────
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
+
 const Page = styled.div`
   min-height: calc(100vh - ${({ theme }) => theme.layout.headerHeight});
   background: ${({ theme }) => theme.colors.gray[50]};
@@ -154,6 +170,8 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
 /* ── Page header ── */
@@ -172,10 +190,30 @@ const HeaderLeft = styled.div`
   flex-wrap: wrap;
 `
 
-const PageTitle = styled.h1`
-  font-size: 20px;
+const PageEyebrow = styled.p`
+  font-size: 10px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.gray[800]};
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
+`
+
+const PageTitle = styled.h1`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes['2xl']};
+  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  color: ${({ theme }) => theme.colors.navy};
   margin: 0;
 `
 
@@ -209,15 +247,15 @@ const HeaderBtn = styled.button<{ $primary?: boolean }>`
   font-size: 13px;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-weight: 500;
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, opacity 0.15s;
   white-space: nowrap;
 
   ${({ $primary, theme }) =>
     $primary
-      ? `background: ${theme.colors.navy}; color: #fff; border: 1px solid ${theme.colors.navy}; &:hover { background: ${theme.colors.primaryHover}; border-color: ${theme.colors.primaryHover}; }`
-      : `background: #fff; color: ${theme.colors.gray[800]}; border: 1px solid ${theme.colors.gray[200]}; &:hover { border-color: ${theme.colors.gray[400]}; }`}
+      ? `background: ${theme.colors.navy}; color: #fff; border: 1.5px solid ${theme.colors.navy}; &:hover { background: ${theme.colors.primaryHover}; border-color: ${theme.colors.primaryHover}; }`
+      : `background: #fff; color: ${theme.colors.gray[800]}; border: 1.5px solid ${theme.colors.gray[200]}; &:hover { border-color: ${theme.colors.gray[400]}; }`}
 `
 
 /* ── Summary cards ── */
@@ -236,8 +274,8 @@ const SummaryGrid = styled.div`
 
 const SummaryCard = styled.div`
   background: #fff;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 4px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.lg};
   padding: 14px 16px;
   display: flex;
   align-items: flex-start;
@@ -285,15 +323,16 @@ const InfoBanner = styled.div`
   align-items: flex-start;
   gap: 10px;
   padding: 10px 14px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  border-radius: 4px;
-  color: #1D4ED8;
+  background: ${({ theme }) => theme.colors.navyLight};
+  border-left: 3px solid ${({ theme }) => theme.colors.accent};
+  border-radius: ${({ theme }) => theme.radii.md};
+  color: ${({ theme }) => theme.colors.accent};
 `
 
 const InfoBannerText = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 13px;
-  color: inherit;
+  color: ${({ theme }) => theme.colors.gray[600]};
   margin: 0;
   line-height: 1.5;
 `
@@ -344,14 +383,14 @@ const TagDot = styled.span<{ $color: string }>`
 /* ── Table ── */
 const TableWrap = styled.div`
   background: #fff;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: 4px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   overflow: hidden;
 `
 
 const TableHead = styled.div`
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 120px 150px 150px 130px;
+  grid-template-columns: minmax(280px, 1fr) 120px 150px 150px 130px 60px;
   background: ${({ theme }) => theme.colors.gray[50]};
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
   padding: 0 16px;
@@ -402,7 +441,7 @@ const UniverseGroupCount = styled.span`
 
 const BookRow = styled.div<{ $retired: boolean }>`
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 120px 150px 150px 130px;
+  grid-template-columns: minmax(280px, 1fr) 120px 150px 150px 130px 60px;
   padding: 14px 16px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
   align-items: center;
@@ -626,6 +665,25 @@ const StatusBadge = styled.button<{ $inclus: boolean }>`
       : `background: #FEE2E2; color: #991B1B; border-color: #FCA5A5; &:hover { background: #FECACA; }`}
 `
 
+const ActionBtn = styled.button<{ $restore?: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: ${({ $restore }) => $restore ? '#f0fdf4' : 'none'};
+  border: 1.5px solid ${({ $restore, theme }) => $restore ? theme.colors.success : theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.md};
+  cursor: pointer;
+  color: ${({ $restore, theme }) => $restore ? theme.colors.success : theme.colors.gray[400]};
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  &:hover {
+    border-color: ${({ $restore, theme }) => $restore ? theme.colors.success : theme.colors.error};
+    color: ${({ $restore, theme }) => $restore ? theme.colors.success : theme.colors.error};
+    background: ${({ $restore }) => $restore ? '#dcfce7' : '#fdf2f2'};
+  }
+`
+
 /* ── Table footer ── */
 const TableFooter = styled.div`
   display: flex;
@@ -671,13 +729,13 @@ const ActionsRow = styled.div`
 
 const CancelBtn = styled.button`
   padding: 10px 20px;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
   background: #fff;
   color: ${({ theme }) => theme.colors.gray[800]};
   font-size: 14px;
   font-weight: 500;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
   transition: border-color 0.15s;
   &:hover { border-color: ${({ theme }) => theme.colors.gray[400]}; }
@@ -685,16 +743,16 @@ const CancelBtn = styled.button`
 
 const ValidateBtn = styled.button`
   padding: 10px 24px;
-  background: ${({ theme }) => theme.colors.accent};
+  background: ${({ theme }) => theme.colors.navy};
   color: #fff;
-  border: 1px solid ${({ theme }) => theme.colors.accent};
+  border: 1.5px solid ${({ theme }) => theme.colors.navy};
   font-size: 14px;
   font-weight: 600;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  border-radius: 4px;
+  border-radius: ${({ theme }) => theme.radii.md};
   cursor: pointer;
-  transition: opacity 0.15s;
-  &:hover { opacity: 0.88; }
+  transition: background 0.15s;
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
 /* ── Export modal ── */
@@ -857,8 +915,13 @@ export function OfficesPage() {
         {/* ── Header ── */}
         <PageHeader>
           <HeaderLeft>
-            <PageTitle>Mon office — {office.label}</PageTitle>
-            <PeriodBadge>Période concernée</PeriodBadge>
+            <div>
+              <PageEyebrow>Mon espace</PageEyebrow>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <PageTitle>Mon office — {office.label}</PageTitle>
+                <PeriodBadge>Période concernée</PeriodBadge>
+              </div>
+            </div>
           </HeaderLeft>
           <HeaderRight>
             <HeaderBtn>
@@ -953,6 +1016,7 @@ export function OfficesPage() {
             <TableHeadCell>Quantité proposée</TableHeadCell>
             <TableHeadCell>Votre quantité</TableHeadCell>
             <TableHeadCell>Statut</TableHeadCell>
+            <TableHeadCell>Action</TableHeadCell>
           </TableHead>
 
           {groupedBooks.map(({ universe, books }) => {
@@ -1044,24 +1108,22 @@ export function OfficesPage() {
                       {/* Statut */}
                       <DataCell>
                         <MobileLabel>Statut :</MobileLabel>
-                        <TooltipWrap>
-                          <StatusBadge
-                            $inclus={isInclus}
-                            onClick={() => handleStatusClick(book.isbn)}
-                            aria-label={
-                              isInclus
-                                ? "Retirer le titre de l'office"
-                                : "Maintenir le titre dans l'office"
-                            }
-                          >
-                            {isInclus ? 'Inclus' : 'Retiré'}
-                          </StatusBadge>
-                          <span className="tt">
-                            {isInclus
-                              ? "Cliquer pour retirer le titre de l'office"
-                              : "Cliquer pour maintenir le titre dans l'office"}
-                          </span>
-                        </TooltipWrap>
+                        <StatusBadge $inclus={isInclus} as="span">
+                          {isInclus ? 'Inclus' : 'Retiré'}
+                        </StatusBadge>
+                      </DataCell>
+
+                      {/* Action */}
+                      <DataCell>
+                        <MobileLabel>Action :</MobileLabel>
+                        <ActionBtn
+                          $restore={!isInclus}
+                          onClick={() => handleStatusClick(book.isbn)}
+                          aria-label={isInclus ? `Retirer ${book.title} de l'office` : `Réintégrer ${book.title} dans l'office`}
+                          title={isInclus ? "Retirer le titre de l'office" : "Réintégrer le titre dans l'office"}
+                        >
+                          {isInclus ? <IconTrash /> : <IconRestore />}
+                        </ActionBtn>
                       </DataCell>
                     </BookRow>
                   )
@@ -1140,14 +1202,14 @@ export function OfficesPage() {
                 <tbody>
                   {includedForExport.map(b => (
                     <tr key={b.isbn}>
-                      <ExportTd style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: '#6B6B68' }}>
+                      <ExportTd style={{ fontSize: 11, color: '#6B6B68' }}>
                         {b.isbn}
                       </ExportTd>
                       <ExportTd style={{ fontWeight: 500, maxWidth: 220 }}>{b.title}</ExportTd>
                       <ExportTd style={{ color: theme.colors.gray[600] }}>{b.authors.join(', ')}</ExportTd>
                       <ExportTd>{b.universe}</ExportTd>
                       <ExportTd>{fmtDate(b.publicationDate)}</ExportTd>
-                      <ExportTd style={{ fontFamily: "'DM Mono', monospace", textAlign: 'right' }}>
+                      <ExportTd style={{ textAlign: 'right' }}>
                         {b.priceTTC.toFixed(2)} €
                       </ExportTd>
                       <ExportTd style={{ textAlign: 'center', fontWeight: 700 }}>

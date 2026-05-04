@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useEDI } from '@/contexts/EDIContext'
 import { theme } from '@/lib/theme'
@@ -48,10 +48,14 @@ const DIFFUSEURS = [
 /* ════════════════════════════════════════════════════
    STYLED — layout racine
 ════════════════════════════════════════════════════ */
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`
+
 const Page = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
   max-width: 1200px;
   margin: 0 auto;
+  animation: ${fadeIn} .25s ease;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 `
 
 const PageHeader = styled.div`
@@ -65,17 +69,38 @@ const PageHeader = styled.div`
 
 const TitleBlock = styled.div``
 
+const PageEyebrow = styled.p`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.accent};
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::before {
+    content: '';
+    width: 18px;
+    height: 1.5px;
+    background: ${({ theme }) => theme.colors.accent};
+    display: inline-block;
+  }
+`
+
 const Title = styled.h1`
-  font-size: 1.375rem;
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: ${({ theme }) => theme.typography.sizes['2xl']};
   font-weight: ${({ theme }) => theme.typography.weights.bold};
   color: ${({ theme }) => theme.colors.navy};
-  letter-spacing: -0.4px;
-  margin-bottom: 4px;
+  margin: 0 0 4px;
 `
 
 const Subtitle = styled.p`
+  font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 0.875rem;
   color: ${({ theme }) => theme.colors.gray[400]};
+  margin: 0;
 `
 
 const DocBtn = styled.a`
@@ -84,12 +109,14 @@ const DocBtn = styled.a`
   gap: 6px;
   padding: 8px 14px;
   border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.md};
   font-size: 0.8125rem;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-weight: ${({ theme }) => theme.typography.weights.medium};
   color: ${({ theme }) => theme.colors.navy};
   text-decoration: none;
   white-space: nowrap;
+  transition: background .15s;
   &:hover { background: ${({ theme }) => theme.colors.gray[50]}; }
 `
 
@@ -107,7 +134,8 @@ const StatsRow = styled.div`
 
 const Card = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 20px;
 `
 
@@ -269,7 +297,8 @@ const MainLayout = styled.div`
 /* ── Section Historique ── */
 const HistoriqueSection = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 20px;
 `
 
@@ -306,13 +335,15 @@ const ExportBtn = styled.button`
   gap: 6px;
   padding: 6px 12px;
   border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
+  border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.colors.white};
   font-size: 0.8125rem;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-weight: ${({ theme }) => theme.typography.weights.medium};
   color: ${({ theme }) => theme.colors.navy};
   cursor: pointer;
-  &:hover { background: ${({ theme }) => theme.colors.gray[50]}; }
+  transition: background .15s, border-color .15s;
+  &:hover { background: ${({ theme }) => theme.colors.gray[50]}; border-color: ${({ theme }) => theme.colors.navy}; }
 `
 
 /* Recherche ISBN */
@@ -361,21 +392,22 @@ const TabsRow = styled.div`
 `
 
 const Tab = styled.button<{ $active: boolean }>`
-  padding: 6px 12px;
+  padding: 5px 13px;
+  border-radius: ${({ theme }) => theme.radii.full};
   font-size: 0.8125rem;
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-weight: ${({ $active, theme }) =>
-    $active ? theme.typography.weights.semibold : theme.typography.weights.normal};
+  font-weight: ${({ theme }) => theme.typography.weights.semibold};
   border: 1.5px solid ${({ $active, theme }) =>
     $active ? theme.colors.navy : theme.colors.gray[200]};
   background: ${({ $active, theme }) =>
-    $active ? theme.colors.navy : theme.colors.white};
+    $active ? theme.colors.navy : 'transparent'};
   color: ${({ $active, theme }) =>
-    $active ? theme.colors.white : theme.colors.navy};
+    $active ? theme.colors.white : theme.colors.gray[600]};
   cursor: pointer;
+  transition: all .15s ease;
   &:hover {
-    background: ${({ $active, theme }) =>
-      $active ? theme.colors.navy : theme.colors.gray[50]};
+    border-color: ${({ theme }) => theme.colors.navy};
+    color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.navy};
   }
 `
 
@@ -461,7 +493,8 @@ const RightPanel = styled.div`
 
 const PanelCard = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 18px;
 `
 
@@ -558,7 +591,8 @@ const ContactBtn = styled.button`
 ════════════════════════════════════════════════════ */
 const ParamsCard = styled.div`
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border-radius: ${({ theme }) => theme.radii.xl};
   padding: 20px;
   margin-bottom: 24px;
 `
@@ -771,6 +805,7 @@ export function EDIPage() {
         {/* ── Header ── */}
         <PageHeader>
           <TitleBlock>
+            <PageEyebrow>Mon espace</PageEyebrow>
             <Title>EDI — Échanges de données informatisés</Title>
             <Subtitle>
               Suivez vos flux EDI avec Dilicom et consultez l'historique des échanges avec vos diffuseurs.
