@@ -273,19 +273,6 @@ export function OnboardingTour() {
     }
   }
 
-  /* Auto-démarrage à la première connexion — compatible React Strict Mode */
-  useEffect(() => {
-    if (isDoneRef.current) return
-    const timer = setTimeout(launchDriver, 1000)
-    return () => {
-      clearTimeout(timer)
-      /* Strict Mode cleanup: si le driver a été lancé, on le détruit */
-      driverRef.current?.destroy()
-      driverRef.current = null
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   /* Démarrage manuel via resetTour() / startTour() */
   useEffect(() => {
     if (shouldStart) {

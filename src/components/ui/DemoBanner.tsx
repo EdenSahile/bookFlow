@@ -1,30 +1,34 @@
 import styled from 'styled-components'
+import { mq } from '@/lib/responsive'
 
 const BannerWrap = styled.aside`
   position: sticky;
   z-index: 98;
-  height: ${({ theme }) => theme.layout.demoBannerHeight};
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 16px;
+  padding: 6px 16px;
   background: ${({ theme }) => theme.colors.accentLight};
   border-bottom: 1px solid rgba(201, 168, 76, 0.35);
   color: ${({ theme }) => theme.colors.gray[600]};
   font-family: ${({ theme }) => theme.typography.fontFamily};
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.4;
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
   flex-shrink: 0;
 
   /* Collé sous le header mobile */
   top: ${({ theme }) => theme.layout.mobileHeaderHeight};
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+  ${mq.md} {
+    height: ${({ theme }) => theme.layout.demoBannerHeight};
+    padding: 0 16px;
+    font-size: 11.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     /* Collé sous le topbar desktop */
     top: ${({ theme }) => theme.layout.headerHeight};
   }
