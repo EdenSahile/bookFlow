@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
@@ -1219,6 +1219,10 @@ export function FicheProduitPage() {
   const [pagesOpen, setPagesOpen] = useState(false)
   const [pageIdx, setPageIdx]     = useState(0)
   const [videoOpen, setVideoOpen] = useState(false)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [id])
 
   const book = id ? getBookById(id) : undefined
 
