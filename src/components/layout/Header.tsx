@@ -1033,10 +1033,10 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick }: HeaderProp
   function toggleListsPanel() {
     if (!showListsPanel && listsBtnRef.current) {
       const rect = listsBtnRef.current.getBoundingClientRect()
-      setListsPanelPos({
-        top: rect.bottom + 4,
-        right: window.innerWidth - rect.right,
-      })
+      const PANEL_W = 320
+      const rawRight = window.innerWidth - rect.right
+      const right = Math.max(8, Math.min(rawRight, window.innerWidth - 8 - PANEL_W))
+      setListsPanelPos({ top: rect.bottom + 4, right })
       setSelectedListId(null)
       setFilterPrenom(null)
     }
