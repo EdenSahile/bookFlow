@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { useNotifications } from '@/contexts/NotificationsContext'
@@ -62,17 +63,20 @@ const Badge = styled.span`
   }
 `
 
-const Panel = styled.div`
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 290px;
+const PANEL_W = 290
+
+const Panel = styled.div<{ $top: number; $right: number }>`
+  position: fixed;
+  top: ${({ $top }) => $top}px;
+  right: ${({ $right }) => $right}px;
+  width: ${PANEL_W}px;
+  max-width: calc(100vw - 16px);
   background: ${theme.colors.white};
   border: 1px solid ${theme.colors.gray[200]};
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,.14);
   overflow: hidden;
-  z-index: 200;
+  z-index: 400;
 `
 
 const PanelHeader = styled.div`
@@ -212,16 +216,31 @@ export function NotificationBell() {
   const navigate = useNavigate()
   const { notifications, unreadIds, unreadCount, markAsRead, markAllAsRead } = useNotifications()
   const [open, setOpen] = useState(false)
+  const [panelPos, setPanelPos] = useState({ top: 0, right: 0 })
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const bellRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
     function onClickOutside(e: MouseEvent) {
-      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false)
+      if (wrapperRef.current?.contains(e.target as Node)) return
+      if (panelRef.current?.contains(e.target as Node)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [open])
+
+  function handleBellClick() {
+    if (!open && bellRef.current) {
+      const rect = bellRef.current.getBoundingClientRect()
+      const rawRight = window.innerWidth - rect.right
+      const right = Math.max(8, Math.min(rawRight, window.innerWidth - 8 - PANEL_W))
+      setPanelPos({ top: rect.bottom + 4, right })
+    }
+    setOpen(v => !v)
+  }
 
   function handleItemClick(route: string, id: NotifId) {
     markAsRead(id)
@@ -231,7 +250,7 @@ export function NotificationBell() {
 
   return (
     <Wrapper ref={wrapperRef}>
-      <BellBtn $active={unreadCount > 0} onClick={() => setOpen(v => !v)} aria-label="Notifications">
+      <BellBtn ref={bellRef} $active={unreadCount > 0} onClick={handleBellClick} aria-label="Notifications">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -241,8 +260,8 @@ export function NotificationBell() {
 
       {unreadCount > 0 && <Badge>{unreadCount}</Badge>}
 
-      {open && (
-        <Panel>
+      {open && createPortal(
+        <Panel ref={panelRef} $top={panelPos.top} $right={panelPos.right}>
           <PanelHeader>
             <PanelTitle>Notifications</PanelTitle>
             {unreadCount > 0 && (
@@ -284,7 +303,8 @@ export function NotificationBell() {
               )
             })
           )}
-        </Panel>
+        </Panel>,
+        document.body
       )}
     </Wrapper>
   )

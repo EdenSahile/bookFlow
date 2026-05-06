@@ -1291,6 +1291,10 @@ const GhostRow = styled.div`
   display: flex;
   gap: 10px;
   margin-top: 10px;
+
+  ${mq.belowMd} {
+    display: none;
+  }
 `
 
 const GhostCard = styled.div`

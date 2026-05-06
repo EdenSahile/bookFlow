@@ -5,6 +5,7 @@ import { useAuthContext } from '@/contexts/AuthContext'
 import { useOnboarding } from '@/contexts/OnboardingContext'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { IconLogout } from '@/components/ui/icons'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 
 /* ── Animations ── */
 const slideIn = keyframes`
@@ -132,6 +133,25 @@ const NavItem = styled.button<{ $danger?: boolean }>`
 
 const NavLabel = styled.span`
   flex: 1;
+`
+
+const NavBellWrap = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  width: 100%;
+  padding: 7px ${({ theme }) => theme.spacing.lg};
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+
+  &:hover { background-color: rgba(255,255,255,0.08); }
+`
+
+const NavBellLabel = styled.span`
+  flex: 1;
+  color: ${({ theme }) => theme.colors.white};
+  font-size: ${({ theme }) => theme.typography.sizes.md};
+  font-family: ${({ theme }) => theme.typography.fontFamily};
 `
 
 const RdvBadge = styled.span`
@@ -287,6 +307,10 @@ export function BurgerMenu({ open, onClose }: BurgerMenuProps) {
               <IconParametres />
               <NavLabel>Paramètres</NavLabel>
             </NavItem>
+            <NavBellWrap>
+              <NotificationBell />
+              <NavBellLabel>Notifications</NavBellLabel>
+            </NavBellWrap>
             <NavItem onClick={() => go('/aide')}>
               <IconAide />
               <NavLabel>Aide</NavLabel>

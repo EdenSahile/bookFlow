@@ -427,7 +427,16 @@ const ApplyBtn = styled.button`
 `
 
 
-/* ── Notifications ── */
+/* ── Desktop-only icons ── */
+const DesktopOnly = styled.div`
+  display: none;
+  align-items: center;
+  gap: 8px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    display: flex;
+  }
+`
 
 const HelpBtn = styled.button`
   width: 34px; height: 34px;
@@ -525,27 +534,31 @@ const ListsBtn = styled.button<{ $hasLists: boolean }>`
   cursor: pointer;
   font-family: ${({ theme }) => theme.typography.fontFamily};
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   flex-shrink: 0;
   transition: all .15s;
   white-space: nowrap;
 
-  /* Mobile : style sombre */
-  background: transparent;
-  border: 1.5px solid rgba(255,255,255,0.25);
-  color: rgba(255,255,255,0.75);
-
-  &:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.4);
-    color: #fff;
-  }
+  /* Mobile : style doré (symétrique avec CartBtn) */
+  ${({ $hasLists }) => $hasLists ? `
+    background: #D4A843;
+    border: 1.5px solid #D4A843;
+    color: #232f3e;
+    box-shadow: 0 2px 8px rgba(212,168,67,0.35);
+    &:hover { background: #E0B84A; border-color: #E0B84A; }
+  ` : `
+    background: transparent;
+    border: 1.5px solid rgba(212,168,67,0.5);
+    color: #D4A843;
+    &:hover { background: rgba(212,168,67,0.12); border-color: rgba(212,168,67,0.7); }
+  `}
 
   /* Desktop : style clair */
   @media (min-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    background: transparent;
     border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
     color: ${({ theme }) => theme.colors.gray[600]};
-    background: transparent;
+    box-shadow: none;
 
     &:hover {
       border-color: ${({ theme }) => theme.colors.navy};
@@ -1233,15 +1246,16 @@ export function Header({ cartCount = 0, onBurgerClick, onCartClick }: HeaderProp
         </SearchContainer>
 
         <RightSection>
-          <NotificationBell />
-
-          <HelpBtn
-            onClick={() => navigate('/aide')}
-            aria-label="Aide"
-            title="Aide"
-          >
-            <IconHelp />
-          </HelpBtn>
+          <DesktopOnly>
+            <NotificationBell />
+            <HelpBtn
+              onClick={() => navigate('/aide')}
+              aria-label="Aide"
+              title="Aide"
+            >
+              <IconHelp />
+            </HelpBtn>
+          </DesktopOnly>
 
           {/* ─ Bouton Listes ─ */}
           <ListsBtn
